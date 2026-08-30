@@ -1,5 +1,27 @@
 // ============================================================
-// 1. УТИЛИТЫ
+// 1. КОНСТАНТЫ
+// ============================================================
+const STATUSES = {
+  DONE: 'done',
+  PLANNED: 'planned'
+};
+
+const CATEGORIES = {
+  SOUP: 'soup',
+  SALAD: 'salad',
+  MAIN: 'main',
+  OTHER: 'other'
+};
+
+const CATEGORY_LABELS = {
+  [CATEGORIES.SOUP]: '🍲 Суп',
+  [CATEGORIES.SALAD]: '🥗 Салат',
+  [CATEGORIES.MAIN]: '🍖 Основное',
+  [CATEGORIES.OTHER]: '🍽️ Другое'
+};
+
+// ============================================================
+// 2. УТИЛИТЫ
 // ============================================================
 const Utils = {
   escapeHtml(str) {
@@ -8,16 +30,19 @@ const Utils = {
     div.textContent = str;
     return div.innerHTML;
   },
+
   formatDate(date) {
     const months = ['января','февраля','марта','апреля','мая','июня','июля','августа','сентября','октября','ноября','декабря'];
     return `${date.getDate()} ${months[date.getMonth()]} ${date.getFullYear()}`;
   },
+
   formatDateLocal(date) {
     const y = date.getFullYear();
     const m = String(date.getMonth() + 1).padStart(2, '0');
     const d = String(date.getDate()).padStart(2, '0');
     return `${y}-${m}-${d}`;
   },
+
   daysAgo(dateStr) {
     if (!dateStr) return null;
     const today = new Date();
@@ -30,19 +55,21 @@ const Utils = {
     if (diff < 30) return `${Math.floor(diff / 7)} недели назад`;
     return `${diff} дней назад`;
   },
+
   guessCategory(name) {
     const lower = name.toLowerCase();
-    if (lower.includes('суп') || lower.includes('борщ') || lower.includes('пюре') || lower.includes('бульон')) return 'soup';
-    if (lower.includes('салат') || lower.includes('винегрет') || lower.includes('овощ') || lower.includes('зелень')) return 'salad';
+    if (lower.includes('суп') || lower.includes('борщ') || lower.includes('пюре') || lower.includes('бульон')) return CATEGORIES.SOUP;
+    if (lower.includes('салат') || lower.includes('винегрет') || lower.includes('овощ') || lower.includes('зелень')) return CATEGORIES.SALAD;
     if (lower.includes('котлет') || lower.includes('запекан') || lower.includes('тушен') ||
         lower.includes('колбас') || lower.includes('жарен') || lower.includes('печень') ||
         lower.includes('мясо') || lower.includes('курин') || lower.includes('индей') ||
         lower.includes('рыб') || lower.includes('бифштекс') || lower.includes('стейк') ||
         lower.includes('паста') || lower.includes('макарон') || lower.includes('греч') ||
         lower.includes('рис') || lower.includes('плов') || lower.includes('картош') ||
-        lower.includes('каш')) return 'main';
-    return 'other';
+        lower.includes('каш')) return CATEGORIES.MAIN;
+    return CATEGORIES.OTHER;
   },
+
   getWeekDays(baseDate) {
     const start = new Date(baseDate);
     start.setDate(start.getDate() - start.getDay() + 1);
@@ -53,11 +80,26 @@ const Utils = {
       week.push(d);
     }
     return week;
+  },
+
+  // Проверка, является ли строка ингредиентом (для парсеров)
+  isIngredientLine(line) {
+    if (!line || line.length < 3) return false;
+    const hasNumber = /\d+/.test(line);
+    const hasUnit = /(грамм|гр|мл|литр|кг|ст\.|ч\.|шт|зуб|пуч|ветк|головк|щепотк|кус|ломтик|пласт|лист|горст|капл|столов|чайн|десертн|стакан|банк|пакет|упаковк|коробк|баночк|бутылк)/i.test(line);
+    const hasProduct = /(лук|морков|картофел|масл|соль|перец|сахар|мук|яйц|молок|сливк|сметан|майонез|кетчуп|соус|уксус|лимон|чеснок|зелень|петрушк|укроп|базилик|тимьян|розмарин|орегано|кориц|ванил|какао|шоколад|орех|миндал|фисташк|кешью|изюм|кураг|чернослив|инжир|мед|сироп|варенье|джем|конфитюр|пастил|мармелад|зефир|безе|меренг|суфле|мусс|крем|глазурь|помадк|карамел|ирис|тянучк|грильяж|пралине|нуга|халв|козинак|печенье|пряник|коврижк|корж|бисквит|рулет|пирожн|торт|кекс|маффин|капкейк|пончик|оладь|блин|сырник|ватрушк|шарлотк|пахлав|наполеон|медовик|сметанник|морковник|ореховик|шоколадник|клубничн|малин|чернич|ежевич|смородин|крыжовник|вишн|черешн|слив|абрикос|персик|нектарин|банан|яблок|груш|айв|хурм|гранат|цитрус|лимон|лайм|грейпфрут|мандарин|апельсин|помело|свити|кумкват|бергамот|памела|унаби|зизифус|джуджуба|финик|кокос|манго|папай|маракуй|питахай|дуриан|джекфрут|личе|рамбутан|лангуст|мангостин|саподилл|чику|канистел|лукум|хала|баге|бриош|круассан|булочк|пирожк|расстегай|кулебяк|курник|каравай|калач|баранк|сушк|сухар|гренк|панцер|шницель|отбивн|эскалоп|медальон|рагу|жульен|фондю|раклет|тост|канапе|тарталетк|волован|корзиночк|павлов|тирамису|паннакот|крем-брюле|флан|пудинг|запеканк|суфле|мусс|парфе|сорбет|шербет|гранит|фраппе|коктейль|смузи|компот|кисель|узвар|морс|квас|лимонад|швепс|тоник|кола|пепси|спрайт|фанта|миринда|газировк|минералк|вод|сок|нектар|напитк|чай|кофе|какао|горячий|шоколад|глинтвейн|сбитень|медовух|квас|сидр|пиво|рыб|тунц|горбуш|сардин|шпрот|сельд|лосос|форел|семг|кета|кижуч|нерк|чавыч|сиг|омул|ряпушк|корюшк|мойв|анчоус|кильк|тюльк|хамс|палтус|камбал|треск|пикш|морск|окун|судак|щук|сом|налим|угор|минога|осетр|стерлядь|белуга|калуга|севрюга|шип|веслонос|пангасиус|тилапия|дорада|сибас|луфарь|ставрида|скумбрия|макрель|тунец|пеламида|бонито|ваху|махи-махи|корифена|парусник|меч-рыба|марлин|спинорог|рыба-луна|рыба-еж|рыба-клоун|рыба-ангел|рыба-бабочка|рыба-зебра|рыба-лев|рыба-камень|рыба-скорпион|рыба-жаба|рыба-игла|рыба-сабля|рыба-ремень|рыба-меч|рыба-пила|рыба-молот|рыба-кит|акула|скат|электрический скат|морской котик|морж|тюлень|сивуч|нерп)/i.test(line);
+    const hasMarker = /^[•\-*]\s*/.test(line);
+    let score = 0;
+    if (hasNumber) score++;
+    if (hasUnit) score++;
+    if (hasProduct) score++;
+    if (hasMarker) score++;
+    return score >= 2;
   }
 };
 
 // ============================================================
-// 2. ХРАНИЛИЩЕ ДАННЫХ
+// 3. ХРАНИЛИЩЕ ДАННЫХ
 // ============================================================
 const DishStore = (function() {
   const STORAGE_KEY = 'smartMenuDishes_v5';
@@ -67,32 +109,42 @@ const DishStore = (function() {
   let cacheAllWithDone = null;
 
   const DEFAULT_DISHES = [
-    { name: 'Гороховый суп', status: 'done', date: '2026-08-24', category: 'soup', note: '' },
-    { name: 'Запеканка из фарша и овощей', status: 'done', date: '2026-08-25', category: 'main', note: 'можно добавить сыр' },
-    { name: 'Колбаски и запеченая картошка', status: 'done', date: '2026-08-26', category: 'main', note: '' },
-    { name: 'Плов', status: 'planned', date: '2026-08-28', category: 'main', note: 'использовать баранину' },
-    { name: 'Салат с крабовыми палочками', status: 'planned', date: '2026-08-28', category: 'salad', note: '' },
-    { name: 'Суп борщ?', status: 'planned', date: '2026-08-31', category: 'soup', note: '' },
-    { name: 'Котлеты с картофельным пюре', status: 'planned', date: '2026-09-01', category: 'main', note: '' },
-    { name: 'Салат морковь по-корейски', status: 'planned', date: '2026-09-01', category: 'salad', note: '' },
-    { name: 'Печень и перловка', status: 'planned', date: '2026-09-02', category: 'main', note: '' },
-    { name: 'Мясо по-французски', status: 'planned', date: '2026-09-03', category: 'main', note: '' },
-    { name: 'Морская капуста с крабовыми палочками', status: 'planned', date: '2026-09-04', category: 'salad', note: '' },
-    { name: 'Суп с сайрой', status: 'planned', date: '2026-09-07', category: 'soup', note: '' },
-    { name: 'Тушеная капуста', status: 'planned', date: '2026-09-08', category: 'main', note: '' },
-    { name: 'Запеченные куриные ножки', status: 'planned', date: '2026-09-09', category: 'main', note: '' },
-    { name: 'Фунчоза', status: 'planned', date: '2026-09-09', category: 'main', note: '' },
-    { name: 'Удон', status: 'planned', date: '2026-09-10', category: 'main', note: '' },
-    { name: 'Паста Болоньезе', status: 'planned', date: '2026-09-12', category: 'main', note: 'сделать с фаршем индейки' },
+    { name: 'Гороховый суп', status: STATUSES.DONE, date: '2026-08-24', category: CATEGORIES.SOUP, note: '' },
+    { name: 'Запеканка из фарша и овощей', status: STATUSES.DONE, date: '2026-08-25', category: CATEGORIES.MAIN, note: 'можно добавить сыр' },
+    { name: 'Колбаски и запеченая картошка', status: STATUSES.DONE, date: '2026-08-26', category: CATEGORIES.MAIN, note: '' },
+    { name: 'Плов', status: STATUSES.PLANNED, date: '2026-08-28', category: CATEGORIES.MAIN, note: 'использовать баранину' },
+    { name: 'Салат с крабовыми палочками', status: STATUSES.PLANNED, date: '2026-08-28', category: CATEGORIES.SALAD, note: '' },
+    { name: 'Суп борщ?', status: STATUSES.PLANNED, date: '2026-08-31', category: CATEGORIES.SOUP, note: '' },
+    { name: 'Котлеты с картофельным пюре', status: STATUSES.PLANNED, date: '2026-09-01', category: CATEGORIES.MAIN, note: '' },
+    { name: 'Салат морковь по-корейски', status: STATUSES.PLANNED, date: '2026-09-01', category: CATEGORIES.SALAD, note: '' },
+    { name: 'Печень и перловка', status: STATUSES.PLANNED, date: '2026-09-02', category: CATEGORIES.MAIN, note: '' },
+    { name: 'Мясо по-французски', status: STATUSES.PLANNED, date: '2026-09-03', category: CATEGORIES.MAIN, note: '' },
+    { name: 'Морская капуста с крабовыми палочками', status: STATUSES.PLANNED, date: '2026-09-04', category: CATEGORIES.SALAD, note: '' },
+    { name: 'Суп с сайрой', status: STATUSES.PLANNED, date: '2026-09-07', category: CATEGORIES.SOUP, note: '' },
+    { name: 'Тушеная капуста', status: STATUSES.PLANNED, date: '2026-09-08', category: CATEGORIES.MAIN, note: '' },
+    { name: 'Запеченные куриные ножки', status: STATUSES.PLANNED, date: '2026-09-09', category: CATEGORIES.MAIN, note: '' },
+    { name: 'Фунчоза', status: STATUSES.PLANNED, date: '2026-09-09', category: CATEGORIES.MAIN, note: '' },
+    { name: 'Удон', status: STATUSES.PLANNED, date: '2026-09-10', category: CATEGORIES.MAIN, note: '' },
+    { name: 'Паста Болоньезе', status: STATUSES.PLANNED, date: '2026-09-12', category: CATEGORIES.MAIN, note: 'сделать с фаршем индейки' },
   ];
 
   const TASTE_DISHES = {
-    soup: ['Борщ', 'Солянка', 'Уха', 'Щи', 'Сырный суп', 'Гороховый суп', 'Рассольник', 'Окрошка'],
-    main: ['Картофельное пюре с котлетой', 'Пельмени', 'Манты', 'Гречка с мясом', 'Голубцы', 'Жаркое', 'Макароны по-флотски', 'Плов'],
-    salad: ['Селедка под шубой', 'Оливье', 'Крабовый', 'Цезарь с курицей', 'Мимоза', 'Винегрет', 'Греческий салат', 'Салат из свежих овощей']
+    [CATEGORIES.SOUP]: ['Борщ', 'Солянка', 'Уха', 'Щи', 'Сырный суп', 'Гороховый суп', 'Рассольник', 'Окрошка'],
+    [CATEGORIES.MAIN]: ['Картофельное пюре с котлетой', 'Пельмени', 'Манты', 'Гречка с мясом', 'Голубцы', 'Жаркое', 'Макароны по-флотски', 'Плов'],
+    [CATEGORIES.SALAD]: ['Селедка под шубой', 'Оливье', 'Крабовый', 'Цезарь с курицей', 'Мимоза', 'Винегрет', 'Греческий салат', 'Салат из свежих овощей']
   };
 
-  function generateId() { return Date.now() + Math.random() * 10000; }
+  function generateId() {
+    return Date.now() + Math.random() * 10000;
+  }
+
+  function normalizeDish(dish) {
+    if (!dish.category) dish.category = Utils.guessCategory(dish.name);
+    if (!dish.note) dish.note = '';
+    if (dish.liked === undefined) dish.liked = false;
+    if (!dish.id) dish.id = generateId();
+    return dish;
+  }
 
   function load() {
     try {
@@ -100,34 +152,36 @@ const DishStore = (function() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed) && parsed.length) {
-          dishes = parsed;
-          let needSave = false;
-          dishes.forEach(d => {
-            if (!d.category) { d.category = Utils.guessCategory(d.name); needSave = true; }
-            if (!d.note) { d.note = ''; needSave = true; }
-          });
-          if (needSave) save();
+          dishes = parsed.map(normalizeDish);
+          // Проверяем, нужно ли сохранить после нормализации (если были изменения)
+          // для простоты оставляем как есть, так как normalizeDish не меняет структуру, только добавляет поля
           return true;
         }
       }
-    } catch (e) { console.warn('Ошибка загрузки данных:', e); }
+    } catch (e) {
+      console.warn('Ошибка загрузки данных:', e);
+    }
     return false;
   }
 
   function save() {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(dishes));
-      cacheUnique = null; cacheRecs = null; cacheAllWithDone = null;
-    } catch (e) { console.error('Ошибка сохранения данных:', e); }
+      cacheUnique = null;
+      cacheRecs = null;
+      cacheAllWithDone = null;
+    } catch (e) {
+      console.error('Ошибка сохранения данных:', e);
+    }
   }
 
   function init() {
     if (!load()) {
       const result = DEFAULT_DISHES.map((d, i) => ({ ...d, id: generateId() + i, liked: false }));
       const noDate = [
-        { name: 'Салат с морской капустой и крабовым мясом', category: 'salad', note: '' },
-        { name: 'Гречка и салат из свежей капусты как в столовой', category: 'main', note: '' },
-        { name: 'Суп-пюре из кабачков', category: 'soup', note: 'можно добавить сливки' }
+        { name: 'Салат с морской капустой и крабовым мясом', category: CATEGORIES.SALAD, note: '' },
+        { name: 'Гречка и салат из свежей капусты как в столовой', category: CATEGORIES.MAIN, note: '' },
+        { name: 'Суп-пюре из кабачков', category: CATEGORIES.SOUP, note: 'можно добавить сливки' }
       ];
       const today = new Date();
       noDate.forEach((item, idx) => {
@@ -136,7 +190,7 @@ const DishStore = (function() {
         result.push({
           id: generateId() + 1000 + idx,
           name: item.name,
-          status: 'planned',
+          status: STATUSES.PLANNED,
           date: Utils.formatDateLocal(d),
           category: item.category,
           liked: false,
@@ -186,7 +240,7 @@ const DishStore = (function() {
   function toggleStatus(id) {
     const dish = dishes.find(d => d.id === id);
     if (!dish) return false;
-    dish.status = dish.status === 'done' ? 'planned' : 'done';
+    dish.status = dish.status === STATUSES.DONE ? STATUSES.PLANNED : STATUSES.DONE;
     save();
     return true;
   }
@@ -204,7 +258,7 @@ const DishStore = (function() {
     const names = new Set(dishes.map(d => d.name));
     const result = [];
     names.forEach(name => {
-      const doneEntries = dishes.filter(d => d.name === name && d.status === 'done');
+      const doneEntries = dishes.filter(d => d.name === name && d.status === STATUSES.DONE);
       let lastDoneDate = null;
       if (doneEntries.length > 0) {
         lastDoneDate = doneEntries.reduce((max, d) => d.date > max ? d.date : max, doneEntries[0].date);
@@ -223,7 +277,7 @@ const DishStore = (function() {
 
   function getRecommendations() {
     if (cacheRecs) return cacheRecs;
-    const doneDishes = dishes.filter(d => d.status === 'done');
+    const doneDishes = dishes.filter(d => d.status === STATUSES.DONE);
     const map = {};
     doneDishes.forEach(d => {
       if (!map[d.name] || d.date > map[d.name]) {
@@ -244,14 +298,13 @@ const DishStore = (function() {
 
   function getFavorites() { return dishes.filter(d => d.liked); }
   function invalidateCache() { cacheUnique = null; cacheRecs = null; cacheAllWithDone = null; }
-  function replaceAll(newDishes) { dishes = newDishes; save(); invalidateCache(); }
+  function replaceAll(newDishes) { dishes = newDishes.map(normalizeDish); save(); invalidateCache(); }
   function getRandomDishFromTaste() {
-    const categories = ['soup', 'main', 'salad'];
+    const categories = [CATEGORIES.SOUP, CATEGORIES.MAIN, CATEGORIES.SALAD];
     const cat = categories[Math.floor(Math.random() * categories.length)];
     const list = TASTE_DISHES[cat];
     const name = list[Math.floor(Math.random() * list.length)];
-    const categoryNames = { soup: '🍲 Суп', main: '🍖 Основное', salad: '🥗 Салат' };
-    return { name, category: cat, categoryLabel: categoryNames[cat] };
+    return { name, category: cat, categoryLabel: CATEGORY_LABELS[cat] };
   }
 
   return {
@@ -263,7 +316,7 @@ const DishStore = (function() {
 })();
 
 // ============================================================
-// 3. РЕНДЕРЕР
+// 4. РЕНДЕРЕР (рефакторинг)
 // ============================================================
 const Renderer = (function() {
   let currentView = 'month';
@@ -281,6 +334,260 @@ const Renderer = (function() {
   const recTitle = document.getElementById('recTitle');
   const recContent = document.getElementById('recContent');
 
+  // --- Вспомогательные функции ---
+  function buildDishElement(dish, dateStr) {
+    const dishDiv = document.createElement('div');
+    dishDiv.className = `modal-dish ${dish.status}`;
+    if (dish.liked) dishDiv.classList.add('liked');
+
+    const nameSpan = document.createElement('span');
+    nameSpan.className = 'dish-name';
+    nameSpan.textContent = dish.name;
+    dishDiv.appendChild(nameSpan);
+
+    const actions = document.createElement('div');
+    actions.className = 'dish-actions';
+
+    const statusSpan = document.createElement('span');
+    statusSpan.className = 'dish-status';
+    statusSpan.textContent = dish.status === STATUSES.DONE ? '✅ Готовила' : '📅 Планирую';
+    actions.appendChild(statusSpan);
+
+    // Кнопка редактирования
+    const editBtn = document.createElement('button');
+    editBtn.className = 'action-btn edit-btn';
+    editBtn.textContent = '✎';
+    editBtn.title = 'Редактировать';
+    editBtn.dataset.id = dish.id;
+    editBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      const id = Number(this.dataset.id);
+      const parentDish = this.closest('.modal-dish');
+      const nameSpanEl = parentDish.querySelector('.dish-name');
+      const currentName = nameSpanEl.textContent;
+      const noteDiv = parentDish.querySelector('.dish-note');
+      const currentNote = noteDiv ? noteDiv.textContent : '';
+
+      const editContainer = document.createElement('div');
+      editContainer.className = 'edit-container';
+      const nameInput = document.createElement('input');
+      nameInput.type = 'text';
+      nameInput.value = currentName;
+      nameInput.className = 'edit-input';
+      nameInput.placeholder = 'Название';
+      const noteInput = document.createElement('input');
+      noteInput.type = 'text';
+      noteInput.value = currentNote;
+      noteInput.className = 'edit-input note-edit';
+      noteInput.placeholder = 'Заметка';
+      editContainer.appendChild(nameInput);
+      editContainer.appendChild(noteInput);
+      nameSpanEl.replaceWith(editContainer);
+      if (noteDiv) noteDiv.remove();
+
+      const saveEdit = () => {
+        const newName = nameInput.value.trim();
+        const newNote = noteInput.value.trim();
+        if (newName && newName !== currentName) DishStore.editDishName(id, newName);
+        if (newNote !== currentNote) DishStore.updateNote(id, newNote);
+        openModal(dateStr);
+        renderCalendar(currentView, currentDate);
+      };
+      nameInput.addEventListener('blur', saveEdit);
+      noteInput.addEventListener('blur', saveEdit);
+      nameInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); nameInput.blur(); }
+        if (e.key === 'Escape') { nameInput.value = currentName; noteInput.value = currentNote; nameInput.blur(); }
+      });
+      noteInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') { e.preventDefault(); noteInput.blur(); }
+        if (e.key === 'Escape') { nameInput.value = currentName; noteInput.value = currentNote; noteInput.blur(); }
+      });
+      nameInput.focus();
+      nameInput.select();
+    });
+    actions.appendChild(editBtn);
+
+    // Лайк
+    const likeBtn = document.createElement('button');
+    likeBtn.className = `action-btn like-btn ${dish.liked ? 'liked' : ''}`;
+    likeBtn.textContent = dish.liked ? '❤️' : '🤍';
+    likeBtn.title = 'Лайк';
+    likeBtn.dataset.id = dish.id;
+    likeBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      DishStore.toggleLike(Number(this.dataset.id));
+      openModal(dateStr);
+      renderCalendar(currentView, currentDate);
+    });
+    actions.appendChild(likeBtn);
+
+    // Переключить статус
+    const toggleBtn = document.createElement('button');
+    toggleBtn.className = 'action-btn toggle-status-btn';
+    toggleBtn.textContent = '🔄';
+    toggleBtn.title = 'Переключить статус';
+    toggleBtn.dataset.id = dish.id;
+    toggleBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      DishStore.toggleStatus(Number(this.dataset.id));
+      openModal(dateStr);
+      renderCalendar(currentView, currentDate);
+    });
+    actions.appendChild(toggleBtn);
+
+    // Удалить
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'action-btn delete-btn';
+    deleteBtn.textContent = '🗑️';
+    deleteBtn.title = 'Удалить';
+    deleteBtn.dataset.id = dish.id;
+    deleteBtn.addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (confirm('Удалить это блюдо?')) {
+        DishStore.removeDish(Number(this.dataset.id));
+        openModal(dateStr);
+        renderCalendar(currentView, currentDate);
+      }
+    });
+    actions.appendChild(deleteBtn);
+
+    dishDiv.appendChild(actions);
+
+    if (dish.note) {
+      const noteSpan = document.createElement('div');
+      noteSpan.className = 'dish-note';
+      noteSpan.textContent = dish.note;
+      dishDiv.appendChild(noteSpan);
+    }
+
+    return dishDiv;
+  }
+
+  function buildAddForm(dateStr) {
+    const addSection = document.createElement('div');
+    addSection.className = 'modal-add-section';
+
+    const addTitle = document.createElement('h4');
+    addTitle.textContent = '➕ Добавить блюдо';
+    addSection.appendChild(addTitle);
+
+    const addForm = document.createElement('div');
+    addForm.className = 'modal-add-new';
+
+    const nameInput = document.createElement('input');
+    nameInput.type = 'text';
+    nameInput.placeholder = 'Название';
+    nameInput.id = 'modalNewDishName';
+    nameInput.className = 'modal-field-input field-full';
+    addForm.appendChild(nameInput);
+
+    const noteInput = document.createElement('input');
+    noteInput.type = 'text';
+    noteInput.placeholder = '📝 Заметка (рецепт, продукты…)';
+    noteInput.id = 'modalNewDishNote';
+    noteInput.className = 'modal-field-input field-full';
+    addForm.appendChild(noteInput);
+
+    const statusSelect = document.createElement('select');
+    statusSelect.id = 'modalNewDishStatus';
+    statusSelect.className = 'modal-field-select field-half';
+    [STATUSES.PLANNED, STATUSES.DONE].forEach(val => {
+      const opt = document.createElement('option');
+      opt.value = val;
+      opt.textContent = val === STATUSES.PLANNED ? '📅 Планирую' : '✅ Готовила';
+      statusSelect.appendChild(opt);
+    });
+    addForm.appendChild(statusSelect);
+
+    const categorySelect = document.createElement('select');
+    categorySelect.id = 'modalNewDishCategory';
+    categorySelect.className = 'modal-field-select field-half';
+    [
+      { val: CATEGORIES.SOUP, label: '🍲 Суп' },
+      { val: CATEGORIES.SALAD, label: '🥗 Салат' },
+      { val: CATEGORIES.MAIN, label: '🍖 Основное' },
+      { val: CATEGORIES.OTHER, label: '🍽️ Другое' }
+    ].forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.val;
+      opt.textContent = cat.label;
+      categorySelect.appendChild(opt);
+    });
+    addForm.appendChild(categorySelect);
+
+    const addBtn = document.createElement('button');
+    addBtn.textContent = 'Добавить';
+    addBtn.className = 'field-btn';
+    addForm.appendChild(addBtn);
+
+    addSection.appendChild(addForm);
+
+    // Предложения
+    const suggestTitle = document.createElement('h4');
+    suggestTitle.textContent = '📖 Выбрать из меню';
+    suggestTitle.style.marginTop = '12px';
+    addSection.appendChild(suggestTitle);
+
+    const suggestList = document.createElement('div');
+    suggestList.className = 'modal-suggest-list';
+    const allUnique = DishStore.getAllUniqueWithLastDone();
+    const dayDishes = DishStore.getForDate(dateStr);
+    const existingNames = dayDishes.map(d => d.name);
+    const available = allUnique.filter(item => !existingNames.includes(item.name));
+    if (available.length === 0) {
+      const noSuggest = document.createElement('div');
+      noSuggest.className = 'modal-no-suggest';
+      noSuggest.textContent = 'Все блюда уже добавлены на этот день';
+      suggestList.appendChild(noSuggest);
+    } else {
+      available.forEach(item => {
+        const suggestItem = document.createElement('div');
+        suggestItem.className = 'modal-suggest-item';
+        suggestItem.dataset.name = item.name;
+        const nameSpan = document.createElement('span');
+        nameSpan.className = 'suggest-name';
+        nameSpan.textContent = item.name;
+        suggestItem.appendChild(nameSpan);
+        const lastSpan = document.createElement('span');
+        lastSpan.className = 'suggest-last';
+        if (item.lastDoneDate) {
+          lastSpan.textContent = `Последний раз: ${Utils.daysAgo(item.lastDoneDate)}`;
+        } else {
+          lastSpan.textContent = 'ещё не готовили';
+        }
+        suggestItem.appendChild(lastSpan);
+        suggestItem.addEventListener('click', function() {
+          const name = this.dataset.name;
+          const existing = DishStore.getAll().find(d => d.name === name);
+          const category = existing ? existing.category : Utils.guessCategory(name);
+          DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '');
+          openModal(dateStr);
+          renderCalendar(currentView, currentDate);
+        });
+        suggestList.appendChild(suggestItem);
+      });
+    }
+    addSection.appendChild(suggestList);
+
+    // Обработчик добавления
+    addBtn.addEventListener('click', function() {
+      const name = nameInput.value.trim();
+      if (!name) { alert('Введи название блюда'); return; }
+      const status = statusSelect.value;
+      const category = categorySelect.value;
+      const note = document.getElementById('modalNewDishNote').value.trim();
+      DishStore.addDish(name, status, dateStr, category, false, note);
+      openModal(dateStr);
+      renderCalendar(currentView, currentDate);
+      nameInput.value = '';
+      document.getElementById('modalNewDishNote').value = '';
+    });
+
+    return addSection;
+  }
+
+  // --- Основные функции рендерера ---
   function renderCalendar(view, date) {
     currentView = view;
     currentDate = date;
@@ -291,6 +598,16 @@ const Renderer = (function() {
     if (view === 'month') renderMonthView(year, month);
     else renderWeekView(date);
     renderMenu();
+    updateViewButtons();
+  }
+
+  function updateViewButtons() {
+    const btns = document.querySelectorAll('#viewToggle button');
+    btns.forEach(btn => {
+      const isActive = btn.dataset.view === currentView;
+      btn.classList.toggle('active', isActive);
+      btn.setAttribute('aria-pressed', isActive);
+    });
   }
 
   function renderMonthView(year, month) {
@@ -314,8 +631,8 @@ const Renderer = (function() {
       const cell = document.createElement('div');
       cell.className = 'day-cell';
       const dayDishes = DishStore.getForDate(dateStr);
-      const hasDone = dayDishes.some(d => d.status === 'done');
-      const hasPlanned = dayDishes.some(d => d.status === 'planned');
+      const hasDone = dayDishes.some(d => d.status === STATUSES.DONE);
+      const hasPlanned = dayDishes.some(d => d.status === STATUSES.PLANNED);
       if (hasDone) cell.classList.add('has-done');
       if (hasPlanned) cell.classList.add('has-planned');
       if (hasDone && hasPlanned) cell.classList.add('has-both');
@@ -433,9 +750,9 @@ const Renderer = (function() {
       group.appendChild(dateEl);
       dayDishes.forEach(dish => {
         let categoryClass = '';
-        if (dish.category === 'soup') categoryClass = 'category-soup';
-        else if (dish.category === 'salad') categoryClass = 'category-salad';
-        else if (dish.category === 'main') categoryClass = 'category-main';
+        if (dish.category === CATEGORIES.SOUP) categoryClass = 'category-soup';
+        else if (dish.category === CATEGORIES.SALAD) categoryClass = 'category-salad';
+        else if (dish.category === CATEGORIES.MAIN) categoryClass = 'category-main';
         const item = document.createElement('div');
         item.className = `menu-item ${dish.status} ${categoryClass}`;
         const nameSpan = document.createElement('span');
@@ -443,7 +760,7 @@ const Renderer = (function() {
         item.appendChild(nameSpan);
         const badge = document.createElement('span');
         badge.className = 'status-badge';
-        badge.textContent = dish.status === 'done' ? '✅' : '📅';
+        badge.textContent = dish.status === STATUSES.DONE ? '✅' : '📅';
         item.appendChild(badge);
         group.appendChild(item);
       });
@@ -451,6 +768,7 @@ const Renderer = (function() {
     });
   }
 
+  // --- Модалки ---
   function openModal(dateStr) {
     const d = new Date(dateStr);
     modalDate.textContent = Utils.formatDate(d);
@@ -469,248 +787,25 @@ const Renderer = (function() {
       section.appendChild(empty);
     } else {
       dayDishes.forEach(dish => {
-        const dishDiv = document.createElement('div');
-        dishDiv.className = `modal-dish ${dish.status}`;
-        if (dish.liked) dishDiv.classList.add('liked');
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'dish-name';
-        nameSpan.textContent = dish.name;
-        dishDiv.appendChild(nameSpan);
-        const actions = document.createElement('div');
-        actions.className = 'dish-actions';
-        const statusSpan = document.createElement('span');
-        statusSpan.className = 'dish-status';
-        statusSpan.textContent = dish.status === 'done' ? '✅ Готовила' : '📅 Планирую';
-        actions.appendChild(statusSpan);
-
-        const editBtn = document.createElement('button');
-        editBtn.className = 'action-btn edit-btn';
-        editBtn.textContent = '✎';
-        editBtn.title = 'Редактировать';
-        editBtn.dataset.id = dish.id;
-        editBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          const id = Number(this.dataset.id);
-          const parentDish = this.closest('.modal-dish');
-          const nameSpanEl = parentDish.querySelector('.dish-name');
-          const currentName = nameSpanEl.textContent;
-          const noteDiv = parentDish.querySelector('.dish-note');
-          const currentNote = noteDiv ? noteDiv.textContent : '';
-
-          const editContainer = document.createElement('div');
-          editContainer.className = 'edit-container';
-          const nameInput = document.createElement('input');
-          nameInput.type = 'text';
-          nameInput.value = currentName;
-          nameInput.className = 'edit-input';
-          nameInput.placeholder = 'Название';
-          const noteInput = document.createElement('input');
-          noteInput.type = 'text';
-          noteInput.value = currentNote;
-          noteInput.className = 'edit-input note-edit';
-          noteInput.placeholder = 'Заметка';
-          editContainer.appendChild(nameInput);
-          editContainer.appendChild(noteInput);
-          nameSpanEl.replaceWith(editContainer);
-          if (noteDiv) noteDiv.remove();
-
-          const saveEdit = () => {
-            const newName = nameInput.value.trim();
-            const newNote = noteInput.value.trim();
-            if (newName && newName !== currentName) DishStore.editDishName(id, newName);
-            if (newNote !== currentNote) DishStore.updateNote(id, newNote);
-            openModal(dateStr);
-            renderCalendar(currentView, currentDate);
-          };
-          nameInput.addEventListener('blur', saveEdit);
-          noteInput.addEventListener('blur', saveEdit);
-          nameInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); nameInput.blur(); }
-            if (e.key === 'Escape') { nameInput.value = currentName; noteInput.value = currentNote; nameInput.blur(); }
-          });
-          noteInput.addEventListener('keydown', (e) => {
-            if (e.key === 'Enter') { e.preventDefault(); noteInput.blur(); }
-            if (e.key === 'Escape') { nameInput.value = currentName; noteInput.value = currentNote; noteInput.blur(); }
-          });
-          nameInput.focus();
-          nameInput.select();
-        });
-        actions.appendChild(editBtn);
-
-        const likeBtn = document.createElement('button');
-        likeBtn.className = `action-btn like-btn ${dish.liked ? 'liked' : ''}`;
-        likeBtn.textContent = dish.liked ? '❤️' : '🤍';
-        likeBtn.title = 'Лайк';
-        likeBtn.dataset.id = dish.id;
-        likeBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          DishStore.toggleLike(Number(this.dataset.id));
-          openModal(dateStr);
-          renderCalendar(currentView, currentDate);
-        });
-        actions.appendChild(likeBtn);
-
-        const toggleBtn = document.createElement('button');
-        toggleBtn.className = 'action-btn toggle-status-btn';
-        toggleBtn.textContent = '🔄';
-        toggleBtn.title = 'Переключить статус';
-        toggleBtn.dataset.id = dish.id;
-        toggleBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          DishStore.toggleStatus(Number(this.dataset.id));
-          openModal(dateStr);
-          renderCalendar(currentView, currentDate);
-        });
-        actions.appendChild(toggleBtn);
-
-        const deleteBtn = document.createElement('button');
-        deleteBtn.className = 'action-btn delete-btn';
-        deleteBtn.textContent = '🗑️';
-        deleteBtn.title = 'Удалить';
-        deleteBtn.dataset.id = dish.id;
-        deleteBtn.addEventListener('click', function(e) {
-          e.stopPropagation();
-          if (confirm('Удалить это блюдо?')) {
-            DishStore.removeDish(Number(this.dataset.id));
-            openModal(dateStr);
-            renderCalendar(currentView, currentDate);
-          }
-        });
-        actions.appendChild(deleteBtn);
-
-        dishDiv.appendChild(actions);
-        if (dish.note) {
-          const noteSpan = document.createElement('div');
-          noteSpan.className = 'dish-note';
-          noteSpan.textContent = dish.note;
-          dishDiv.appendChild(noteSpan);
-        }
-        section.appendChild(dishDiv);
+        section.appendChild(buildDishElement(dish, dateStr));
       });
     }
     modalContent.appendChild(section);
 
-    const addSection = document.createElement('div');
-    addSection.className = 'modal-add-section';
-    const addTitle = document.createElement('h4');
-    addTitle.textContent = '➕ Добавить блюдо';
-    addSection.appendChild(addTitle);
-
-    const addForm = document.createElement('div');
-    addForm.className = 'modal-add-new';
-
-    const nameInput = document.createElement('input');
-    nameInput.type = 'text';
-    nameInput.placeholder = 'Название';
-    nameInput.id = 'modalNewDishName';
-    nameInput.className = 'modal-field-input field-full';
-    addForm.appendChild(nameInput);
-
-    const noteInput = document.createElement('input');
-    noteInput.type = 'text';
-    noteInput.placeholder = '📝 Заметка (рецепт, продукты…)';
-    noteInput.id = 'modalNewDishNote';
-    noteInput.className = 'modal-field-input field-full';
-    addForm.appendChild(noteInput);
-
-    const statusSelect = document.createElement('select');
-    statusSelect.id = 'modalNewDishStatus';
-    statusSelect.className = 'modal-field-select field-half';
-    ['planned','done'].forEach(val => {
-      const opt = document.createElement('option');
-      opt.value = val;
-      opt.textContent = val === 'planned' ? '📅 Планирую' : '✅ Готовила';
-      statusSelect.appendChild(opt);
-    });
-    addForm.appendChild(statusSelect);
-
-    const categorySelect = document.createElement('select');
-    categorySelect.id = 'modalNewDishCategory';
-    categorySelect.className = 'modal-field-select field-half';
-    [
-      { val: 'soup', label: '🍲 Суп' },
-      { val: 'salad', label: '🥗 Салат' },
-      { val: 'main', label: '🍖 Основное' },
-      { val: 'other', label: '🍽️ Другое' }
-    ].forEach(cat => {
-      const opt = document.createElement('option');
-      opt.value = cat.val;
-      opt.textContent = cat.label;
-      categorySelect.appendChild(opt);
-    });
-    addForm.appendChild(categorySelect);
-
-    const addBtn = document.createElement('button');
-    addBtn.textContent = 'Добавить';
-    addBtn.className = 'field-btn';
-    addForm.appendChild(addBtn);
-
-    addSection.appendChild(addForm);
-
-    const suggestTitle = document.createElement('h4');
-    suggestTitle.textContent = '📖 Выбрать из меню';
-    suggestTitle.style.marginTop = '12px';
-    addSection.appendChild(suggestTitle);
-
-    const suggestList = document.createElement('div');
-    suggestList.className = 'modal-suggest-list';
-    const allUnique = DishStore.getAllUniqueWithLastDone();
-    const existingNames = dayDishes.map(d => d.name);
-    const available = allUnique.filter(item => !existingNames.includes(item.name));
-    if (available.length === 0) {
-      const noSuggest = document.createElement('div');
-      noSuggest.className = 'modal-no-suggest';
-      noSuggest.textContent = 'Все блюда уже добавлены на этот день';
-      suggestList.appendChild(noSuggest);
-    } else {
-      available.forEach(item => {
-        const suggestItem = document.createElement('div');
-        suggestItem.className = 'modal-suggest-item';
-        suggestItem.dataset.name = item.name;
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'suggest-name';
-        nameSpan.textContent = item.name;
-        suggestItem.appendChild(nameSpan);
-        const lastSpan = document.createElement('span');
-        lastSpan.className = 'suggest-last';
-        if (item.lastDoneDate) {
-          lastSpan.textContent = `Последний раз: ${Utils.daysAgo(item.lastDoneDate)}`;
-        } else {
-          lastSpan.textContent = 'ещё не готовили';
-        }
-        suggestItem.appendChild(lastSpan);
-        suggestItem.addEventListener('click', function() {
-          const name = this.dataset.name;
-          const existing = DishStore.getAll().find(d => d.name === name);
-          const category = existing ? existing.category : Utils.guessCategory(name);
-          DishStore.addDish(name, 'planned', dateStr, category, false, '');
-          openModal(dateStr);
-          renderCalendar(currentView, currentDate);
-        });
-        suggestList.appendChild(suggestItem);
-      });
-    }
-    addSection.appendChild(suggestList);
-    modalContent.appendChild(addSection);
-
-    addBtn.addEventListener('click', function() {
-      const name = nameInput.value.trim();
-      if (!name) { alert('Введи название блюда'); return; }
-      const status = statusSelect.value;
-      const category = categorySelect.value;
-      const note = document.getElementById('modalNewDishNote').value.trim();
-      DishStore.addDish(name, status, dateStr, category, false, note);
-      openModal(dateStr);
-      renderCalendar(currentView, currentDate);
-      nameInput.value = '';
-      document.getElementById('modalNewDishNote').value = '';
-    });
+    // Форма добавления
+    modalContent.appendChild(buildAddForm(dateStr));
 
     modalOverlay.classList.add('active');
+    // Фокус на модалку (для доступности)
+    modalOverlay.focus();
   }
 
-  function closeModal() { modalOverlay.classList.remove('active'); }
+  function closeModal() {
+    modalOverlay.classList.remove('active');
+    // Возвращаем фокус на элемент, который открыл модалку (если запомнили)
+  }
 
+  // --- Рекомендации и любимые ---
   function openRecommendations() {
     recTitle.textContent = '🍽️ Рекомендации';
     const { liked, others } = DishStore.getRecommendations();
@@ -746,7 +841,7 @@ const Renderer = (function() {
             const dateStr = Utils.formatDateLocal(tomorrow);
             const existing = DishStore.getAll().find(d => d.name === name);
             const category = existing ? existing.category : Utils.guessCategory(name);
-            DishStore.addDish(name, 'planned', dateStr, category, false, '');
+            DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '');
             recOverlay.classList.remove('active');
             alert(`✅ Блюдо "${name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
             renderCalendar(currentView, currentDate);
@@ -780,7 +875,7 @@ const Renderer = (function() {
             const dateStr = Utils.formatDateLocal(tomorrow);
             const existing = DishStore.getAll().find(d => d.name === name);
             const category = existing ? existing.category : Utils.guessCategory(name);
-            DishStore.addDish(name, 'planned', dateStr, category, false, '');
+            DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '');
             recOverlay.classList.remove('active');
             alert(`✅ Блюдо "${name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
             renderCalendar(currentView, currentDate);
@@ -795,6 +890,7 @@ const Renderer = (function() {
       recContent.appendChild(hint);
     }
     recOverlay.classList.add('active');
+    recOverlay.focus();
   }
 
   function openFavorites() {
@@ -844,7 +940,7 @@ const Renderer = (function() {
           const dateStr = Utils.formatDateLocal(tomorrow);
           const existing = DishStore.getAll().find(d => d.name === name);
           const category = existing ? existing.category : Utils.guessCategory(name);
-          DishStore.addDish(name, 'planned', dateStr, category, false, '');
+          DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '');
           recOverlay.classList.remove('active');
           alert(`✅ Блюдо "${name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
           renderCalendar(currentView, currentDate);
@@ -868,9 +964,12 @@ const Renderer = (function() {
       recContent.appendChild(hint);
     }
     recOverlay.classList.add('active');
+    recOverlay.focus();
   }
 
-  function closeRecModal() { recOverlay.classList.remove('active'); }
+  function closeRecModal() {
+    recOverlay.classList.remove('active');
+  }
 
   function openAddModal() {
     const defaultDate = new Date();
@@ -878,11 +977,15 @@ const Renderer = (function() {
     document.getElementById('newDishDate').value = Utils.formatDateLocal(defaultDate);
     document.getElementById('newDishName').value = '';
     document.getElementById('newDishNote').value = '';
-    document.getElementById('newDishStatus').value = 'planned';
-    document.getElementById('newDishCategory').value = 'main';
+    document.getElementById('newDishStatus').value = STATUSES.PLANNED;
+    document.getElementById('newDishCategory').value = CATEGORIES.MAIN;
     document.getElementById('addModalOverlay').classList.add('active');
+    document.getElementById('addModalOverlay').focus();
   }
-  function closeAddModal() { document.getElementById('addModalOverlay').classList.remove('active'); }
+
+  function closeAddModal() {
+    document.getElementById('addModalOverlay').classList.remove('active');
+  }
 
   function setSearchQuery(q) { searchQuery = q; renderMenu(); }
   function setStatusFilter(f) { statusFilter = f; renderMenu(); }
@@ -900,7 +1003,393 @@ const Renderer = (function() {
 })();
 
 // ============================================================
-// 4. ЭКСПОРТ / ИМПОРТ
+// 5. ПАРСЕРЫ ДЛЯ ИМПОРТА ПО ССЫЛКЕ
+// ============================================================
+const Parsers = {
+  // Общий парсер для сайтов с рецептами
+  parseGeneral(doc) {
+    let title = '';
+    let ingredients = [];
+
+    // Название
+    const titleSelectors = [
+      'h1[itemprop="name"]', '.recipe-title', '.recipe-header h1',
+      'h1.recipe__title', '.recipe-name', '.title', 'article h1',
+      '.recipe h1', '.post-title', 'h1.entry-title', 'h1'
+    ];
+    for (const selector of titleSelectors) {
+      const el = doc.querySelector(selector);
+      if (el && el.textContent.trim()) {
+        title = el.textContent.trim();
+        break;
+      }
+    }
+    if (!title) {
+      const ogTitle = doc.querySelector('meta[property="og:title"]');
+      if (ogTitle) title = ogTitle.getAttribute('content') || '';
+    }
+    if (title) {
+      title = title.split('|')[0].trim();
+      title = title.split('–')[0].trim();
+      title = title.split('—')[0].trim();
+    }
+
+    // Ингредиенты
+    const ingredientSelectors = [
+      '.ingredients-list li', '.recipe-ingredients li', '.ingredients li',
+      '.ingredient-item', '.recipe__ingredients li', '.ingredient',
+      '.ingredients-list .item', 'ul.ingredients li', '.ingredients-list__item'
+    ];
+    for (const selector of ingredientSelectors) {
+      const items = doc.querySelectorAll(selector);
+      if (items.length > 0) {
+        items.forEach(el => {
+          const text = el.textContent.trim();
+          if (text && text.length > 1 && !text.includes('Продукты')) {
+            ingredients.push(text);
+          }
+        });
+        if (ingredients.length > 0) break;
+      }
+    }
+    if (ingredients.length === 0) {
+      const lists = doc.querySelectorAll('ul, ol');
+      for (const list of lists) {
+        const items = list.querySelectorAll('li');
+        const temp = [];
+        items.forEach(el => {
+          const text = el.textContent.trim();
+          if (text && text.length > 1 && text.length < 100) {
+            if (/\d/.test(text) || /г|мл|кг|л|шт|ст\.|ч\.|зуб/.test(text)) {
+              temp.push(text);
+            }
+          }
+        });
+        if (temp.length > 2) {
+          ingredients = temp;
+          break;
+        }
+      }
+    }
+    ingredients = ingredients.filter((v, i, a) => a.indexOf(v) === i && v.length > 2);
+    return { title, ingredients, sourceType: '🌐 Сайт' };
+  },
+
+  // YouTube
+  parseYouTube(doc) {
+    let title = '';
+    const pageTitle = doc.querySelector('title');
+    if (pageTitle) {
+      let rawTitle = pageTitle.textContent.trim();
+      rawTitle = rawTitle.replace(/\s*[-–]\s*YouTube\s*$/i, '');
+      rawTitle = rawTitle.replace(/^YouTube\s*[-–]\s*/, '');
+      title = rawTitle;
+    }
+    let description = '';
+    const metaDesc = doc.querySelector('meta[name="description"]');
+    if (metaDesc) description = metaDesc.getAttribute('content') || '';
+    const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
+    for (const script of scripts) {
+      try {
+        const data = JSON.parse(script.textContent);
+        if (data.description) {
+          description = data.description;
+          break;
+        }
+        if (Array.isArray(data) && data[0]?.description) {
+          description = data[0].description;
+          break;
+        }
+      } catch (e) {}
+    }
+    if (!description) {
+      const ogDesc = doc.querySelector('meta[property="og:description"]');
+      if (ogDesc) description = ogDesc.getAttribute('content') || '';
+    }
+
+    let ingredients = [];
+    if (description) {
+      const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      for (const line of lines) {
+        if (Utils.isIngredientLine(line) && line.length < 100) {
+          ingredients.push(line);
+        }
+      }
+      if (ingredients.length === 0) {
+        const numLines = lines.filter(l => /\d/.test(l) && l.length < 100 && l.length > 3);
+        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
+      }
+    }
+    if (ingredients.length === 0) {
+      ingredients = ['Ингредиенты не найдены в описании видео. Добавьте их в заметку вручную.'];
+    }
+    return { title, ingredients, sourceType: '🎬 YouTube' };
+  },
+
+  // Telegram
+  parseTelegram(doc) {
+    let title = '';
+    const pageTitle = doc.querySelector('title');
+    if (pageTitle) {
+      let rawTitle = pageTitle.textContent.trim();
+      rawTitle = rawTitle.replace(/\s*[|]\s*Telegram\s*$/i, '');
+      title = rawTitle;
+    }
+    let content = '';
+    const contentSelectors = ['.tgme_widget_message_text', '.tgme_msg_text', '.tgme_message_text', '.tgme_widget_message_content .text'];
+    for (const selector of contentSelectors) {
+      const el = doc.querySelector(selector);
+      if (el && el.textContent.trim().length > 20) {
+        content = el.textContent.trim();
+        break;
+      }
+    }
+    let ingredients = [];
+    if (content) {
+      const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      for (const line of lines) {
+        if (Utils.isIngredientLine(line) && line.length < 80) {
+          ingredients.push(line);
+        }
+      }
+      if (ingredients.length === 0) {
+        const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
+        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
+      }
+    }
+    if (ingredients.length === 0) {
+      ingredients = ['Ингредиенты не найдены в тексте поста. Добавьте их в заметку вручную.'];
+    }
+    return { title, ingredients, sourceType: '📱 Telegram' };
+  },
+
+  // Instagram
+  parseInstagram(doc) {
+    let title = '';
+    const pageTitle = doc.querySelector('title');
+    if (pageTitle) {
+      let rawTitle = pageTitle.textContent.trim();
+      rawTitle = rawTitle.replace(/\s*[|]\s*Instagram\s*$/i, '');
+      title = rawTitle;
+    }
+    let description = '';
+    const metaDesc = doc.querySelector('meta[name="description"]');
+    if (metaDesc) description = metaDesc.getAttribute('content') || '';
+    let ingredients = [];
+    if (description) {
+      const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      for (const line of lines) {
+        if (Utils.isIngredientLine(line) && line.length < 80) {
+          ingredients.push(line);
+        }
+      }
+      if (ingredients.length === 0) {
+        const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
+        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
+      }
+    }
+    if (ingredients.length === 0) {
+      ingredients = ['Ингредиенты не найдены в описании. Добавьте их в заметку вручную.'];
+    }
+    return { title, ingredients, sourceType: '📸 Instagram' };
+  },
+
+  // Pinterest
+  parsePinterest(doc) {
+    let title = '';
+    const pageTitle = doc.querySelector('title');
+    if (pageTitle) {
+      let rawTitle = pageTitle.textContent.trim();
+      rawTitle = rawTitle.replace(/\s*[|]\s*Pinterest\s*$/i, '');
+      title = rawTitle;
+    }
+    let description = '';
+    const metaDesc = doc.querySelector('meta[name="description"]');
+    if (metaDesc) description = metaDesc.getAttribute('content') || '';
+    let ingredients = [];
+    if (description) {
+      const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      for (const line of lines) {
+        if (Utils.isIngredientLine(line) && line.length < 80) {
+          ingredients.push(line);
+        }
+      }
+      if (ingredients.length === 0) {
+        const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
+        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
+      }
+    }
+    if (ingredients.length === 0) {
+      ingredients = ['Ингредиенты не найдены в описании. Добавьте их в заметку вручную.'];
+    }
+    return { title, ingredients, sourceType: '📌 Pinterest' };
+  },
+
+  // Яндекс.Дзен
+  parseZen(doc) {
+    let title = '';
+    const pageTitle = doc.querySelector('title');
+    if (pageTitle) {
+      let rawTitle = pageTitle.textContent.trim();
+      rawTitle = rawTitle.replace(/\s*[|]\s*Дзен\s*$/i, '');
+      rawTitle = rawTitle.replace(/\s*[|]\s*Яндекс\s*Дзен\s*$/i, '');
+      title = rawTitle;
+    }
+    let content = '';
+    const contentSelectors = ['.article-body', '.article-content', '.text-block', '.content-block', 'article .text'];
+    for (const selector of contentSelectors) {
+      const el = doc.querySelector(selector);
+      if (el && el.textContent.trim().length > 50) {
+        content = el.textContent.trim();
+        break;
+      }
+    }
+    let ingredients = [];
+    if (content) {
+      const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      for (const line of lines) {
+        if (Utils.isIngredientLine(line) && line.length < 80) {
+          ingredients.push(line);
+        }
+      }
+      if (ingredients.length === 0) {
+        const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
+        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
+      }
+    }
+    if (ingredients.length === 0) {
+      ingredients = ['Ингредиенты не найдены в статье. Добавьте их в заметку вручную.'];
+    }
+    return { title, ingredients, sourceType: '📝 Яндекс.Дзен' };
+  },
+
+  // iamcook.ru
+  parseIamCook(doc) {
+    let title = '';
+    const titleEl = doc.querySelector('h1.recipe-title, h1.title, .recipe-header h1, h1');
+    if (titleEl) title = titleEl.textContent.trim();
+    if (!title) {
+      const ogTitle = doc.querySelector('meta[property="og:title"]');
+      if (ogTitle) title = ogTitle.getAttribute('content') || '';
+    }
+    let ingredients = [];
+    const ingredientSelectors = [
+      '.ingredients-list li', '.ingredients li', '.recipe-ingredients li',
+      '.ingredient-item', '.ingredient', 'ul.ingredients li',
+      '.ingredients-list__item', '.recipe__ingredients li', '[class*="ingredient"] li'
+    ];
+    for (const selector of ingredientSelectors) {
+      const items = doc.querySelectorAll(selector);
+      if (items.length > 0) {
+        items.forEach(el => {
+          const text = el.textContent.trim();
+          if (text && text.length > 1) {
+            const clean = text.replace(/[×х]/g, '').trim();
+            if (clean.length > 1) ingredients.push(clean);
+          }
+        });
+        if (ingredients.length > 2) break;
+      }
+    }
+    if (ingredients.length === 0) {
+      const sections = doc.querySelectorAll('.recipe-content, .recipe-text, .content, .recipe, .post-content, article');
+      for (const section of sections) {
+        const text = section.textContent;
+        const match = text.match(/ингредиенты\s*[:;]\s*([^]+?)(?:приготовление|способ|пошагово|шаг|процесс|рецепт|спос)/i);
+        if (match && match[1]) {
+          const ingredientText = match[1];
+          const lines = ingredientText.split(/[\n,;]/).map(l => l.trim()).filter(l => l.length > 2);
+          const filtered = lines.filter(l => /\d/.test(l) || /(грамм|гр|мл|литр|кг|ст\.|ч\.|шт|зуб|пуч)/i.test(l));
+          ingredients = filtered.slice(0, 20);
+          break;
+        }
+      }
+    }
+    ingredients = ingredients
+      .map(i => i.replace(/^[•\-*\d.]+\s*/, '').trim())
+      .filter((v, i, a) => a.indexOf(v) === i && v.length > 2)
+      .slice(0, 20);
+    if (ingredients.length === 0) {
+      ingredients = ['Ингредиенты не найдены. Попробуйте добавить их в заметку вручную.'];
+    }
+    if (title && title.length > 60) title = title.substring(0, 57) + '...';
+    return { title, ingredients, sourceType: '🍳 iamcook.ru' };
+  },
+
+  // VK (видео и посты)
+  parseVK(doc, isVideo) {
+    let title = '';
+    const pageTitle = doc.querySelector('title');
+    if (pageTitle) {
+      let rawTitle = pageTitle.textContent.trim();
+      rawTitle = rawTitle.replace(/\s*[|]\s*ВКонтакте\s*$/i, '');
+      rawTitle = rawTitle.replace(/\s*[|]\s*VK\s*$/i, '');
+      title = rawTitle;
+    }
+    let content = '';
+    if (isVideo) {
+      const descSelectors = [
+        '.video_description', '.clip_description', '.video-desc', '.clip-desc',
+        '[class*="video_description"]', '[class*="clip_description"]',
+        '.video-description', '.clip-description'
+      ];
+      for (const selector of descSelectors) {
+        const el = doc.querySelector(selector);
+        if (el && el.textContent.trim().length > 5) {
+          content = el.textContent.trim();
+          break;
+        }
+      }
+    } else {
+      const contentSelectors = [
+        '.wall_post_text', '.post_content', '.wall_text', '.post_text',
+        '.article_content', '.topic_post_text', '.page_text',
+        '.group_wall_post_text', '[class*="wall_post_text"]',
+        '[class*="post_content"]', '[class*="wall_text"]',
+        '[class*="topic_post"]', '[class*="article"]'
+      ];
+      for (const selector of contentSelectors) {
+        const el = doc.querySelector(selector);
+        if (el && el.textContent.trim().length > 20) {
+          content = el.textContent.trim();
+          break;
+        }
+      }
+    }
+    if (!content) {
+      const metaDesc = doc.querySelector('meta[name="description"]');
+      if (metaDesc) content = metaDesc.getAttribute('content') || '';
+    }
+    if (!content) {
+      const ogDesc = doc.querySelector('meta[property="og:description"]');
+      if (ogDesc) content = ogDesc.getAttribute('content') || '';
+    }
+
+    let ingredients = [];
+    if (content && content.length > 10) {
+      const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+      for (const line of lines) {
+        if (Utils.isIngredientLine(line) && line.length < 80) {
+          ingredients.push(line);
+        }
+      }
+      if (ingredients.length === 0) {
+        const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
+        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
+      }
+    }
+    if (ingredients.length === 0) {
+      ingredients = ['Ингредиенты не найдены. Добавьте их в заметку вручную.'];
+    }
+    ingredients = ingredients.filter((v, i, a) => a.indexOf(v) === i).slice(0, 20);
+    if (title && title.length > 60) title = title.substring(0, 57) + '...';
+    const sourceType = isVideo ? '🎬 ВК Клип' : '📝 ВК Пост';
+    return { title, ingredients, sourceType };
+  }
+};
+
+// ============================================================
+// 6. ФУНКЦИИ ЭКСПОРТА / ИМПОРТА
 // ============================================================
 function exportData(format) {
   const data = DishStore.getAll();
@@ -919,7 +1408,7 @@ function exportData(format) {
     const headers = ['Название', 'Статус', 'Дата', 'Категория', 'Заметка', 'Любимое'];
     const rows = data.map(d => [
       d.name,
-      d.status === 'done' ? 'Готовила' : 'Планирую',
+      d.status === STATUSES.DONE ? 'Готовила' : 'Планирую',
       d.date,
       d.category,
       d.note || '',
@@ -949,12 +1438,6 @@ function importData(file) {
         return;
       }
       if (confirm(`Будет импортировано ${parsed.length} блюд. Текущие данные будут заменены. Продолжить?`)) {
-        parsed.forEach(d => {
-          if (!d.category) d.category = Utils.guessCategory(d.name);
-          if (!d.note) d.note = '';
-          if (d.liked === undefined) d.liked = false;
-          if (!d.id) d.id = Date.now() + Math.random() * 10000 + Math.floor(Math.random() * 1000);
-        });
         DishStore.replaceAll(parsed);
         const view = Renderer.getCurrentView();
         const curDate = Renderer.getCurrentDate();
@@ -969,13 +1452,14 @@ function importData(file) {
 }
 
 // ============================================================
-// 5. ИМПОРТ ПО ССЫЛКЕ
+// 7. ИМПОРТ ПО ССЫЛКЕ (ГЛАВНАЯ ФУНКЦИЯ)
 // ============================================================
 function openUrlImport() {
   document.getElementById('urlImportOverlay').classList.add('active');
   document.getElementById('recipeUrlInput').value = '';
   document.getElementById('urlImportStatus').innerHTML = '';
   document.getElementById('parsedRecipeContainer').innerHTML = '';
+  document.getElementById('urlImportOverlay').focus();
 }
 
 function closeUrlImport() {
@@ -1004,7 +1488,6 @@ async function fetchRecipeFromUrl(url) {
 
     const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
     const response = await fetch(proxyUrl);
-
     if (!response.ok) {
       throw new Error('Не удалось загрузить страницу. Проверьте ссылку.');
     }
@@ -1013,333 +1496,34 @@ async function fetchRecipeFromUrl(url) {
     const parser = new DOMParser();
     const doc = parser.parseFromString(html, 'text/html');
 
-    let title = '';
-    let ingredients = [];
-    let sourceType = '';
-    let content = '';
-
-    // ===== IAMCOOK =====
-    if (isIamCook) {
-      sourceType = '🍳 iamcook.ru';
-      const titleEl = doc.querySelector('h1.recipe-title, h1.title, .recipe-header h1, h1');
-      if (titleEl) title = titleEl.textContent.trim();
-      if (!title) {
-        const ogTitle = doc.querySelector('meta[property="og:title"]');
-        if (ogTitle) title = ogTitle.getAttribute('content') || '';
-      }
-
-      const ingredientSelectors = [
-        '.ingredients-list li', '.ingredients li', '.recipe-ingredients li',
-        '.ingredient-item', '.ingredient', 'ul.ingredients li',
-        '.ingredients-list__item', '.recipe__ingredients li', '[class*="ingredient"] li'
-      ];
-
-      for (const selector of ingredientSelectors) {
-        const items = doc.querySelectorAll(selector);
-        if (items.length > 0) {
-          items.forEach(el => {
-            const text = el.textContent.trim();
-            if (text && text.length > 1) {
-              const clean = text.replace(/[×х]/g, '').trim();
-              if (clean.length > 1) ingredients.push(clean);
-            }
-          });
-          if (ingredients.length > 2) break;
-        }
-      }
-
-      if (ingredients.length === 0) {
-        const sections = doc.querySelectorAll('.recipe-content, .recipe-text, .content, .recipe, .post-content, article');
-        for (const section of sections) {
-          const text = section.textContent;
-          const match = text.match(/ингредиенты\s*[:;]\s*([^]+?)(?:приготовление|способ|пошагово|шаг|процесс|рецепт|спос)/i);
-          if (match && match[1]) {
-            const ingredientText = match[1];
-            const lines = ingredientText.split(/[\n,;]/).map(l => l.trim()).filter(l => l.length > 2);
-            const filtered = lines.filter(l => /\d/.test(l) || /гр|г|мл|л|кг|шт|ст\.|ч\.|зуб|пуч|ветк|головк|лук|морк|картоф|масл|соль|перец|сахар|мук|яйц|молок|сливк|сметан|майонез|кетчуп|соус|уксус|лимон|чеснок|зелень|петрушк|укроп|базилик|тимьян|розмарин|орегано|кориц|ванил|какао|шоколад|орех|миндал|фисташк|кешью|изюм|кураг|чернослив|инжир|мед|сироп|варенье|джем|конфитюр|пастил|мармелад|зефир|безе|меренг|суфле|мусс|крем|глазурь|помадк|карамел|ирис|тянучк|грильяж|пралине|нуга|халв|козинак|печенье|пряник|коврижк|корж|бисквит|рулет|пирожн|торт|кекс|маффин|капкейк|пончик|оладь|блин|сырник|ватрушк|шарлотк|пахлав|наполеон|медовик|сметанник|морковник|ореховик|шоколадник|клубничн|малин|чернич|ежевич|смородин|крыжовник|вишн|черешн|слив|абрикос|персик|нектарин|банан|яблок|груш|айв|хурм|гранат|цитрус|лимон|лайм|грейпфрут|мандарин|апельсин|помело|свити|кумкват|бергамот|памела|унаби|зизифус|джуджуба|финик|кокос|манго|папай|маракуй|питахай|дуриан|джекфрут|личе|рамбутан|лангуст|мангостин|саподилл|чику|канистел|лукум|хала|баге|бриош|круассан|булочк|пирожк|расстегай|кулебяк|курник|каравай|калач|баранк|сушк|сухар|гренк|панцер|шницель|отбивн|эскалоп|медальон|рагу|жульен|фондю|раклет|тост|канапе|тарталетк|волован|корзиночк|павлов|тирамису|паннакот|крем-брюле|флан|пудинг|запеканк|суфле|мусс|парфе|сорбет|шербет|гранит|фраппе|коктейль|смузи|компот|кисель|узвар|морс|квас|лимонад|швепс|тоник|кола|пепси|спрайт|фанта|миринда|газировк|минералк|вод|сок|нектар|напитк|чай|кофе|какао|горячий|шоколад|глинтвейн|сбитень|медовух|квас|сидр|пиво/i.test(l));
-            ingredients = filtered.slice(0, 20);
-            break;
-          }
-        }
-      }
-
-      ingredients = ingredients
-        .map(i => i.replace(/^[•\-*\d.]+\s*/, '').trim())
-        .filter((v, i, a) => a.indexOf(v) === i && v.length > 2)
-        .slice(0, 20);
-
-      if (ingredients.length === 0) {
-        ingredients = ['Ингредиенты не найдены. Попробуйте добавить их в заметку вручную.'];
-      }
-
-      if (title && title.length > 60) title = title.substring(0, 57) + '...';
+    let result;
+    if (isYouTube) {
+      result = Parsers.parseYouTube(doc);
+    } else if (isVK) {
+      result = Parsers.parseVK(doc, isVKVideo);
+    } else if (isTelegram) {
+      result = Parsers.parseTelegram(doc);
+    } else if (isInstagram) {
+      result = Parsers.parseInstagram(doc);
+    } else if (isPinterest) {
+      result = Parsers.parsePinterest(doc);
+    } else if (isZen) {
+      result = Parsers.parseZen(doc);
+    } else if (isIamCook) {
+      result = Parsers.parseIamCook(doc);
+    } else {
+      result = Parsers.parseGeneral(doc);
     }
 
-    // ===== VK КЛИПЫ =====
-    else if (isVK && isVKVideo) {
-      sourceType = '🎬 ВК Клип';
-      const pageTitle = doc.querySelector('title');
-      if (pageTitle) {
-        let rawTitle = pageTitle.textContent.trim();
-        rawTitle = rawTitle.replace(/\s*[|]\s*ВКонтакте\s*$/i, '');
-        rawTitle = rawTitle.replace(/\s*[|]\s*VK\s*$/i, '');
-        title = rawTitle;
-      }
-
-      const descSelectors = [
-        '.video_description', '.clip_description', '.video-desc', '.clip-desc',
-        '[class*="video_description"]', '[class*="clip_description"]',
-        '.video-description', '.clip-description'
-      ];
-
-      for (const selector of descSelectors) {
-        const el = doc.querySelector(selector);
-        if (el && el.textContent.trim().length > 5) {
-          content = el.textContent.trim();
-          break;
-        }
-      }
-
-      if (!content) {
-        const metaDesc = doc.querySelector('meta[name="description"]');
-        if (metaDesc) content = metaDesc.getAttribute('content') || '';
-      }
-      if (!content) {
-        const ogDesc = doc.querySelector('meta[property="og:description"]');
-        if (ogDesc) content = ogDesc.getAttribute('content') || '';
-      }
-
-      if (content && content.length > 10) {
-        const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-        const productKeywords = [
-          'грамм', 'гр', 'мл', 'литр', 'кг', 'ст.', 'ч.', 'шт', 'зуб', 'пуч',
-          'лук', 'морковь', 'картофель', 'масло', 'соль', 'перец', 'сахар', 'мука',
-          'яйцо', 'молоко', 'сливки', 'сметана', 'майонез', 'кетчуп', 'соус',
-          'уксус', 'лимон', 'чеснок', 'зелень', 'петрушка', 'укроп', 'базилик'
-        ];
-
-        let found = false;
-        for (const line of lines) {
-          const hasNumber = /\d+/.test(line);
-          const hasUnit = /(грамм|гр|мл|литр|кг|ст\.|ч\.|шт|зуб|пуч)/i.test(line);
-          const hasProduct = productKeywords.some(word => line.toLowerCase().includes(word));
-          const hasMarker = /^[•\-*]\s*/.test(line);
-
-          if ((hasNumber && (hasUnit || hasProduct)) || (hasMarker && hasProduct)) {
-            if (line.length > 3 && line.length < 80) {
-              ingredients.push(line);
-              found = true;
-            }
-          }
-        }
-
-        if (!found) {
-          const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
-          if (numLines.length > 0) {
-            ingredients = numLines.slice(0, 15);
-            found = true;
-          }
-        }
-
-        if (!found) {
-          ingredients = ['Ингредиенты не найдены в описании клипа. Добавьте их в заметку вручную.'];
-        }
-      } else {
-        ingredients = ['Для клипов ВК ингредиенты обычно указываются в описании. Попробуйте открыть клип в приложении и скопировать описание.'];
-      }
-
-      ingredients = ingredients.filter((v, i, a) => a.indexOf(v) === i).slice(0, 20);
-      if (title && title.length > 60) title = title.substring(0, 57) + '...';
-    }
-
-    // ===== ОСТАЛЬНЫЕ ПЛАТФОРМЫ =====
-    else {
-      if (isYouTube) {
-        sourceType = '🎬 YouTube';
-        const pageTitle = doc.querySelector('title');
-        if (pageTitle) {
-          let rawTitle = pageTitle.textContent.trim();
-          rawTitle = rawTitle.replace(/\s*[-–]\s*YouTube\s*$/i, '');
-          rawTitle = rawTitle.replace(/^YouTube\s*[-–]\s*/, '');
-          title = rawTitle;
-        }
-        let description = '';
-        const metaDesc = doc.querySelector('meta[name="description"]');
-        if (metaDesc) description = metaDesc.getAttribute('content') || '';
-        if (description) {
-          const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-          const numLines = lines.filter(l => /\d/.test(l) && l.length < 100 && l.length > 3);
-          if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-        }
-        if (ingredients.length === 0) {
-          ingredients = ['Ингредиенты не найдены в описании видео. Добавьте их в заметку вручную.'];
-        }
-      } else if (isTelegram) {
-        sourceType = '📱 Telegram';
-        const pageTitle = doc.querySelector('title');
-        if (pageTitle) {
-          let rawTitle = pageTitle.textContent.trim();
-          rawTitle = rawTitle.replace(/\s*[|]\s*Telegram\s*$/i, '');
-          title = rawTitle;
-        }
-        const contentSelectors = ['.tgme_widget_message_text', '.tgme_msg_text', '.tgme_message_text', '.tgme_widget_message_content .text'];
-        for (const selector of contentSelectors) {
-          const el = doc.querySelector(selector);
-          if (el && el.textContent.trim().length > 20) {
-            content = el.textContent.trim();
-            break;
-          }
-        }
-        if (content) {
-          const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-          const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
-          if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-        }
-        if (ingredients.length === 0) {
-          ingredients = ['Ингредиенты не найдены в тексте поста. Добавьте их в заметку вручную.'];
-        }
-      } else if (isInstagram) {
-        sourceType = '📸 Instagram';
-        const pageTitle = doc.querySelector('title');
-        if (pageTitle) {
-          let rawTitle = pageTitle.textContent.trim();
-          rawTitle = rawTitle.replace(/\s*[|]\s*Instagram\s*$/i, '');
-          title = rawTitle;
-        }
-        let description = '';
-        const metaDesc = doc.querySelector('meta[name="description"]');
-        if (metaDesc) description = metaDesc.getAttribute('content') || '';
-        if (description) {
-          const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-          const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
-          if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-        }
-        if (ingredients.length === 0) {
-          ingredients = ['Ингредиенты не найдены в описании. Добавьте их в заметку вручную.'];
-        }
-      } else if (isPinterest) {
-        sourceType = '📌 Pinterest';
-        const pageTitle = doc.querySelector('title');
-        if (pageTitle) {
-          let rawTitle = pageTitle.textContent.trim();
-          rawTitle = rawTitle.replace(/\s*[|]\s*Pinterest\s*$/i, '');
-          title = rawTitle;
-        }
-        let description = '';
-        const metaDesc = doc.querySelector('meta[name="description"]');
-        if (metaDesc) description = metaDesc.getAttribute('content') || '';
-        if (description) {
-          const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-          const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
-          if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-        }
-        if (ingredients.length === 0) {
-          ingredients = ['Ингредиенты не найдены в описании. Добавьте их в заметку вручную.'];
-        }
-      } else if (isZen) {
-        sourceType = '📝 Яндекс.Дзен';
-        const pageTitle = doc.querySelector('title');
-        if (pageTitle) {
-          let rawTitle = pageTitle.textContent.trim();
-          rawTitle = rawTitle.replace(/\s*[|]\s*Дзен\s*$/i, '');
-          rawTitle = rawTitle.replace(/\s*[|]\s*Яндекс\s*Дзен\s*$/i, '');
-          title = rawTitle;
-        }
-        const contentSelectors = ['.article-body', '.article-content', '.text-block', '.content-block', 'article .text'];
-        for (const selector of contentSelectors) {
-          const el = doc.querySelector(selector);
-          if (el && el.textContent.trim().length > 50) {
-            content = el.textContent.trim();
-            break;
-          }
-        }
-        if (content) {
-          const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-          const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
-          if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-        }
-        if (ingredients.length === 0) {
-          ingredients = ['Ингредиенты не найдены в статье. Добавьте их в заметку вручную.'];
-        }
-      } else {
-        // Обычный сайт
-        sourceType = '🌐 Сайт';
-        const titleSelectors = [
-          'h1[itemprop="name"]', '.recipe-title', '.recipe-header h1',
-          'h1.recipe__title', '.recipe-name', '.title', 'article h1',
-          '.recipe h1', '.post-title', 'h1.entry-title', 'h1'
-        ];
-        for (const selector of titleSelectors) {
-          const el = doc.querySelector(selector);
-          if (el && el.textContent.trim()) {
-            title = el.textContent.trim();
-            break;
-          }
-        }
-        if (!title) {
-          const ogTitle = doc.querySelector('meta[property="og:title"]');
-          if (ogTitle) title = ogTitle.getAttribute('content') || '';
-        }
-        if (title) {
-          title = title.split('|')[0].trim();
-          title = title.split('–')[0].trim();
-          title = title.split('—')[0].trim();
-        }
-        const ingredientSelectors = [
-          '.ingredients-list li', '.recipe-ingredients li', '.ingredients li',
-          '.ingredient-item', '.recipe__ingredients li', '.ingredient',
-          '.ingredients-list .item', 'ul.ingredients li', '.ingredients-list__item'
-        ];
-        for (const selector of ingredientSelectors) {
-          const items = doc.querySelectorAll(selector);
-          if (items.length > 0) {
-            items.forEach(el => {
-              const text = el.textContent.trim();
-              if (text && text.length > 1 && !text.includes('Продукты')) {
-                ingredients.push(text);
-              }
-            });
-            if (ingredients.length > 0) break;
-          }
-        }
-        if (ingredients.length === 0) {
-          const lists = doc.querySelectorAll('ul, ol');
-          for (const list of lists) {
-            const items = list.querySelectorAll('li');
-            let hasIngredients = false;
-            const temp = [];
-            items.forEach(el => {
-              const text = el.textContent.trim();
-              if (text && text.length > 1 && text.length < 100) {
-                if (/\d/.test(text) || /г|мл|кг|л|шт|ст\.|ч\.|зуб/.test(text)) {
-                  hasIngredients = true;
-                  temp.push(text);
-                }
-              }
-            });
-            if (hasIngredients && temp.length > 2) {
-              ingredients = temp;
-              break;
-            }
-          }
-        }
-        ingredients = ingredients.filter((v, i, a) => a.indexOf(v) === i && v.length > 2);
-        if (ingredients.length === 0) {
-          ingredients = ['Ингредиенты не найдены. Добавьте их в заметку вручную.'];
-        }
-      }
-    }
-
-    // Определяем категорию
-    let category = Utils.guessCategory(title || '');
-    ingredients = ingredients.filter(i => i && !i.includes('не найдены')).slice(0, 20);
-
+    const { title, ingredients, sourceType } = result;
+    const category = Utils.guessCategory(title || '');
     const icon = sourceType.split(' ')[0] || '🍽️';
+
     container.innerHTML = `
       <div class="parsed-recipe">
         <div class="recipe-name">${icon} ${Utils.escapeHtml(title || 'Название не определено')}</div>
         <div class="platform-badge">${sourceType}</div>
-        ${ingredients.length > 0 ? `
+        ${ingredients.length > 0 && !ingredients[0].includes('не найдены') ? `
           <div class="recipe-ingredients">
             <strong>📋 Ингредиенты:</strong>
             <ul>
@@ -1348,16 +1532,14 @@ async function fetchRecipeFromUrl(url) {
           </div>
         ` : `
           <div class="recipe-ingredients" style="color: var(--text-muted);">
-            <em>Ингредиенты не найдены автоматически. Вы можете добавить их в заметку вручную.</em>
+            <em>${Utils.escapeHtml(ingredients[0] || 'Ингредиенты не найдены')}</em>
           </div>
         `}
         <div style="margin-top: 8px; font-size: 13px; color: var(--text-muted); background: var(--badge-bg); padding: 8px 12px; border-radius: var(--radius-sm);">
-          <strong>ℹ️</strong> Ингредиенты извлечены автоматически. 
-          ${isIamCook ? 'Для iamcook.ru проверьте и при необходимости дополните заметку.' : ''}
-          ${isVK && isVKVideo ? 'Для клипов ВК проверьте описание и дополните заметку.' : ''}
+          <strong>ℹ️</strong> Ингредиенты извлечены автоматически. Проверьте и при необходимости дополните заметку.
         </div>
         <div class="recipe-actions">
-          <button class="btn-add" data-name="${Utils.escapeHtml(title || 'Рецепт')}" data-note="${Utils.escapeHtml(ingredients.join('; '))}" data-category="${category}">
+          <button class="btn-add" data-name="${Utils.escapeHtml(title || 'Рецепт')}" data-note="${Utils.escapeHtml(ingredients.filter(i => !i.includes('не найдены')).slice(0, 15).join('; '))}" data-category="${category}">
             ✅ Добавить в меню
           </button>
           <button class="btn-cancel" id="cancelParsedRecipe">Отмена</button>
@@ -1382,7 +1564,7 @@ async function fetchRecipeFromUrl(url) {
         finalNote = `Импортированный рецепт (${sourceType}). Проверьте ингредиенты.`;
       }
 
-      DishStore.addDish(finalName, 'planned', dateStr, category, false, finalNote);
+      DishStore.addDish(finalName, STATUSES.PLANNED, dateStr, category, false, finalNote);
       closeUrlImport();
       const view = Renderer.getCurrentView();
       const curDate = Renderer.getCurrentDate();
@@ -1397,7 +1579,7 @@ async function fetchRecipeFromUrl(url) {
 
     statusDiv.innerHTML = `
       <div class="status-message success">
-        ✅ Рецепт найден! Найдено ${ingredients.length} ингредиентов. Источник: ${sourceType}
+        ✅ Рецепт найден! Найдено ${ingredients.filter(i => !i.includes('не найдены')).length} ингредиентов. Источник: ${sourceType}
       </div>
     `;
 
@@ -1411,12 +1593,13 @@ async function fetchRecipeFromUrl(url) {
 }
 
 // ============================================================
-// 6. ПРИВЕТСТВЕННАЯ МОДАЛКА
+// 8. ПРИВЕТСТВЕННАЯ МОДАЛКА
 // ============================================================
 function showWelcome() {
   const overlay = document.getElementById('welcomeOverlay');
   overlay.classList.add('active');
   document.body.style.overflow = 'hidden';
+  overlay.focus();
 }
 
 function hideWelcome() {
@@ -1426,7 +1609,7 @@ function hideWelcome() {
 }
 
 // ============================================================
-// 7. ИНИЦИАЛИЗАЦИЯ
+// 9. ИНИЦИАЛИЗАЦИЯ
 // ============================================================
 (function init() {
   setTimeout(showWelcome, 300);
@@ -1452,6 +1635,7 @@ function hideWelcome() {
     Renderer.setCategoryFilter(this.value);
   });
 
+  // Drag & Drop
   let draggedDishId = null, draggedFromDate = null;
   document.addEventListener('dragstart', function(e) {
     const target = e.target.closest('.meal-chip');
@@ -1499,6 +1683,7 @@ function hideWelcome() {
     draggedDishId = null; draggedFromDate = null;
   });
 
+  // Навигация
   const now = new Date();
   Renderer.setCurrentDate(now);
   Renderer.setCurrentView('month');
@@ -1533,8 +1718,6 @@ function hideWelcome() {
 
   document.querySelectorAll('#viewToggle button').forEach(btn => {
     btn.addEventListener('click', function() {
-      document.querySelectorAll('#viewToggle button').forEach(b => b.classList.remove('active'));
-      this.classList.add('active');
       const view = this.dataset.view;
       Renderer.setCurrentView(view);
       const curDate = Renderer.getCurrentDate();
@@ -1542,24 +1725,60 @@ function hideWelcome() {
     });
   });
 
+  // Модалки: закрытие по клику вне и по Escape
+  const modals = [
+    { overlay: document.getElementById('modalOverlay'), close: Renderer.closeModal },
+    { overlay: document.getElementById('recOverlay'), close: Renderer.closeRecModal },
+    { overlay: document.getElementById('urlImportOverlay'), close: closeUrlImport },
+    { overlay: document.getElementById('addModalOverlay'), close: Renderer.closeAddModal },
+    { overlay: document.getElementById('exportModalOverlay'), close: () => document.getElementById('exportModalOverlay').classList.remove('active') },
+    { overlay: document.getElementById('choiceOverlay'), close: () => document.getElementById('choiceOverlay').classList.remove('active') },
+    { overlay: document.getElementById('welcomeOverlay'), close: hideWelcome }
+  ];
+
+  modals.forEach(({ overlay, close }) => {
+    if (!overlay) return;
+    overlay.addEventListener('click', function(e) {
+      if (e.target === this) close();
+    });
+    // Закрытие по Escape
+    overlay.addEventListener('keydown', function(e) {
+      if (e.key === 'Escape') close();
+    });
+  });
+
+  // Глобальный Escape для закрытия активной модалки
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      const activeModal = document.querySelector('.modal-overlay.active, .choice-overlay.active, .welcome-overlay.active');
+      if (activeModal) {
+        // Находим соответствующую функцию закрытия
+        const id = activeModal.id;
+        if (id === 'modalOverlay') Renderer.closeModal();
+        else if (id === 'recOverlay') Renderer.closeRecModal();
+        else if (id === 'urlImportOverlay') closeUrlImport();
+        else if (id === 'addModalOverlay') Renderer.closeAddModal();
+        else if (id === 'exportModalOverlay') document.getElementById('exportModalOverlay').classList.remove('active');
+        else if (id === 'choiceOverlay') document.getElementById('choiceOverlay').classList.remove('active');
+        else if (id === 'welcomeOverlay') hideWelcome();
+      }
+    }
+  });
+
+  // Закрытие модалок по кнопкам close
   document.getElementById('modalClose').addEventListener('click', Renderer.closeModal);
-  document.getElementById('modalOverlay').addEventListener('click', function(e) {
-    if (e.target === this) Renderer.closeModal();
-  });
-
   document.getElementById('recClose').addEventListener('click', Renderer.closeRecModal);
-  document.getElementById('recOverlay').addEventListener('click', function(e) {
-    if (e.target === this) Renderer.closeRecModal();
-  });
+  document.getElementById('urlImportClose').addEventListener('click', closeUrlImport);
+  document.getElementById('addModalClose').addEventListener('click', Renderer.closeAddModal);
+  document.getElementById('addModalCancel').addEventListener('click', Renderer.closeAddModal);
+  document.getElementById('exportModalClose').addEventListener('click', () => document.getElementById('exportModalOverlay').classList.remove('active'));
 
+  // "Что приготовить?"
   document.getElementById('suggestBtn').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.add('active');
   });
   document.getElementById('choiceClose').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
-  });
-  document.getElementById('choiceOverlay').addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('active');
   });
 
   document.getElementById('choiceFromMenu').addEventListener('click', function() {
@@ -1575,7 +1794,7 @@ function hideWelcome() {
       const tomorrow = new Date();
       tomorrow.setDate(tomorrow.getDate() + 1);
       const dateStr = Utils.formatDateLocal(tomorrow);
-      DishStore.addDish(random.name, 'planned', dateStr, random.category, false, '');
+      DishStore.addDish(random.name, STATUSES.PLANNED, dateStr, random.category, false, '');
       const view = Renderer.getCurrentView();
       const curDate = Renderer.getCurrentDate();
       Renderer.renderCalendar(view, curDate);
@@ -1586,12 +1805,6 @@ function hideWelcome() {
   document.getElementById('favoritesBtn').addEventListener('click', Renderer.openFavorites);
 
   document.getElementById('addDishBtn').addEventListener('click', Renderer.openAddModal);
-  document.getElementById('addModalClose').addEventListener('click', Renderer.closeAddModal);
-  document.getElementById('addModalCancel').addEventListener('click', Renderer.closeAddModal);
-  document.getElementById('addModalOverlay').addEventListener('click', function(e) {
-    if (e.target === this) Renderer.closeAddModal();
-  });
-
   document.getElementById('addModalSave').addEventListener('click', function() {
     const nameInput = document.getElementById('newDishName');
     const noteInput = document.getElementById('newDishNote');
@@ -1616,12 +1829,8 @@ function hideWelcome() {
     noteInput.value = '';
   });
 
+  // URL импорт
   document.getElementById('importUrlBtn').addEventListener('click', openUrlImport);
-  document.getElementById('urlImportClose').addEventListener('click', closeUrlImport);
-  document.getElementById('urlImportOverlay').addEventListener('click', function(e) {
-    if (e.target === this) closeUrlImport();
-  });
-
   document.getElementById('fetchRecipeBtn').addEventListener('click', function() {
     const url = document.getElementById('recipeUrlInput').value.trim();
     if (!url) {
@@ -1634,7 +1843,6 @@ function hideWelcome() {
     }
     fetchRecipeFromUrl(url);
   });
-
   document.getElementById('recipeUrlInput').addEventListener('keydown', function(e) {
     if (e.key === 'Enter') {
       e.preventDefault();
@@ -1642,14 +1850,9 @@ function hideWelcome() {
     }
   });
 
+  // Экспорт
   document.getElementById('exportBtn').addEventListener('click', function() {
     document.getElementById('exportModalOverlay').classList.add('active');
-  });
-  document.getElementById('exportModalClose').addEventListener('click', function() {
-    document.getElementById('exportModalOverlay').classList.remove('active');
-  });
-  document.getElementById('exportModalOverlay').addEventListener('click', function(e) {
-    if (e.target === this) this.classList.remove('active');
   });
   document.querySelectorAll('.export-option').forEach(btn => {
     btn.addEventListener('click', function() {
@@ -1659,6 +1862,7 @@ function hideWelcome() {
     });
   });
 
+  // Импорт файла
   document.getElementById('importBtn').addEventListener('click', function() {
     document.getElementById('importFileInput').click();
   });
@@ -1669,6 +1873,7 @@ function hideWelcome() {
     }
   });
 
+  // Свайпы
   let touchStartX = 0, touchEndX = 0;
   const wrap = document.getElementById('calendarWrap');
   wrap.addEventListener('touchstart', (e) => {
