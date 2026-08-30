@@ -28,6 +28,8 @@
     <div class="btn-row">
       <button class="btn btn-primary" id="suggestBtn">🤔 Что приготовить?</button>
       <button class="btn btn-secondary" id="favoritesBtn"><span class="heart">❤️</span> Любимые</button>
+      <button class="btn btn-secondary" id="recipesBtn">📖 Мои рецепты</button>
+      <button class="btn btn-secondary" id="shoppingListBtn">🛒 Список покупок</button>
     </div>
     <div class="btn-row">
       <button class="btn btn-done" id="addDishBtn">➕ Добавить блюдо</button>
@@ -133,7 +135,7 @@
   </div>
 </div>
 
-<!-- Модалка добавления блюда -->
+<!-- Модалка добавления блюда (глобальная) -->
 <div class="modal-overlay add-modal" id="addModalOverlay" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
   <div class="modal">
     <div class="modal-header">
@@ -221,8 +223,75 @@
       <span>«На твой вкус»</span>
       <span>Импорт рецептов по ссылке</span>
       <span>Все соцсети и мессенджеры</span>
+      <span>📖 Мои рецепты</span>
+      <span>🛒 Список покупок</span>
     </div>
     <button class="welcome-btn" id="welcomeStartBtn">🚀 Начать!</button>
+  </div>
+</div>
+
+<!-- ===== НОВЫЕ МОДАЛКИ ===== -->
+
+<!-- Модалка "Мои рецепты" -->
+<div class="modal-overlay rec-modal" id="recipesOverlay" role="dialog" aria-modal="true" aria-labelledby="recipesTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="recipesTitle">📖 Мои рецепты</h3>
+      <button class="modal-close" id="recipesClose" aria-label="Закрыть">✕</button>
+    </div>
+    <div id="recipesContent">
+      <button class="btn-done" id="addRecipeBtn" style="margin-bottom:12px;">➕ Добавить рецепт</button>
+      <div id="recipesList"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Модалка добавления/редактирования рецепта -->
+<div class="modal-overlay add-modal" id="recipeFormOverlay" role="dialog" aria-modal="true" aria-labelledby="recipeFormTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="recipeFormTitle">📝 Рецепт</h3>
+      <button class="modal-close" id="recipeFormClose" aria-label="Закрыть">✕</button>
+    </div>
+    <div class="form-group">
+      <label for="recipeName">Название</label>
+      <input type="text" id="recipeName" placeholder="Название блюда">
+    </div>
+    <div class="form-group">
+      <label for="recipeIngredients">Ингредиенты (каждый с новой строки)</label>
+      <textarea id="recipeIngredients" rows="5" placeholder="Курица – 500 г&#10;Лук – 1 шт."></textarea>
+    </div>
+    <div class="form-group">
+      <label for="recipeInstructions">Инструкция (необязательно)</label>
+      <textarea id="recipeInstructions" rows="3" placeholder="Пошаговое приготовление..."></textarea>
+    </div>
+    <div class="form-group" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+      <button class="btn-secondary" id="recipeParseBtn">🔍 Парсить из текста</button>
+      <span style="font-size:12px; color:var(--text-muted);">Вставьте текст рецепта в поле "Ингредиенты" и нажмите кнопку</span>
+    </div>
+    <div class="form-actions">
+      <button class="btn-secondary" id="recipeFormCancel">Отмена</button>
+      <button class="btn-primary" id="recipeFormSave">Сохранить</button>
+    </div>
+    <input type="hidden" id="recipeFormId" value="">
+  </div>
+</div>
+
+<!-- Модалка "Список покупок" -->
+<div class="modal-overlay rec-modal" id="shoppingListOverlay" role="dialog" aria-modal="true" aria-labelledby="shoppingListTitle">
+  <div class="modal">
+    <div class="modal-header">
+      <h3 id="shoppingListTitle">🛒 Список покупок</h3>
+      <button class="modal-close" id="shoppingListClose" aria-label="Закрыть">✕</button>
+    </div>
+    <div>
+      <div class="form-group" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+        <label for="shoppingDate" style="font-weight:500;">Выберите дату:</label>
+        <input type="date" id="shoppingDate">
+        <button class="btn-primary" id="generateShoppingList">Собрать список</button>
+      </div>
+      <div id="shoppingListResult" style="margin-top:12px;"></div>
+    </div>
   </div>
 </div>
 
