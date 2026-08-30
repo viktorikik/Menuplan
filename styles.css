@@ -56,7 +56,6 @@
   --btn-padding: 6px 18px;
 }
 
-/* ===== Тёмная тема ===== */
 body.dark-theme {
   --bg-primary: #0f0f17;
   --bg-app: rgba(25, 25, 38, 0.92);
@@ -134,9 +133,9 @@ body {
 }
 
 /* ============================================================
-   4. ШАПКА
+   4. ШАПКА (исправлена семантика)
    ============================================================ */
-.header {
+.app-header {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -207,9 +206,9 @@ body {
 }
 
 /* ============================================================
-   5. КНОПКИ
+   5. КНОПКИ ДЕЙСТВИЙ
    ============================================================ */
-.smart-btn-wrap {
+.actions {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -1124,6 +1123,11 @@ body {
 .url-import-modal .modal {
   max-width: 480px;
 }
+.url-import-modal .modal-desc {
+  margin-bottom: var(--spacing-md);
+  color: var(--text-secondary);
+  font-size: 14px;
+}
 .url-import-modal .platform-tags {
   display: flex;
   flex-wrap: wrap;
@@ -1375,9 +1379,6 @@ body {
   text-align: center;
   position: relative;
 }
-.welcome-modal::before {
-  display: none;
-}
 .welcome-modal .welcome-icon {
   font-size: 36px;
   margin-bottom: var(--spacing-xs);
@@ -1497,7 +1498,7 @@ body {
   .day-number {
     font-size: 14px;
   }
-  .header {
+  .app-header {
     flex-direction: row;
     justify-content: center;
   }
