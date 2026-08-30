@@ -1,0 +1,700 @@
+/* ============================================================
+   1. ПЕРЕМЕННЫЕ
+   ============================================================ */
+:root {
+  --bg-primary: #f5f3f0;
+  --bg-app: rgba(255, 255, 255, 0.8);
+  --bg-app-border: rgba(255, 255, 255, 0.4);
+  --text-primary: #1c1c2a;
+  --text-secondary: #4a4a5a;
+  --text-muted: #6b6b7a;
+  --cell-bg: rgba(255, 255, 255, 0.5);
+  --cell-border: rgba(255, 255, 255, 0.7);
+  --tag-bg: white;
+  --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --btn-bg: #1e1e2a;
+  --btn-text: white;
+  --input-bg: rgba(255, 255, 255, 0.7);
+  --badge-bg: rgba(0, 0, 0, 0.05);
+  --empty-border: rgba(0, 0, 0, 0.05);
+  --planned-color: #fbbf24;
+  --done-color: #34d399;
+  --liked-color: #ef4444;
+  --planned-bg: rgba(251, 191, 36, 0.15);
+  --done-bg: rgba(52, 211, 153, 0.15);
+  --modal-overlay: rgba(0, 0, 0, 0.4);
+  --modal-bg: white;
+  --day-hover: rgba(0, 0, 0, 0.04);
+  --modal-text: #1c1c2a;
+  --chip-bg: rgba(255, 255, 255, 0.7);
+  --week-row-bg: rgba(255, 255, 255, 0.3);
+  --menu-item-bg: rgba(255, 255, 255, 0.3);
+  --suggest-item-bg: rgba(128, 128, 140, 0.06);
+  --rec-item-bg: rgba(128, 128, 140, 0.06);
+  --color-soup: #fbbf24;
+  --color-salad: #34d399;
+  --color-main: #ef4444;
+  --search-bg: rgba(255, 255, 255, 0.7);
+  --search-border: #ddd;
+
+  --spacing-xs: 4px;
+  --spacing-sm: 8px;
+  --spacing-md: 12px;
+  --spacing-lg: 20px;
+  --spacing-xl: 28px;
+  --radius-sm: 12px;
+  --radius-md: 24px;
+  --radius-lg: 40px;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.25);
+  --transition-fast: 0.15s;
+  --transition-normal: 0.25s;
+
+  --card-bg: var(--cell-bg);
+  --card-hover-bg: var(--day-hover);
+  --input-padding: 6px 12px;
+  --btn-padding: 6px 18px;
+}
+
+/* ===== Тёмная тема ===== */
+body.dark-theme {
+  --bg-primary: #0f0f17;
+  --bg-app: rgba(25, 25, 38, 0.92);
+  --bg-app-border: rgba(255, 255, 255, 0.06);
+  --text-primary: #ececf0;
+  --text-secondary: #b0b0c8;
+  --text-muted: #7a7a92;
+  --cell-bg: rgba(40, 40, 56, 0.5);
+  --cell-border: rgba(255, 255, 255, 0.05);
+  --tag-bg: rgba(45, 45, 65, 0.7);
+  --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  --btn-bg: #3a3a52;
+  --btn-text: #f0f0f5;
+  --input-bg: rgba(45, 45, 65, 0.6);
+  --badge-bg: rgba(255, 255, 255, 0.05);
+  --empty-border: rgba(255, 255, 255, 0.03);
+  --planned-color: #fcd34d;
+  --done-color: #6ee7b7;
+  --liked-color: #f87171;
+  --planned-bg: rgba(252, 211, 77, 0.12);
+  --done-bg: rgba(110, 231, 183, 0.12);
+  --modal-overlay: rgba(0, 0, 0, 0.7);
+  --modal-bg: #1e1e2e;
+  --day-hover: rgba(255, 255, 255, 0.05);
+  --modal-text: #ececf0;
+  --chip-bg: rgba(45, 45, 65, 0.7);
+  --week-row-bg: rgba(40, 40, 56, 0.5);
+  --menu-item-bg: rgba(40, 40, 56, 0.5);
+  --suggest-item-bg: rgba(60, 60, 80, 0.4);
+  --rec-item-bg: rgba(60, 60, 80, 0.4);
+  --color-soup: #fbbf24;
+  --color-salad: #34d399;
+  --color-main: #f87171;
+  --search-bg: rgba(45, 45, 65, 0.6);
+  --search-border: rgba(255, 255, 255, 0.1);
+  --card-bg: var(--cell-bg);
+  --card-hover-bg: var(--day-hover);
+}
+
+/* ============================================================
+   2. СБРОС И БАЗОВЫЕ СТИЛИ
+   ============================================================ */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+}
+
+body {
+  background: var(--bg-primary);
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  min-height: 100vh;
+  padding: var(--spacing-md);
+  transition: background var(--transition-normal), color var(--transition-normal);
+}
+
+/* ============================================================
+   3. ПРИЛОЖЕНИЕ
+   ============================================================ */
+.app {
+  max-width: 960px;
+  width: 100%;
+  background: var(--bg-app);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: var(--radius-lg);
+  padding: var(--spacing-lg) var(--spacing-lg);
+  box-shadow: var(--shadow);
+  border: 1px solid var(--bg-app-border);
+  transition: all var(--transition-normal);
+  margin: 0 auto;
+}
+
+/* ============================================================
+   4. ШАПКА
+   ============================================================ */
+.header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+.logo h1 {
+  font-size: 24px;
+  font-weight: 620;
+  letter-spacing: -0.3px;
+  color: var(--text-primary);
+  margin: 0;
+}
+
+.controls {
+  display: flex;
+  gap: var(--spacing-sm);
+  flex-wrap: wrap;
+  align-items: center;
+}
+
+.theme-toggle {
+  background: var(--cell-bg);
+  border: 1px solid var(--cell-border);
+  border-radius: var(--radius-md);
+  padding: 6px var(--spacing-md);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1.4;
+  color: var(--text-primary);
+  transition: var(--transition-fast);
+  min-height: 40px;
+  min-width: 44px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.theme-toggle:hover {
+  background: var(--day-hover);
+  transform: scale(1.05);
+}
+
+.view-toggle {
+  display: flex;
+  gap: 3px;
+  background: rgba(128, 128, 140, 0.1);
+  padding: var(--spacing-xs);
+  border-radius: var(--radius-lg);
+}
+.view-toggle button {
+  border: none;
+  background: transparent;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  font-weight: 550;
+  font-size: 13px;
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  white-space: nowrap;
+}
+.view-toggle button.active {
+  background: var(--tag-bg);
+  box-shadow: var(--shadow-sm);
+  color: var(--text-primary);
+}
+
+/* ============================================================
+   5. КНОПКИ
+   ============================================================ */
+.smart-btn-wrap {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+.btn-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: var(--spacing-md);
+  width: 100%;
+}
+
+.btn-row .btn {
+  flex: 1 1 0;
+  min-width: 140px;
+  max-width: 220px;
+  justify-content: center;
+  text-align: center;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border-radius: var(--radius-lg);
+  border: none;
+  font-size: 14px;
+  font-weight: 580;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+}
+
+.btn-row .btn-primary {
+  background: var(--btn-bg);
+  color: var(--btn-text);
+  border: 1px solid rgba(255,255,255,0.06);
+}
+.btn-row .btn-primary:hover {
+  transform: scale(1.02);
+  filter: brightness(1.12);
+}
+.btn-row .btn-primary:active {
+  transform: scale(0.97);
+}
+
+.btn-row .btn-secondary {
+  background: transparent;
+  border: 1px solid var(--text-muted);
+  color: var(--text-primary);
+}
+.btn-row .btn-secondary:hover {
+  background: var(--cell-bg);
+}
+
+.btn-row .btn-done {
+  background: var(--done-color);
+  color: white;
+  box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
+}
+.btn-row .btn-done:hover {
+  transform: scale(1.05);
+  filter: brightness(1.08);
+}
+
+.btn-row .btn-export {
+  background: #8b5cf6;
+  color: white;
+  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
+}
+.btn-row .btn-export:hover {
+  transform: scale(1.05);
+  filter: brightness(1.08);
+}
+
+.btn-row .btn-import {
+  background: #f59e0b;
+  color: white;
+  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
+}
+.btn-row .btn-import:hover {
+  transform: scale(1.05);
+  filter: brightness(1.08);
+}
+
+.btn-row .btn-import-url {
+  background: #3b82f6;
+  color: white;
+  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+}
+.btn-row .btn-import-url:hover {
+  transform: scale(1.05);
+  filter: brightness(1.08);
+}
+
+.import-hint {
+  font-size: 12px;
+  color: var(--text-muted);
+  text-align: center;
+  margin-top: 2px;
+  opacity: 0.7;
+}
+
+.import-hidden {
+  display: none;
+}
+
+/* ============================================================
+   6. КАЛЕНДАРЬ
+   ============================================================ */
+.calendar-wrap {
+  background: rgba(128, 128, 140, 0.04);
+  border-radius: var(--radius-xl);
+  padding: 10px 6px 14px;
+  margin-bottom: 16px;
+  touch-action: pan-y;
+  user-select: none;
+}
+
+.calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0 10px 10px;
+  flex-wrap: wrap;
+  gap: var(--spacing-sm);
+}
+
+.month-nav-wrapper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1 1 auto;
+  justify-content: center;
+  min-width: 200px;
+}
+
+.month-nav {
+  display: flex;
+  gap: var(--spacing-xs);
+}
+.month-nav button {
+  background: var(--cell-bg);
+  border: 1px solid var(--cell-border);
+  border-radius: var(--radius-md);
+  padding: 6px 14px;
+  cursor: pointer;
+  font-size: 22px;
+  font-weight: 500;
+  color: var(--text-primary);
+  transition: var(--transition-fast);
+  line-height: 1.2;
+  min-height: 40px;
+  min-width: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: var(--shadow-sm);
+}
+.month-nav button:hover {
+  background: var(--day-hover);
+  transform: scale(1.05);
+}
+.month-nav button:active {
+  transform: scale(0.93);
+}
+
+#monthTitle {
+  font-size: 18px;
+  font-weight: 560;
+  color: var(--text-primary);
+  text-align: center;
+  min-width: 120px;
+  margin: 0 6px;
+}
+
+.today-btn {
+  background: var(--done-color);
+  border: none;
+  border-radius: var(--radius-md);
+  padding: var(--spacing-sm) var(--spacing-lg);
+  font-size: 15px;
+  font-weight: 600;
+  color: white;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  line-height: 1.2;
+  box-shadow: 0 2px 12px rgba(52, 211, 153, 0.3);
+  min-height: 40px;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.today-btn:hover {
+  transform: scale(1.05);
+  filter: brightness(1.08);
+}
+.today-btn:active {
+  transform: scale(0.95);
+}
+
+.weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  text-align: center;
+  font-weight: 500;
+  color: var(--text-muted);
+  font-size: 11px;
+  letter-spacing: 0.3px;
+  padding: 6px 0 4px;
+  text-transform: uppercase;
+}
+
+.days-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: var(--spacing-xs);
+}
+
+.day-cell {
+  border-radius: 18px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  background: var(--cell-bg);
+  border: 1px solid var(--cell-border);
+  cursor: pointer;
+  transition: var(--transition-fast);
+  position: relative;
+  min-height: 60px;
+  padding: 6px var(--spacing-xs);
+  width: 100%;
+}
+.day-cell:hover {
+  background: var(--day-hover);
+}
+.day-cell.empty {
+  background: transparent;
+  border: 1px dashed var(--empty-border);
+  cursor: default;
+  pointer-events: none;
+}
+.day-cell.empty:hover {
+  background: transparent;
+}
+
+.day-number {
+  font-weight: 550;
+  font-size: 14px;
+  color: var(--text-primary);
+  line-height: 1;
+  margin-bottom: var(--spacing-xs);
+}
+
+.day-cell.has-done {
+  background: var(--done-bg);
+  border-color: var(--done-color);
+}
+.day-cell.has-done .day-number {
+  color: var(--done-color);
+}
+.day-cell.has-planned {
+  background: var(--planned-bg);
+  border-color: var(--planned-color);
+}
+.day-cell.has-planned .day-number {
+  color: var(--planned-color);
+}
+.day-cell.has-both {
+  background: linear-gradient(135deg, var(--done-bg) 50%, var(--planned-bg) 50%);
+  border-color: var(--done-color);
+}
+.day-cell.today {
+  border-color: var(--text-primary);
+  border-width: 2px;
+}
+
+/* ============================================================
+   7. НЕДЕЛЬНЫЙ ВИД
+   ============================================================ */
+.week-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: var(--spacing-xs) 0;
+}
+
+.week-row {
+  display: grid;
+  grid-template-columns: 50px 80px 1fr;
+  gap: 10px;
+  align-items: center;
+  background: var(--week-row-bg);
+  border-radius: 14px;
+  padding: var(--spacing-sm) var(--spacing-md);
+  border: 1px solid var(--cell-border);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.week-row:hover {
+  background: var(--day-hover);
+}
+
+.week-row .date-col {
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--text-primary);
+  text-align: center;
+}
+.week-row .day-col {
+  font-weight: 500;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-align: center;
+}
+
+.week-row .meals-col {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--spacing-xs) var(--spacing-sm);
+  min-height: 30px;
+  padding: 2px 0;
+}
+
+.meal-chip {
+  font-size: 13px;
+  padding: 2px 10px;
+  border-radius: var(--radius-md);
+  background: var(--chip-bg);
+  border-left: 3px solid var(--text-muted);
+  color: var(--text-primary);
+  white-space: nowrap;
+  cursor: grab;
+  transition: var(--transition-fast);
+  user-select: none;
+}
+.meal-chip:active {
+  cursor: grabbing;
+}
+.meal-chip.dragging {
+  opacity: 0.4;
+}
+.meal-chip.done {
+  border-left-color: var(--done-color);
+}
+.meal-chip.planned {
+  border-left-color: var(--planned-color);
+}
+.meal-chip.liked {
+  border-left-color: var(--liked-color);
+  background: rgba(239, 68, 68, 0.08);
+}
+
+.week-row.drag-over {
+  background: var(--done-bg);
+  border-color: var(--done-color);
+}
+.week-row .empty-meals {
+  color: var(--text-muted);
+  font-size: 13px;
+  font-style: italic;
+}
+
+/* ============================================================
+   8. ПОИСК И ФИЛЬТРЫ
+   ============================================================ */
+.search-filter-wrap {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  align-items: center;
+}
+.search-filter-wrap input,
+.search-filter-wrap select {
+  padding: 6px var(--spacing-md);
+  border-radius: var(--radius-md);
+  border: 1px solid var(--cell-border);
+  background: var(--search-bg);
+  font-size: 14px;
+  color: var(--text-primary);
+  outline: none;
+  flex: 1 1 150px;
+  min-width: 120px;
+}
+.search-filter-wrap input:focus,
+.search-filter-wrap select:focus {
+  border-color: var(--done-color);
+  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+}
+
+/* ============================================================
+   9. СПИСОК МЕНЮ
+   ============================================================ */
+.menu-list {
+  margin-top: 16px;
+  background: rgba(128, 128, 140, 0.04);
+  border-radius: var(--radius-md);
+  padding: 14px 16px;
+  max-height: 300px;
+  overflow-y: auto;
+}
+.menu-list h3 {
+  font-weight: 540;
+  font-size: 15px;
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.menu-group {
+  margin-bottom: 10px;
+}
+.menu-date {
+  font-weight: 600;
+  color: var(--text-secondary);
+  font-size: 14px;
+  margin-bottom: var(--spacing-xs);
+}
+
+.menu-item {
+  padding: 5px var(--spacing-md);
+  border-radius: var(--radius-sm);
+  background: var(--menu-item-bg);
+  margin-bottom: 3px;
+  font-size: 14px;
+  color: var(--text-primary);
+  display: flex;
+  justify-content: space-between;
+  border-left: 3px solid var(--text-muted);
+}
+.menu-item.done {
+  border-left-color: var(--done-color);
+}
+.menu-item.planned {
+  border-left-color: var(--planned-color);
+}
+.menu-item.category-soup {
+  border-left-color: var(--color-soup);
+}
+.menu-item.category-salad {
+  border-left-color: var(--color-salad);
+}
+.menu-item.category-main {
+  border-left-color: var(--color-main);
+}
+.menu-item .status-badge {
+  font-size: 12px;
+  color: var(--text-muted);
+}
+.menu-empty {
+  color: var(--text-muted);
+  text-align: center;
+  padding: var(--spacing-lg) 0;
+  font-size: 14px;
+}
+
+/* ============================================================
+   10. МОДАЛКИ (ОБЩИЕ)
+   ============================================================ */
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--modal-overlay);
+  backdrop-filter: blur(6px);
+  z-index: 1000;
+  justify-content: center;
+  align-items: center;
+  padding: var(--spacing-lg);
+}
+.modal-overlay.active {
+  display: flex;
+}
+
+.modal {
+  background: var(--modal-bg);
+  border-radius: 32px;
+  padding: var(--spacing-xl) var(--spacing-md);
+  max-width: 540px;
+  width: 100%;
+  max-height: 85vh;
+  overflow-y: auto;
+  box-shadow: 0 
