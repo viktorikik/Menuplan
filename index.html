@@ -10,21 +10,21 @@
 
 <div class="app">
   <!-- ШАПКА -->
-  <div class="header">
+  <header class="app-header">
     <div class="logo">
       <h1>🍽️ Планировщик меню</h1>
     </div>
     <div class="controls">
-      <button class="theme-toggle" id="themeToggle" title="Переключить тему">🌓</button>
-      <div class="view-toggle" id="viewToggle">
-        <button class="active" data-view="month">Месяц</button>
-        <button data-view="week">Неделя</button>
+      <button class="theme-toggle" id="themeToggle" aria-label="Переключить тему">🌓</button>
+      <div class="view-toggle" id="viewToggle" role="group" aria-label="Переключение вида календаря">
+        <button class="active" data-view="month" aria-pressed="true">Месяц</button>
+        <button data-view="week" aria-pressed="false">Неделя</button>
       </div>
     </div>
-  </div>
+  </header>
 
-  <!-- КНОПКИ -->
-  <div class="smart-btn-wrap">
+  <!-- КНОПКИ ДЕЙСТВИЙ -->
+  <section class="actions">
     <div class="btn-row">
       <button class="btn btn-primary" id="suggestBtn">🤔 Что приготовить?</button>
       <button class="btn btn-secondary" id="favoritesBtn"><span class="heart">❤️</span> Любимые</button>
@@ -36,92 +36,96 @@
       <button class="btn btn-import" id="importBtn">📥 Импорт</button>
     </div>
     <div class="import-hint">Выберите файл в формате JSON для загрузки резервной копии</div>
-    <input type="file" id="importFileInput" class="import-hidden" accept=".json">
-  </div>
+    <input type="file" id="importFileInput" class="import-hidden" accept=".json" aria-label="Загрузить файл резервной копии">
+  </section>
 
   <!-- КАЛЕНДАРЬ -->
-  <div class="calendar-wrap" id="calendarWrap">
+  <section class="calendar-wrap" id="calendarWrap">
     <div class="calendar-header">
       <div class="month-nav-wrapper">
         <div class="month-nav">
-          <button id="prevMonth">‹</button>
-          <button id="nextMonth">›</button>
+          <button id="prevMonth" aria-label="Предыдущий месяц">‹</button>
+          <button id="nextMonth" aria-label="Следующий месяц">›</button>
         </div>
         <h2 id="monthTitle">Август 2026</h2>
       </div>
       <button class="today-btn" id="todayBtn">Сегодня</button>
     </div>
-    <div class="weekdays">
-      <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
+    <div class="weekdays" role="row">
+      <span role="columnheader">Пн</span>
+      <span role="columnheader">Вт</span>
+      <span role="columnheader">Ср</span>
+      <span role="columnheader">Чт</span>
+      <span role="columnheader">Пт</span>
+      <span role="columnheader">Сб</span>
+      <span role="columnheader">Вс</span>
     </div>
-    <div id="calendarContent"></div>
-  </div>
+    <div id="calendarContent" role="grid"></div>
+  </section>
 
   <!-- ПОИСК И ФИЛЬТРЫ -->
-  <div class="search-filter-wrap">
-    <input type="text" id="searchInput" placeholder="🔍 Поиск блюда...">
-    <select id="statusFilter">
+  <section class="search-filter-wrap">
+    <input type="text" id="searchInput" placeholder="🔍 Поиск блюда..." aria-label="Поиск по названию блюда">
+    <select id="statusFilter" aria-label="Фильтр по статусу">
       <option value="all">Все статусы</option>
       <option value="done">✅ Готовила</option>
       <option value="planned">📅 Планирую</option>
     </select>
-    <select id="categoryFilter">
+    <select id="categoryFilter" aria-label="Фильтр по категории">
       <option value="all">Все категории</option>
       <option value="soup">Супы</option>
       <option value="salad">Салаты</option>
       <option value="main">Основные</option>
       <option value="other">Другое</option>
     </select>
-  </div>
+  </section>
 
   <!-- СПИСОК МЕНЮ -->
-  <div class="menu-list" id="menuList">
+  <section class="menu-list" id="menuList">
     <h3>📋 Меню на <span id="menuPeriod">месяц</span></h3>
     <div id="menuContent"></div>
-  </div>
+  </section>
 </div>
 
-<!-- ===== МОДАЛКИ ===== -->
+<!-- ===== МОДАЛЬНЫЕ ОКНА ===== -->
 
 <!-- Модалка дня -->
-<div class="modal-overlay" id="modalOverlay">
+<div class="modal-overlay" id="modalOverlay" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
   <div class="modal">
     <div class="modal-header">
-      <h3 id="modalDate">26 августа 2026</h3>
-      <button class="modal-close" id="modalClose">✕</button>
+      <h3 id="modalTitle">26 августа 2026</h3>
+      <button class="modal-close" id="modalClose" aria-label="Закрыть">✕</button>
     </div>
     <div id="modalContent"></div>
   </div>
 </div>
 
 <!-- Модалка рекомендаций -->
-<div class="modal-overlay rec-modal" id="recOverlay">
+<div class="modal-overlay rec-modal" id="recOverlay" role="dialog" aria-modal="true" aria-labelledby="recTitle">
   <div class="modal">
     <div class="modal-header">
       <h3 id="recTitle">Рекомендации</h3>
-      <button class="modal-close" id="recClose">✕</button>
+      <button class="modal-close" id="recClose" aria-label="Закрыть">✕</button>
     </div>
     <div id="recContent"></div>
   </div>
 </div>
 
 <!-- Модалка импорта по ссылке -->
-<div class="modal-overlay url-import-modal" id="urlImportOverlay">
+<div class="modal-overlay url-import-modal" id="urlImportOverlay" role="dialog" aria-modal="true" aria-labelledby="urlImportTitle">
   <div class="modal">
     <div class="modal-header">
-      <h3>🔗 Импорт рецепта по ссылке</h3>
-      <button class="modal-close" id="urlImportClose">✕</button>
+      <h3 id="urlImportTitle">🔗 Импорт рецепта по ссылке</h3>
+      <button class="modal-close" id="urlImportClose" aria-label="Закрыть">✕</button>
     </div>
-    <p style="margin-bottom: var(--spacing-md); color: var(--text-secondary); font-size: 14px;">
-      Вставьте ссылку на рецепт с любого сайта или соцсети:
-    </p>
+    <p class="modal-desc">Вставьте ссылку на рецепт с любого сайта или соцсети:</p>
     <div class="platform-tags">
       <span>YouTube</span><span>ВКонтакте</span><span>Telegram</span>
       <span>Instagram</span><span>Pinterest</span><span>Яндекс.Дзен</span>
       <span>iamcook.ru</span><span>Сайты</span>
     </div>
     <div class="url-input-group">
-      <input type="url" id="recipeUrlInput" placeholder="https://example.com/recept/...">
+      <input type="url" id="recipeUrlInput" placeholder="https://example.com/recept/..." aria-label="Ссылка на рецепт">
       <button id="fetchRecipeBtn">🔍 Найти рецепт</button>
     </div>
     <div id="urlImportStatus"></div>
@@ -130,11 +134,11 @@
 </div>
 
 <!-- Модалка добавления блюда -->
-<div class="modal-overlay add-modal" id="addModalOverlay">
+<div class="modal-overlay add-modal" id="addModalOverlay" role="dialog" aria-modal="true" aria-labelledby="addModalTitle">
   <div class="modal">
     <div class="modal-header">
-      <h3>➕ Новое блюдо</h3>
-      <button class="modal-close" id="addModalClose">✕</button>
+      <h3 id="addModalTitle">➕ Новое блюдо</h3>
+      <button class="modal-close" id="addModalClose" aria-label="Закрыть">✕</button>
     </div>
     <div class="form-group">
       <label for="newDishName">Название блюда</label>
@@ -172,13 +176,13 @@
 </div>
 
 <!-- Модалка экспорта -->
-<div class="modal-overlay export-modal" id="exportModalOverlay">
+<div class="modal-overlay export-modal" id="exportModalOverlay" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
   <div class="modal">
     <div class="modal-header">
-      <h3>📤 Экспорт данных</h3>
-      <button class="modal-close" id="exportModalClose">✕</button>
+      <h3 id="exportModalTitle">📤 Экспорт данных</h3>
+      <button class="modal-close" id="exportModalClose" aria-label="Закрыть">✕</button>
     </div>
-    <p style="margin-bottom: var(--spacing-md); color: var(--text-secondary);">Выберите формат для экспорта:</p>
+    <p class="modal-desc">Выберите формат для экспорта:</p>
     <button class="export-option" data-format="json">
       <span class="export-label">JSON (резервная копия)</span>
       <span class="export-desc">Полный экспорт всех данных для восстановления</span>
@@ -191,9 +195,9 @@
 </div>
 
 <!-- Модалка выбора "Что приготовить?" -->
-<div class="choice-overlay" id="choiceOverlay">
+<div class="choice-overlay" id="choiceOverlay" role="dialog" aria-modal="true" aria-labelledby="choiceTitle">
   <div class="choice-modal">
-    <h2>🤔 Что приготовить?</h2>
+    <h2 id="choiceTitle">🤔 Что приготовить?</h2>
     <button class="choice-btn" id="choiceFromMenu">🍳 Из моего меню</button>
     <button class="choice-btn secondary" id="choiceFromTaste">✨ На твой вкус</button>
     <button class="choice-close" id="choiceClose">Закрыть</button>
@@ -201,10 +205,10 @@
 </div>
 
 <!-- Приветственная модалка -->
-<div class="welcome-overlay" id="welcomeOverlay">
+<div class="welcome-overlay" id="welcomeOverlay" role="dialog" aria-modal="true" aria-labelledby="welcomeTitle">
   <div class="welcome-modal">
     <span class="welcome-icon">🍽️</span>
-    <h2>Добро пожаловать!</h2>
+    <h2 id="welcomeTitle">Добро пожаловать!</h2>
     <div class="welcome-text">
       <p><strong>Привет!</strong> Этот планировщик поможет тебе структурировать домашнее меню, планировать блюда и всегда иметь под рукой любимые рецепты.</p>
     </div>
