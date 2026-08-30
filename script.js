@@ -22,34 +22,26 @@ const CATEGORY_LABELS = {
 
 // Список слов, характерных для российских кулинарных рецептов
 const PRODUCT_WORDS = [
-  // Овощи
   'лук', 'морковь', 'картофель', 'капуста', 'свекла', 'редис', 'репа',
   'огурец', 'помидор', 'перец', 'баклажан', 'кабачок', 'тыква',
   'чеснок', 'зелень', 'петрушка', 'укроп', 'базилик', 'кинза',
   'салат', 'шпинат', 'щавель', 'ревень', 'сельдерей',
-  // Крупы и макароны
   'рис', 'гречка', 'овсянка', 'перловка', 'пшено', 'кускус', 'булгур',
   'макароны', 'паста', 'лапша', 'вермишель', 'спагетти',
-  // Мясо и птица
   'говядина', 'свинина', 'баранина', 'телятина', 'курица', 'индейка',
   'утка', 'гусь', 'кролик', 'фарш', 'печень', 'сердце', 'почки',
-  // Рыба и морепродукты
   'тунец', 'горбуша', 'лосось', 'форель', 'сёмга', 'кета', 'кижуч',
   'треска', 'пикша', 'окунь', 'судак', 'щука', 'сом', 'налим',
   'осётр', 'пангасиус', 'тилапия', 'дорада', 'сибас', 'ставрида',
   'скумбрия', 'макрель', 'сельдь', 'шпроты', 'килька',
   'креветки', 'мидии', 'кальмары', 'краб',
-  // Молочные продукты
   'молоко', 'сливки', 'сметана', 'йогурт', 'кефир', 'ряженка',
   'творог', 'сыр', 'масло', 'маргарин', 'майонез', 'кетчуп',
-  // Яйца
   'яйцо',
-  // Специи и приправы
   'соль', 'перец', 'сахар', 'мука', 'крахмал',
   'корица', 'ваниль', 'какао', 'шоколад',
   'орегано', 'тимьян', 'розмарин', 'кориандр', 'тмин', 'кумин',
   'паприка', 'куркума', 'имбирь', 'шафран', 'гвоздика', 'кардамон',
-  // Фрукты, ягоды, орехи
   'яблоко', 'груша', 'айва', 'хурма', 'гранат',
   'лимон', 'лайм', 'грейпфрут', 'мандарин', 'апельсин',
   'клубника', 'малина', 'черника', 'ежевика', 'смородина', 'крыжовник',
@@ -58,17 +50,12 @@ const PRODUCT_WORDS = [
   'арбуз', 'дыня',
   'финик', 'инжир', 'курага', 'чернослив', 'изюм',
   'орех', 'миндаль', 'фисташка', 'кешью', 'грецкий орех', 'фундук',
-  // Грибы
   'гриб', 'шампиньон', 'белый гриб', 'подберёзовик', 'лисичка',
-  // Жидкости
   'вода', 'бульон', 'вино', 'коньяк', 'ром', 'пиво',
   'чай', 'кофе', 'какао', 'компот', 'кисель', 'морс', 'квас',
   'лимонад', 'сок', 'нектар',
-  // Масла и жиры
   'оливковое масло', 'подсолнечное масло', 'сливочное масло',
-  // Заготовки
   'варенье', 'джем', 'конфитюр', 'мёд', 'сироп', 'пастила', 'мармелад',
-  // Другое
   'дрожжи', 'разрыхлитель', 'сода', 'уксус', 'лимонная кислота'
 ];
 
@@ -134,7 +121,6 @@ const Utils = {
     return week;
   },
 
-  // Проверка, является ли строка ингредиентом (обновлённая версия)
   isIngredientLine(line) {
     if (!line || line.length < 3) return false;
     const lower = line.toLowerCase();
@@ -148,11 +134,108 @@ const Utils = {
     if (hasProduct) score++;
     if (hasMarker) score++;
     return score >= 2;
+  },
+
+  // Парсинг текста рецепта (из вставки)
+  parseRecipeText(text) {
+    const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    let title = '';
+    let ingredients = [];
+    // Попробуем найти название в первых строках
+    for (let i = 0; i < Math.min(lines.length, 5); i++) {
+      const line = lines[i];
+      if (line.length > 2 && line.length < 80 && !/\d/.test(line) && !this.isIngredientLine(line)) {
+        title = line;
+        break;
+      }
+    }
+    // Если не нашли, возьмём первую непустую
+    if (!title && lines.length > 0) title = lines[0];
+    // Ищем ингредиенты
+    for (const line of lines) {
+      if (this.isIngredientLine(line) && line.length < 100) {
+        ingredients.push(line);
+      }
+    }
+    // Если ингредиентов нет, возьмём все строки с цифрами
+    if (ingredients.length === 0) {
+      for (const line of lines) {
+        if (/\d/.test(line) && line.length < 100 && line.length > 3) {
+          ingredients.push(line);
+        }
+      }
+    }
+    return { title, ingredients: ingredients.join('\n') };
   }
 };
 
 // ============================================================
-// 3. ХРАНИЛИЩЕ ДАННЫХ
+// 3. ХРАНИЛИЩЕ РЕЦЕПТОВ
+// ============================================================
+const RecipeStore = (function() {
+  const STORAGE_KEY = 'smartMenuRecipes_v1';
+  let recipes = [];
+
+  function generateId() { return Date.now() + Math.random() * 10000; }
+
+  function load() {
+    try {
+      const saved = localStorage.getItem(STORAGE_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          recipes = parsed;
+          return true;
+        }
+      }
+    } catch(e) { console.warn('Ошибка загрузки рецептов:', e); }
+    return false;
+  }
+
+  function save() {
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(recipes));
+    } catch(e) { console.error('Ошибка сохранения рецептов:', e); }
+  }
+
+  function init() {
+    if (!load()) {
+      recipes = [];
+      save();
+    }
+  }
+
+  function getAll() { return recipes.slice(); }
+  function getById(id) { return recipes.find(r => r.id === id); }
+  function add(name, ingredients, instructions) {
+    const id = generateId();
+    const recipe = { id, name, ingredients: ingredients.split('\n').filter(s => s.trim()), instructions: instructions || '', createdAt: new Date().toISOString() };
+    recipes.push(recipe);
+    save();
+    return recipe;
+  }
+  function update(id, name, ingredients, instructions) {
+    const recipe = getById(id);
+    if (!recipe) return false;
+    recipe.name = name;
+    recipe.ingredients = ingredients.split('\n').filter(s => s.trim());
+    recipe.instructions = instructions || '';
+    save();
+    return true;
+  }
+  function remove(id) {
+    const index = recipes.findIndex(r => r.id === id);
+    if (index === -1) return false;
+    recipes.splice(index, 1);
+    save();
+    return true;
+  }
+
+  return { init, getAll, getById, add, update, remove };
+})();
+
+// ============================================================
+// 4. ХРАНИЛИЩЕ ДАННЫХ (блюда)
 // ============================================================
 const DishStore = (function() {
   const STORAGE_KEY = 'smartMenuDishes_v5';
@@ -196,6 +279,7 @@ const DishStore = (function() {
     if (!dish.note) dish.note = '';
     if (dish.liked === undefined) dish.liked = false;
     if (!dish.id) dish.id = generateId();
+    if (dish.recipeId === undefined) dish.recipeId = null;
     return dish;
   }
 
@@ -228,7 +312,7 @@ const DishStore = (function() {
 
   function init() {
     if (!load()) {
-      const result = DEFAULT_DISHES.map((d, i) => ({ ...d, id: generateId() + i, liked: false }));
+      const result = DEFAULT_DISHES.map((d, i) => ({ ...d, id: generateId() + i, liked: false, recipeId: null }));
       const noDate = [
         { name: 'Салат с морской капустой и крабовым мясом', category: CATEGORIES.SALAD, note: '' },
         { name: 'Гречка и салат из свежей капусты как в столовой', category: CATEGORIES.MAIN, note: '' },
@@ -245,7 +329,8 @@ const DishStore = (function() {
           date: Utils.formatDateLocal(d),
           category: item.category,
           liked: false,
-          note: item.note || ''
+          note: item.note || '',
+          recipeId: null
         });
       });
       dishes = result;
@@ -272,10 +357,10 @@ const DishStore = (function() {
   function getAll() { return dishes.slice(); }
   function getForDate(dateStr) { return dishes.filter(d => d.date === dateStr); }
 
-  function addDish(name, status, date, category, liked = false, note = '') {
+  function addDish(name, status, date, category, liked = false, note = '', recipeId = null) {
     if (!name || !status || !date || !category) return false;
     const id = generateId();
-    dishes.push({ id, name, status, date, category, liked, note });
+    dishes.push({ id, name, status, date, category, liked, note, recipeId });
     save();
     return true;
   }
@@ -358,16 +443,25 @@ const DishStore = (function() {
     return { name, category: cat, categoryLabel: CATEGORY_LABELS[cat] };
   }
 
+  // Привязка рецепта к блюду
+  function setRecipeId(dishId, recipeId) {
+    const dish = dishes.find(d => d.id === dishId);
+    if (!dish) return false;
+    dish.recipeId = recipeId;
+    save();
+    return true;
+  }
+
   return {
     init, editDishName, updateNote, getAll, getForDate, addDish, removeDish,
     toggleStatus, toggleLike, getAllUniqueWithLastDone,
     getRecommendations, getFavorites, invalidateCache, replaceAll,
-    getRandomDishFromTaste
+    getRandomDishFromTaste, setRecipeId
   };
 })();
 
 // ============================================================
-// 4. РЕНДЕРЕР
+// 5. РЕНДЕРЕР (основной)
 // ============================================================
 const Renderer = (function() {
   let currentView = 'month';
@@ -395,6 +489,24 @@ const Renderer = (function() {
     nameSpan.className = 'dish-name';
     nameSpan.textContent = dish.name;
     dishDiv.appendChild(nameSpan);
+
+    // Если есть рецепт, добавим иконку
+    if (dish.recipeId) {
+      const recipeLink = document.createElement('span');
+      recipeLink.className = 'recipe-link';
+      recipeLink.textContent = '📖';
+      recipeLink.title = 'Открыть рецепт';
+      recipeLink.addEventListener('click', function(e) {
+        e.stopPropagation();
+        const recipe = RecipeStore.getById(dish.recipeId);
+        if (recipe) {
+          showRecipeCard(recipe);
+        } else {
+          alert('Рецепт не найден');
+        }
+      });
+      nameSpan.appendChild(recipeLink);
+    }
 
     const actions = document.createElement('div');
     actions.className = 'dish-actions';
@@ -563,6 +675,23 @@ const Renderer = (function() {
     });
     addForm.appendChild(categorySelect);
 
+    // Выбор рецепта
+    const recipeSelect = document.createElement('select');
+    recipeSelect.id = 'modalNewDishRecipe';
+    recipeSelect.className = 'modal-field-select field-half';
+    const defaultOpt = document.createElement('option');
+    defaultOpt.value = '';
+    defaultOpt.textContent = 'Без рецепта';
+    recipeSelect.appendChild(defaultOpt);
+    const allRecipes = RecipeStore.getAll();
+    allRecipes.forEach(r => {
+      const opt = document.createElement('option');
+      opt.value = r.id;
+      opt.textContent = r.name;
+      recipeSelect.appendChild(opt);
+    });
+    addForm.appendChild(recipeSelect);
+
     const addBtn = document.createElement('button');
     addBtn.textContent = 'Добавить';
     addBtn.className = 'field-btn';
@@ -607,7 +736,8 @@ const Renderer = (function() {
           const name = this.dataset.name;
           const existing = DishStore.getAll().find(d => d.name === name);
           const category = existing ? existing.category : Utils.guessCategory(name);
-          DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '');
+          const recipeId = existing ? existing.recipeId : null;
+          DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '', recipeId);
           openModal(dateStr);
           renderCalendar(currentView, currentDate);
         });
@@ -622,11 +752,13 @@ const Renderer = (function() {
       const status = statusSelect.value;
       const category = categorySelect.value;
       const note = document.getElementById('modalNewDishNote').value.trim();
-      DishStore.addDish(name, status, dateStr, category, false, note);
+      const recipeId = recipeSelect.value ? Number(recipeSelect.value) : null;
+      DishStore.addDish(name, status, dateStr, category, false, note, recipeId);
       openModal(dateStr);
       renderCalendar(currentView, currentDate);
       nameInput.value = '';
       document.getElementById('modalNewDishNote').value = '';
+      recipeSelect.value = '';
     });
 
     return addSection;
@@ -724,10 +856,23 @@ const Renderer = (function() {
           chip.className = `meal-chip ${dish.status}`;
           if (dish.liked) chip.classList.add('liked');
           chip.textContent = dish.name;
+          if (dish.recipeId) {
+            const badge = document.createElement('span');
+            badge.className = 'recipe-badge';
+            badge.textContent = '📖';
+            badge.title = 'Открыть рецепт';
+            badge.addEventListener('click', function(e) {
+              e.stopPropagation();
+              const recipe = RecipeStore.getById(dish.recipeId);
+              if (recipe) showRecipeCard(recipe);
+            });
+            chip.appendChild(badge);
+          }
           chip.draggable = true;
           chip.dataset.id = dish.id;
           chip.dataset.date = dateStr;
           chip.addEventListener('click', (e) => {
+            if (e.target.closest('.recipe-badge')) return;
             if (e.detail > 0) openModal(dateStr);
           });
           mealsCol.appendChild(chip);
@@ -883,7 +1028,8 @@ const Renderer = (function() {
             const dateStr = Utils.formatDateLocal(tomorrow);
             const existing = DishStore.getAll().find(d => d.name === name);
             const category = existing ? existing.category : Utils.guessCategory(name);
-            DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '');
+            const recipeId = existing ? existing.recipeId : null;
+            DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '', recipeId);
             recOverlay.classList.remove('active');
             alert(`✅ Блюдо "${name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
             renderCalendar(currentView, currentDate);
@@ -917,7 +1063,8 @@ const Renderer = (function() {
             const dateStr = Utils.formatDateLocal(tomorrow);
             const existing = DishStore.getAll().find(d => d.name === name);
             const category = existing ? existing.category : Utils.guessCategory(name);
-            DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '');
+            const recipeId = existing ? existing.recipeId : null;
+            DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '', recipeId);
             recOverlay.classList.remove('active');
             alert(`✅ Блюдо "${name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
             renderCalendar(currentView, currentDate);
@@ -982,7 +1129,8 @@ const Renderer = (function() {
           const dateStr = Utils.formatDateLocal(tomorrow);
           const existing = DishStore.getAll().find(d => d.name === name);
           const category = existing ? existing.category : Utils.guessCategory(name);
-          DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '');
+          const recipeId = existing ? existing.recipeId : null;
+          DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '', recipeId);
           recOverlay.classList.remove('active');
           alert(`✅ Блюдо "${name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
           renderCalendar(currentView, currentDate);
@@ -1033,6 +1181,52 @@ const Renderer = (function() {
   function setStatusFilter(f) { statusFilter = f; renderMenu(); }
   function setCategoryFilter(f) { categoryFilter = f; renderMenu(); }
 
+  // --- Показ карточки рецепта (всплывающее окно) ---
+  function showRecipeCard(recipe) {
+    // просто покажем модалку с рецептом
+    const overlay = document.createElement('div');
+    overlay.className = 'modal-overlay active';
+    overlay.style.display = 'flex';
+    const modal = document.createElement('div');
+    modal.className = 'modal';
+    modal.style.maxWidth = '500px';
+    modal.innerHTML = `
+      <div class="modal-header">
+        <h3>📖 ${Utils.escapeHtml(recipe.name)}</h3>
+        <button class="modal-close" id="recipeCardClose">✕</button>
+      </div>
+      <div style="margin-bottom:12px;">
+        <strong>Ингредиенты:</strong>
+        <ul style="list-style:none; padding-left:0; margin:4px 0;">
+          ${recipe.ingredients.map(i => `<li style="padding:2px 0; border-bottom:1px solid var(--cell-border);">${Utils.escapeHtml(i)}</li>`).join('')}
+        </ul>
+      </div>
+      ${recipe.instructions ? `<div><strong>Инструкция:</strong><pre style="white-space:pre-wrap; font-family:inherit; margin:4px 0;">${Utils.escapeHtml(recipe.instructions)}</pre></div>` : ''}
+      <div style="display:flex; gap:8px; margin-top:12px;">
+        <button class="btn-primary" id="addRecipeToCalendar" style="flex:1;">Добавить в календарь</button>
+        <button class="btn-secondary" id="recipeCardCloseBtn" style="flex:1;">Закрыть</button>
+      </div>
+    `;
+    overlay.appendChild(modal);
+    document.body.appendChild(overlay);
+
+    const close = () => overlay.remove();
+    overlay.querySelector('#recipeCardClose').addEventListener('click', close);
+    overlay.querySelector('#recipeCardCloseBtn').addEventListener('click', close);
+    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
+
+    overlay.querySelector('#addRecipeToCalendar').addEventListener('click', function() {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dateStr = Utils.formatDateLocal(tomorrow);
+      const category = Utils.guessCategory(recipe.name);
+      DishStore.addDish(recipe.name, STATUSES.PLANNED, dateStr, category, false, '', recipe.id);
+      close();
+      alert(`✅ Блюдо "${recipe.name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
+      renderCalendar(currentView, currentDate);
+    });
+  }
+
   return {
     renderCalendar, renderMenu, openModal, closeModal, openRecommendations,
     openFavorites, closeRecModal, openAddModal, closeAddModal,
@@ -1040,19 +1234,18 @@ const Renderer = (function() {
     getCurrentDate: () => currentDate,
     getCurrentView: () => currentView,
     setCurrentDate: (d) => { currentDate = d; },
-    setCurrentView: (v) => { currentView = v; }
+    setCurrentView: (v) => { currentView = v; },
+    showRecipeCard
   };
 })();
 
 // ============================================================
-// 5. ПАРСЕРЫ ДЛЯ ИМПОРТА ПО ССЫЛКЕ
+// 6. ПАРСЕРЫ ДЛЯ ИМПОРТА ПО ССЫЛКЕ
 // ============================================================
 const Parsers = {
-  // Общий парсер для сайтов с рецептами
   parseGeneral(doc) {
     let title = '';
     let ingredients = [];
-
     const titleSelectors = [
       'h1[itemprop="name"]', '.recipe-title', '.recipe-header h1',
       'h1.recipe__title', '.recipe-name', '.title', 'article h1',
@@ -1074,7 +1267,6 @@ const Parsers = {
       title = title.split('–')[0].trim();
       title = title.split('—')[0].trim();
     }
-
     const ingredientSelectors = [
       '.ingredients-list li', '.recipe-ingredients li', '.ingredients li',
       '.ingredient-item', '.recipe__ingredients li', '.ingredient',
@@ -1115,7 +1307,6 @@ const Parsers = {
     return { title, ingredients, sourceType: '🌐 Сайт' };
   },
 
-  // YouTube
   parseYouTube(doc) {
     let title = '';
     const pageTitle = doc.querySelector('title');
@@ -1146,7 +1337,6 @@ const Parsers = {
       const ogDesc = doc.querySelector('meta[property="og:description"]');
       if (ogDesc) description = ogDesc.getAttribute('content') || '';
     }
-
     let ingredients = [];
     if (description) {
       const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
@@ -1166,7 +1356,6 @@ const Parsers = {
     return { title, ingredients, sourceType: '🎬 YouTube' };
   },
 
-  // Telegram
   parseTelegram(doc) {
     let title = '';
     const pageTitle = doc.querySelector('title');
@@ -1203,7 +1392,6 @@ const Parsers = {
     return { title, ingredients, sourceType: '📱 Telegram' };
   },
 
-  // Instagram
   parseInstagram(doc) {
     let title = '';
     const pageTitle = doc.querySelector('title');
@@ -1234,7 +1422,6 @@ const Parsers = {
     return { title, ingredients, sourceType: '📸 Instagram' };
   },
 
-  // Pinterest
   parsePinterest(doc) {
     let title = '';
     const pageTitle = doc.querySelector('title');
@@ -1265,7 +1452,6 @@ const Parsers = {
     return { title, ingredients, sourceType: '📌 Pinterest' };
   },
 
-  // Яндекс.Дзен
   parseZen(doc) {
     let title = '';
     const pageTitle = doc.querySelector('title');
@@ -1303,7 +1489,6 @@ const Parsers = {
     return { title, ingredients, sourceType: '📝 Яндекс.Дзен' };
   },
 
-  // iamcook.ru
   parseIamCook(doc) {
     let title = '';
     const titleEl = doc.querySelector('h1.recipe-title, h1.title, .recipe-header h1, h1');
@@ -1356,7 +1541,6 @@ const Parsers = {
     return { title, ingredients, sourceType: '🍳 iamcook.ru' };
   },
 
-  // VK (видео и посты)
   parseVK(doc, isVideo) {
     let title = '';
     const pageTitle = doc.querySelector('title');
@@ -1404,7 +1588,6 @@ const Parsers = {
       const ogDesc = doc.querySelector('meta[property="og:description"]');
       if (ogDesc) content = ogDesc.getAttribute('content') || '';
     }
-
     let ingredients = [];
     if (content && content.length > 10) {
       const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
@@ -1429,14 +1612,14 @@ const Parsers = {
 };
 
 // ============================================================
-// 6. ФУНКЦИИ ЭКСПОРТА / ИМПОРТА
+// 7. ФУНКЦИИ ЭКСПОРТА / ИМПОРТА
 // ============================================================
 function exportData(format) {
   const data = DishStore.getAll();
   if (!data.length) { alert('Нет данных для экспорта.'); return; }
 
   if (format === 'json') {
-    const json = JSON.stringify(data, null, 2);
+    const json = JSON.stringify({ dishes: data, recipes: RecipeStore.getAll() }, null, 2);
     const blob = new Blob([json], { type: 'application/json' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -1445,15 +1628,19 @@ function exportData(format) {
     a.click();
     URL.revokeObjectURL(url);
   } else if (format === 'csv') {
-    const headers = ['Название', 'Статус', 'Дата', 'Категория', 'Заметка', 'Любимое'];
-    const rows = data.map(d => [
-      d.name,
-      d.status === STATUSES.DONE ? 'Готовила' : 'Планирую',
-      d.date,
-      d.category,
-      d.note || '',
-      d.liked ? 'Да' : 'Нет'
-    ]);
+    const headers = ['Название', 'Статус', 'Дата', 'Категория', 'Заметка', 'Любимое', 'Рецепт'];
+    const rows = data.map(d => {
+      const recipe = d.recipeId ? RecipeStore.getById(d.recipeId) : null;
+      return [
+        d.name,
+        d.status === STATUSES.DONE ? 'Готовила' : 'Планирую',
+        d.date,
+        d.category,
+        d.note || '',
+        d.liked ? 'Да' : 'Нет',
+        recipe ? recipe.name : ''
+      ];
+    });
     const csvContent = [headers, ...rows]
       .map(row => row.map(cell => `"${String(cell).replace(/"/g, '""')}"`).join(';'))
       .join('\n');
@@ -1472,17 +1659,24 @@ function importData(file) {
   reader.onload = (e) => {
     try {
       const parsed = JSON.parse(e.target.result);
-      if (!Array.isArray(parsed)) { alert('Некорректный файл. Ожидается массив блюд.'); return; }
-      if (parsed.length && (!parsed[0].name || !parsed[0].date)) {
-        alert('Файл не соответствует формату данных меню.');
-        return;
-      }
-      if (confirm(`Будет импортировано ${parsed.length} блюд. Текущие данные будут заменены. Продолжить?`)) {
-        DishStore.replaceAll(parsed);
-        const view = Renderer.getCurrentView();
-        const curDate = Renderer.getCurrentDate();
-        Renderer.renderCalendar(view, curDate);
-        alert('✅ Данные успешно импортированы!');
+      if (parsed.dishes && Array.isArray(parsed.dishes)) {
+        if (confirm(`Будет импортировано ${parsed.dishes.length} блюд и ${parsed.recipes ? parsed.recipes.length : 0} рецептов. Текущие данные будут заменены. Продолжить?`)) {
+          if (parsed.recipes) {
+            // заменить рецепты
+            const recipes = parsed.recipes;
+            // просто перезапишем, но нужно очистить старые
+            localStorage.setItem('smartMenuRecipes_v1', JSON.stringify(recipes));
+            // переинициализируем RecipeStore (просто загрузим заново)
+            RecipeStore.init();
+          }
+          DishStore.replaceAll(parsed.dishes);
+          const view = Renderer.getCurrentView();
+          const curDate = Renderer.getCurrentDate();
+          Renderer.renderCalendar(view, curDate);
+          alert('✅ Данные успешно импортированы!');
+        }
+      } else {
+        alert('Некорректный файл. Ожидается объект с полями dishes и recipes.');
       }
     } catch (err) {
       alert('Ошибка при чтении файла: ' + err.message);
@@ -1492,7 +1686,7 @@ function importData(file) {
 }
 
 // ============================================================
-// 7. ИМПОРТ ПО ССЫЛКЕ (ГЛАВНАЯ ФУНКЦИЯ)
+// 8. ИМПОРТ ПО ССЫЛКЕ
 // ============================================================
 function openUrlImport() {
   document.getElementById('urlImportOverlay').classList.add('active');
@@ -1633,7 +1827,7 @@ async function fetchRecipeFromUrl(url) {
 }
 
 // ============================================================
-// 8. ПРИВЕТСТВЕННАЯ МОДАЛКА
+// 9. ПРИВЕТСТВЕННАЯ МОДАЛКА
 // ============================================================
 function showWelcome() {
   const overlay = document.getElementById('welcomeOverlay');
@@ -1649,14 +1843,191 @@ function hideWelcome() {
 }
 
 // ============================================================
-// 9. ИНИЦИАЛИЗАЦИЯ
+// 10. ФУНКЦИИ ДЛЯ РЕЦЕПТОВ И СПИСКА ПОКУПОК
+// ============================================================
+function openRecipesModal() {
+  const overlay = document.getElementById('recipesOverlay');
+  overlay.classList.add('active');
+  renderRecipesList();
+}
+
+function closeRecipesModal() {
+  document.getElementById('recipesOverlay').classList.remove('active');
+}
+
+function renderRecipesList() {
+  const list = document.getElementById('recipesList');
+  const recipes = RecipeStore.getAll();
+  list.innerHTML = '';
+  if (recipes.length === 0) {
+    list.innerHTML = '<div class="modal-empty">😌 У вас пока нет рецептов. Нажмите «Добавить рецепт».</div>';
+    return;
+  }
+  recipes.forEach(recipe => {
+    const card = document.createElement('div');
+    card.className = 'recipe-card';
+    card.innerHTML = `
+      <div class="recipe-header">
+        <span class="recipe-name">${Utils.escapeHtml(recipe.name)}</span>
+        <div class="recipe-actions">
+          <button class="edit-recipe" data-id="${recipe.id}" title="Редактировать">✎</button>
+          <button class="delete-recipe" data-id="${recipe.id}" title="Удалить">🗑️</button>
+          <button class="add-recipe-to-calendar" data-id="${recipe.id}" title="Добавить в календарь">📅</button>
+        </div>
+      </div>
+      <div class="recipe-details">
+        <div class="ingredients"><strong>Ингредиенты:</strong><ul>${recipe.ingredients.map(i => `<li>${Utils.escapeHtml(i)}</li>`).join('')}</ul></div>
+        ${recipe.instructions ? `<div class="instructions"><strong>Инструкция:</strong><pre>${Utils.escapeHtml(recipe.instructions)}</pre></div>` : ''}
+      </div>
+    `;
+    list.appendChild(card);
+
+    card.querySelector('.edit-recipe').addEventListener('click', function(e) {
+      e.stopPropagation();
+      openRecipeForm(Number(this.dataset.id));
+    });
+    card.querySelector('.delete-recipe').addEventListener('click', function(e) {
+      e.stopPropagation();
+      if (confirm('Удалить рецепт?')) {
+        RecipeStore.remove(Number(this.dataset.id));
+        renderRecipesList();
+      }
+    });
+    card.querySelector('.add-recipe-to-calendar').addEventListener('click', function(e) {
+      e.stopPropagation();
+      const recipe = RecipeStore.getById(Number(this.dataset.id));
+      if (recipe) {
+        const tomorrow = new Date();
+        tomorrow.setDate(tomorrow.getDate() + 1);
+        const dateStr = Utils.formatDateLocal(tomorrow);
+        const category = Utils.guessCategory(recipe.name);
+        DishStore.addDish(recipe.name, STATUSES.PLANNED, dateStr, category, false, '', recipe.id);
+        alert(`✅ Блюдо "${recipe.name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
+        const view = Renderer.getCurrentView();
+        const curDate = Renderer.getCurrentDate();
+        Renderer.renderCalendar(view, curDate);
+      }
+    });
+  });
+}
+
+function openRecipeForm(recipeId = null) {
+  const overlay = document.getElementById('recipeFormOverlay');
+  const formId = document.getElementById('recipeFormId');
+  const nameInput = document.getElementById('recipeName');
+  const ingrInput = document.getElementById('recipeIngredients');
+  const instrInput = document.getElementById('recipeInstructions');
+
+  if (recipeId) {
+    const recipe = RecipeStore.getById(recipeId);
+    if (!recipe) return;
+    formId.value = recipeId;
+    nameInput.value = recipe.name;
+    ingrInput.value = recipe.ingredients.join('\n');
+    instrInput.value = recipe.instructions || '';
+    document.getElementById('recipeFormTitle').textContent = '✎ Редактировать рецепт';
+  } else {
+    formId.value = '';
+    nameInput.value = '';
+    ingrInput.value = '';
+    instrInput.value = '';
+    document.getElementById('recipeFormTitle').textContent = '📝 Новый рецепт';
+  }
+  overlay.classList.add('active');
+}
+
+function closeRecipeForm() {
+  document.getElementById('recipeFormOverlay').classList.remove('active');
+}
+
+function saveRecipeForm() {
+  const id = document.getElementById('recipeFormId').value;
+  const name = document.getElementById('recipeName').value.trim();
+  const ingredients = document.getElementById('recipeIngredients').value.trim();
+  const instructions = document.getElementById('recipeInstructions').value.trim();
+  if (!name) { alert('Введите название рецепта'); return; }
+  if (!ingredients) { alert('Введите ингредиенты'); return; }
+  if (id) {
+    RecipeStore.update(Number(id), name, ingredients, instructions);
+  } else {
+    RecipeStore.add(name, ingredients, instructions);
+  }
+  closeRecipeForm();
+  renderRecipesList();
+}
+
+function parseRecipeTextFromForm() {
+  const ingrText = document.getElementById('recipeIngredients').value;
+  const result = Utils.parseRecipeText(ingrText);
+  if (result.title) {
+    document.getElementById('recipeName').value = result.title;
+  }
+  if (result.ingredients) {
+    document.getElementById('recipeIngredients').value = result.ingredients;
+  } else {
+    alert('Не удалось распознать ингредиенты. Попробуйте вручную.');
+  }
+}
+
+function openShoppingList() {
+  document.getElementById('shoppingListOverlay').classList.add('active');
+  const today = new Date();
+  document.getElementById('shoppingDate').value = Utils.formatDateLocal(today);
+  document.getElementById('shoppingListResult').innerHTML = '';
+}
+
+function closeShoppingList() {
+  document.getElementById('shoppingListOverlay').classList.remove('active');
+}
+
+function generateShoppingList() {
+  const dateStr = document.getElementById('shoppingDate').value;
+  if (!dateStr) { alert('Выберите дату'); return; }
+  const dishes = DishStore.getForDate(dateStr);
+  const resultDiv = document.getElementById('shoppingListResult');
+  const items = [];
+  dishes.forEach(dish => {
+    if (dish.recipeId) {
+      const recipe = RecipeStore.getById(dish.recipeId);
+      if (recipe) {
+        recipe.ingredients.forEach(ing => {
+          items.push({ dish: dish.name, ingredient: ing });
+        });
+      }
+    }
+  });
+  if (items.length === 0) {
+    resultDiv.innerHTML = '<div class="modal-empty">😌 На эту дату нет блюд с рецептами.</div>';
+    return;
+  }
+  // Группировка по блюдам
+  const grouped = {};
+  items.forEach(item => {
+    if (!grouped[item.dish]) grouped[item.dish] = [];
+    grouped[item.dish].push(item.ingredient);
+  });
+  let html = '';
+  for (const [dish, ingredients] of Object.entries(grouped)) {
+    html += `<div class="shopping-group"><h4>${Utils.escapeHtml(dish)}</h4>`;
+    ingredients.forEach(ing => {
+      html += `<div class="shopping-item">• ${Utils.escapeHtml(ing)}</div>`;
+    });
+    html += '</div>';
+  }
+  resultDiv.innerHTML = html;
+}
+
+// ============================================================
+// 11. ИНИЦИАЛИЗАЦИЯ
 // ============================================================
 (function init() {
+  // Инициализация хранилищ
+  RecipeStore.init();
+  DishStore.init();
+
   setTimeout(showWelcome, 300);
 
   document.getElementById('welcomeStartBtn').addEventListener('click', hideWelcome);
-
-  DishStore.init();
 
   const savedTheme = localStorage.getItem('mealPlannerTheme');
   if (savedTheme === 'dark') document.body.classList.add('dark-theme');
@@ -1765,7 +2136,7 @@ function hideWelcome() {
     });
   });
 
-  // Модалки: закрытие по клику вне и по Escape
+  // Закрытие модалок по клику вне и Escape
   const modals = [
     { overlay: document.getElementById('modalOverlay'), close: Renderer.closeModal },
     { overlay: document.getElementById('recOverlay'), close: Renderer.closeRecModal },
@@ -1773,7 +2144,10 @@ function hideWelcome() {
     { overlay: document.getElementById('addModalOverlay'), close: Renderer.closeAddModal },
     { overlay: document.getElementById('exportModalOverlay'), close: () => document.getElementById('exportModalOverlay').classList.remove('active') },
     { overlay: document.getElementById('choiceOverlay'), close: () => document.getElementById('choiceOverlay').classList.remove('active') },
-    { overlay: document.getElementById('welcomeOverlay'), close: hideWelcome }
+    { overlay: document.getElementById('welcomeOverlay'), close: hideWelcome },
+    { overlay: document.getElementById('recipesOverlay'), close: closeRecipesModal },
+    { overlay: document.getElementById('recipeFormOverlay'), close: closeRecipeForm },
+    { overlay: document.getElementById('shoppingListOverlay'), close: closeShoppingList }
   ];
 
   modals.forEach(({ overlay, close }) => {
@@ -1786,7 +2160,6 @@ function hideWelcome() {
     });
   });
 
-  // Глобальный Escape для закрытия активной модалки
   document.addEventListener('keydown', function(e) {
     if (e.key === 'Escape') {
       const activeModal = document.querySelector('.modal-overlay.active, .choice-overlay.active, .welcome-overlay.active');
@@ -1799,17 +2172,23 @@ function hideWelcome() {
         else if (id === 'exportModalOverlay') document.getElementById('exportModalOverlay').classList.remove('active');
         else if (id === 'choiceOverlay') document.getElementById('choiceOverlay').classList.remove('active');
         else if (id === 'welcomeOverlay') hideWelcome();
+        else if (id === 'recipesOverlay') closeRecipesModal();
+        else if (id === 'recipeFormOverlay') closeRecipeForm();
+        else if (id === 'shoppingListOverlay') closeShoppingList();
       }
     }
   });
 
-  // Закрытие модалок по кнопкам close
+  // Закрытие по кнопкам
   document.getElementById('modalClose').addEventListener('click', Renderer.closeModal);
   document.getElementById('recClose').addEventListener('click', Renderer.closeRecModal);
   document.getElementById('urlImportClose').addEventListener('click', closeUrlImport);
   document.getElementById('addModalClose').addEventListener('click', Renderer.closeAddModal);
   document.getElementById('addModalCancel').addEventListener('click', Renderer.closeAddModal);
   document.getElementById('exportModalClose').addEventListener('click', () => document.getElementById('exportModalOverlay').classList.remove('active'));
+  document.getElementById('recipesClose').addEventListener('click', closeRecipesModal);
+  document.getElementById('recipeFormClose').addEventListener('click', closeRecipeForm);
+  document.getElementById('shoppingListClose').addEventListener('click', closeShoppingList);
 
   // "Что приготовить?"
   document.getElementById('suggestBtn').addEventListener('click', function() {
@@ -1818,12 +2197,10 @@ function hideWelcome() {
   document.getElementById('choiceClose').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
   });
-
   document.getElementById('choiceFromMenu').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
     Renderer.openRecommendations();
   });
-
   document.getElementById('choiceFromTaste').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
     const random = DishStore.getRandomDishFromTaste();
@@ -1841,7 +2218,10 @@ function hideWelcome() {
   });
 
   document.getElementById('favoritesBtn').addEventListener('click', Renderer.openFavorites);
+  document.getElementById('recipesBtn').addEventListener('click', openRecipesModal);
+  document.getElementById('shoppingListBtn').addEventListener('click', openShoppingList);
 
+  // Добавление блюда
   document.getElementById('addDishBtn').addEventListener('click', Renderer.openAddModal);
   document.getElementById('addModalSave').addEventListener('click', function() {
     const nameInput = document.getElementById('newDishName');
@@ -1911,6 +2291,17 @@ function hideWelcome() {
     }
   });
 
+  // Рецепты: форма
+  document.getElementById('addRecipeBtn').addEventListener('click', function() {
+    openRecipeForm(null);
+  });
+  document.getElementById('recipeFormCancel').addEventListener('click', closeRecipeForm);
+  document.getElementById('recipeFormSave').addEventListener('click', saveRecipeForm);
+  document.getElementById('recipeParseBtn').addEventListener('click', parseRecipeTextFromForm);
+
+  // Список покупок
+  document.getElementById('generateShoppingList').addEventListener('click', generateShoppingList);
+
   // Свайпы
   let touchStartX = 0, touchEndX = 0;
   const wrap = document.getElementById('calendarWrap');
@@ -1954,4 +2345,5 @@ function hideWelcome() {
 
   console.log('✅ Планировщик меню готов!');
   console.log('📱 Поддерживаются: YouTube, VK, Telegram, Instagram, Pinterest, Яндекс.Дзен, iamcook.ru, Сайты');
+  console.log('📖 Добавлена поддержка рецептов и списка покупок');
 })();
