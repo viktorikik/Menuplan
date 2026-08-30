@@ -46,7 +46,7 @@
   --radius-md: 24px;
   --radius-lg: 40px;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.25); /* пока оставлю, но можно удалить */
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.25);
   --transition-fast: 0.15s;
   --transition-normal: 0.25s;
 
@@ -116,10 +116,10 @@ body {
   transition: background var(--transition-normal), color var(--transition-normal);
 }
 
-/* Стили для фокуса (доступность) */
 button:focus-visible,
 input:focus-visible,
-select:focus-visible {
+select:focus-visible,
+textarea:focus-visible {
   outline: 2px solid var(--done-color);
   outline-offset: 2px;
 }
@@ -142,19 +142,9 @@ select:focus-visible {
 }
 
 /* ============================================================
-   4. ШАПКА (исправлена семантика)
+   4. ШАПКА
    ============================================================ */
 .app-header {
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: var(--spacing-md);
-  margin-bottom: var(--spacing-lg);
-}
-
-/* Оставляем старый класс .header для обратной совместимости, если где-то используется */
-.header {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -227,17 +217,7 @@ select:focus-visible {
 /* ============================================================
    5. КНОПКИ ДЕЙСТВИЙ
    ============================================================ */
-/* Новый класс .actions для секции кнопок */
 .actions {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  gap: var(--spacing-sm);
-  margin-bottom: var(--spacing-lg);
-}
-
-/* Старый класс .smart-btn-wrap оставляем для совместимости */
-.smart-btn-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -270,7 +250,7 @@ select:focus-visible {
   align-items: center;
   gap: 6px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
-  appearance: none; /* убираем браузерные стили */
+  appearance: none;
 }
 
 .btn-row .btn-primary {
@@ -577,6 +557,9 @@ select:focus-visible {
   cursor: grab;
   transition: var(--transition-fast);
   user-select: none;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
 }
 .meal-chip:active {
   cursor: grabbing;
@@ -593,6 +576,14 @@ select:focus-visible {
 .meal-chip.liked {
   border-left-color: var(--liked-color);
   background: rgba(239, 68, 68, 0.08);
+}
+.meal-chip .recipe-badge {
+  font-size: 12px;
+  cursor: pointer;
+  opacity: 0.6;
+}
+.meal-chip .recipe-badge:hover {
+  opacity: 1;
 }
 
 .week-row.drag-over {
@@ -803,7 +794,21 @@ select:focus-visible {
 .modal-dish .dish-name {
   flex: 1;
   min-width: 80px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
+.modal-dish .dish-name .recipe-link {
+  font-size: 18px;
+  cursor: pointer;
+  opacity: 0.6;
+  transition: var(--transition-fast);
+}
+.modal-dish .dish-name .recipe-link:hover {
+  opacity: 1;
+  transform: scale(1.2);
+}
+
 .modal-dish .dish-actions {
   display: flex;
   align-items: center;
@@ -1076,7 +1081,8 @@ select:focus-visible {
   margin-bottom: var(--spacing-xs);
 }
 .add-modal .form-group input,
-.add-modal .form-group select {
+.add-modal .form-group select,
+.add-modal .form-group textarea {
   width: 100%;
   padding: 10px 14px;
   border-radius: var(--radius-lg);
@@ -1087,9 +1093,11 @@ select:focus-visible {
   outline: none;
   transition: var(--transition-fast);
   appearance: none;
+  font-family: inherit;
 }
 .add-modal .form-group input:focus,
-.add-modal .form-group select:focus {
+.add-modal .form-group select:focus,
+.add-modal .form-group textarea:focus {
   border-color: var(--done-color);
   box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
 }
@@ -1492,7 +1500,87 @@ select:focus-visible {
 }
 
 /* ============================================================
-   13. АДАПТИВНОСТЬ
+   13. РЕЦЕПТЫ И СПИСОК ПОКУПОК (новые стили)
+   ============================================================ */
+.recipe-card {
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  padding: var(--spacing-md);
+  margin-bottom: var(--spacing-sm);
+  border: 1px solid var(--cell-border);
+  transition: var(--transition-fast);
+}
+.recipe-card:hover {
+  background: var(--card-hover-bg);
+}
+.recipe-card .recipe-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: var(--spacing-sm);
+}
+.recipe-card .recipe-name {
+  font-weight: 600;
+  font-size: 16px;
+  color: var(--text-primary);
+}
+.recipe-card .recipe-actions {
+  display: flex;
+  gap: 6px;
+}
+.recipe-card .recipe-actions button {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+}
+.recipe-card .recipe-actions button:hover {
+  transform: scale(1.2);
+  color: var(--text-primary);
+}
+.recipe-card .recipe-details {
+  margin-top: 6px;
+}
+.recipe-card .recipe-details .ingredients {
+  font-size: 14px;
+  color: var(--text-secondary);
+  margin-bottom: 6px;
+}
+.recipe-card .recipe-details .ingredients ul {
+  list-style: none;
+  padding-left: 0;
+  margin: 4px 0;
+}
+.recipe-card .recipe-details .ingredients li {
+  padding: 2px 0;
+  border-bottom: 1px dashed var(--cell-border);
+}
+.recipe-card .recipe-details .instructions {
+  font-size: 14px;
+  color: var(--text-secondary);
+  white-space: pre-wrap;
+  margin-top: 4px;
+}
+
+#shoppingListResult .shopping-group {
+  margin-bottom: 12px;
+}
+#shoppingListResult .shopping-group h4 {
+  font-weight: 600;
+  color: var(--text-primary);
+  margin-bottom: 4px;
+}
+#shoppingListResult .shopping-item {
+  font-size: 14px;
+  color: var(--text-secondary);
+  padding: 2px 0;
+  border-bottom: 1px dashed var(--cell-border);
+}
+
+/* ============================================================
+   14. АДАПТИВНОСТЬ
    ============================================================ */
 @media (max-width: 480px) {
   .welcome-modal {
