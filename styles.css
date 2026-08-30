@@ -46,7 +46,7 @@
   --radius-md: 24px;
   --radius-lg: 40px;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.25); /* пока оставлю, но можно удалить */
   --transition-fast: 0.15s;
   --transition-normal: 0.25s;
 
@@ -56,6 +56,7 @@
   --btn-padding: 6px 18px;
 }
 
+/* ===== Тёмная тема ===== */
 body.dark-theme {
   --bg-primary: #0f0f17;
   --bg-app: rgba(25, 25, 38, 0.92);
@@ -115,6 +116,14 @@ body {
   transition: background var(--transition-normal), color var(--transition-normal);
 }
 
+/* Стили для фокуса (доступность) */
+button:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: 2px solid var(--done-color);
+  outline-offset: 2px;
+}
+
 /* ============================================================
    3. ПРИЛОЖЕНИЕ
    ============================================================ */
@@ -136,6 +145,16 @@ body {
    4. ШАПКА (исправлена семантика)
    ============================================================ */
 .app-header {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: var(--spacing-md);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Оставляем старый класс .header для обратной совместимости, если где-то используется */
+.header {
   display: flex;
   justify-content: center;
   align-items: center;
@@ -208,7 +227,17 @@ body {
 /* ============================================================
    5. КНОПКИ ДЕЙСТВИЙ
    ============================================================ */
+/* Новый класс .actions для секции кнопок */
 .actions {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--spacing-sm);
+  margin-bottom: var(--spacing-lg);
+}
+
+/* Старый класс .smart-btn-wrap оставляем для совместимости */
+.smart-btn-wrap {
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -241,6 +270,7 @@ body {
   align-items: center;
   gap: 6px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  appearance: none; /* убираем браузерные стили */
 }
 
 .btn-row .btn-primary {
@@ -368,6 +398,7 @@ body {
   align-items: center;
   justify-content: center;
   box-shadow: var(--shadow-sm);
+  appearance: none;
 }
 .month-nav button:hover {
   background: var(--day-hover);
@@ -401,6 +432,7 @@ body {
   min-height: 40px;
   white-space: nowrap;
   flex-shrink: 0;
+  appearance: none;
 }
 .today-btn:hover {
   transform: scale(1.05);
@@ -595,6 +627,7 @@ body {
   outline: none;
   flex: 1 1 150px;
   min-width: 120px;
+  appearance: none;
 }
 .search-filter-wrap input:focus,
 .search-filter-wrap select:focus {
@@ -892,6 +925,7 @@ body {
   color: var(--text-primary);
   outline: none;
   transition: var(--transition-fast);
+  appearance: none;
 }
 .modal-field-input:focus,
 .modal-field-select:focus {
@@ -921,6 +955,7 @@ body {
   cursor: pointer;
   transition: var(--transition-fast);
   margin: 0 auto;
+  appearance: none;
 }
 .modal-add-new .field-btn:hover {
   filter: brightness(1.12);
@@ -1051,6 +1086,7 @@ body {
   color: var(--text-primary);
   outline: none;
   transition: var(--transition-fast);
+  appearance: none;
 }
 .add-modal .form-group input:focus,
 .add-modal .form-group select:focus {
@@ -1071,6 +1107,7 @@ body {
   font-weight: 550;
   cursor: pointer;
   transition: var(--transition-fast);
+  appearance: none;
 }
 .add-modal .form-actions .btn-primary {
   background: var(--btn-bg);
@@ -1105,6 +1142,7 @@ body {
   text-align: left;
   font-size: 15px;
   color: var(--text-primary);
+  appearance: none;
 }
 .export-modal .export-option:hover {
   background: var(--card-hover-bg);
@@ -1154,6 +1192,7 @@ body {
   font-size: 14px;
   color: var(--text-primary);
   outline: none;
+  appearance: none;
 }
 .url-import-modal .url-input-group input:focus {
   border-color: var(--done-color);
@@ -1169,6 +1208,7 @@ body {
   cursor: pointer;
   transition: var(--transition-fast);
   white-space: nowrap;
+  appearance: none;
 }
 .url-import-modal .url-input-group button:hover {
   filter: brightness(1.12);
@@ -1218,6 +1258,7 @@ body {
   font-weight: 550;
   cursor: pointer;
   transition: var(--transition-fast);
+  appearance: none;
 }
 .url-import-modal .parsed-recipe .recipe-actions .btn-add {
   background: var(--done-color);
@@ -1317,6 +1358,7 @@ body {
   background: var(--btn-bg);
   color: var(--btn-text);
   text-align: center;
+  appearance: none;
 }
 .choice-modal .choice-btn:hover {
   transform: scale(1.02);
@@ -1439,6 +1481,7 @@ body {
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
   min-width: 160px;
   margin-top: var(--spacing-sm);
+  appearance: none;
 }
 .welcome-modal .welcome-btn:hover {
   transform: scale(1.04);
