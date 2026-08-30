@@ -1674,7 +1674,6 @@
       </div>
       <button class="today-btn" id="todayBtn">Сегодня</button>
     </div>
-    <!-- ===== КОНТЕЙНЕР ДЛЯ КАЛЕНДАРЯ ===== -->
     <div class="weekdays">
       <span>Пн</span><span>Вт</span><span>Ср</span><span>Чт</span><span>Пт</span><span>Сб</span><span>Вс</span>
     </div>
@@ -1703,7 +1702,7 @@
   </div>
 </div>
 
-<!-- МОДАЛКА ДНЯ -->
+<!-- МОДАЛКИ -->
 <div class="modal-overlay" id="modalOverlay">
   <div class="modal">
     <div class="modal-header">
@@ -1714,7 +1713,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА РЕКОМЕНДАЦИЙ / ЛЮБИМЫХ -->
 <div class="modal-overlay rec-modal" id="recOverlay">
   <div class="modal">
     <div class="modal-header">
@@ -1725,7 +1723,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА ИМПОРТА ПО ССЫЛКЕ -->
 <div class="modal-overlay url-import-modal" id="urlImportOverlay">
   <div class="modal">
     <div class="modal-header">
@@ -1742,9 +1739,7 @@
       <span style="font-size: 12px; background: var(--badge-bg); padding: 2px 8px; border-radius: 12px;">Instagram</span>
       <span style="font-size: 12px; background: var(--badge-bg); padding: 2px 8px; border-radius: 12px;">Pinterest</span>
       <span style="font-size: 12px; background: var(--badge-bg); padding: 2px 8px; border-radius: 12px;">Яндекс.Дзен</span>
-      <span style="font-size: 12px; background: var(--badge-bg); padding: 2px 8px; border-radius: 12px;">WhatsApp Web</span>
-      <span style="font-size: 12px; background: var(--badge-bg); padding: 2px 8px; border-radius: 12px;">Viber</span>
-      <span style="font-size: 12px; background: var(--badge-bg); padding: 2px 8px; border-radius: 12px;">Signal</span>
+      <span style="font-size: 12px; background: var(--badge-bg); padding: 2px 8px; border-radius: 12px;">iamcook.ru</span>
       <span style="font-size: 12px; background: var(--badge-bg); padding: 2px 8px; border-radius: 12px;">Сайты</span>
     </div>
     <div class="url-input-group">
@@ -1756,7 +1751,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА ДОБАВЛЕНИЯ -->
 <div class="modal-overlay add-modal" id="addModalOverlay">
   <div class="modal">
     <div class="modal-header">
@@ -1798,7 +1792,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА ЭКСПОРТА -->
 <div class="modal-overlay export-modal" id="exportModalOverlay">
   <div class="modal">
     <div class="modal-header">
@@ -1817,7 +1810,6 @@
   </div>
 </div>
 
-<!-- МОДАЛКА ВЫБОРА "ЧТО ПРИГОТОВИТЬ?" -->
 <div class="choice-overlay" id="choiceOverlay">
   <div class="choice-modal">
     <h2>🤔 Что приготовить?</h2>
@@ -1827,7 +1819,6 @@
   </div>
 </div>
 
-<!-- ПРИВЕТСТВЕННАЯ МОДАЛКА -->
 <div class="welcome-overlay" id="welcomeOverlay">
   <div class="welcome-modal">
     <span class="welcome-icon">🍽️</span>
@@ -2442,7 +2433,6 @@ const Renderer = (function() {
     }
     modalContent.appendChild(section);
 
-    // Блок добавления
     const addSection = document.createElement('div');
     addSection.className = 'modal-add-section';
     const addTitle = document.createElement('h4');
@@ -2500,7 +2490,6 @@ const Renderer = (function() {
 
     addSection.appendChild(addForm);
 
-    // Предложения
     const suggestTitle = document.createElement('h4');
     suggestTitle.textContent = '📖 Выбрать из меню';
     suggestTitle.style.marginTop = '12px';
@@ -2823,7 +2812,7 @@ function importData(file) {
 }
 
 // ============================================================
-// 5. ИМПОРТ ПО ССЫЛКЕ (УПРОЩЁННЫЙ ДЛЯ ДЕМОНСТРАЦИИ)
+// 5. ИМПОРТ ПО ССЫЛКЕ (С ПОДДЕРЖКОЙ IAMCOOK И ВК КЛИПОВ)
 // ============================================================
 function openUrlImport() {
   document.getElementById('urlImportOverlay').classList.add('active');
@@ -2854,6 +2843,9 @@ async function fetchRecipeFromUrl(url) {
     const isInstagram = url.includes('instagram.com') || url.includes('instagr.am');
     const isPinterest = url.includes('pinterest.com') || url.includes('pinterest.ru') || url.includes('pin.it');
     const isZen = url.includes('zen.yandex.ru') || url.includes('dzen.ru');
+    const isIamCook = url.includes('iamcook.ru') || url.includes('m.iamcook.ru');
+    
+    const isVKVideo = isVK && (url.includes('/video') || url.includes('/clip') || url.includes('video-'));
 
     const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
     const response = await fetch(proxyUrl);
@@ -2869,100 +2861,406 @@ async function fetchRecipeFromUrl(url) {
     let title = '';
     let ingredients = [];
     let sourceType = '';
+    let content = '';
 
-    // Пытаемся извлечь заголовок
-    const pageTitle = doc.querySelector('title');
-    if (pageTitle) {
-      title = pageTitle.textContent.trim();
-      // Очищаем от названий платформ
-      title = title.replace(/\s*[|]\s*(YouTube|ВКонтакте|VK|Telegram|Instagram|Pinterest|Дзен|Яндекс)\s*$/i, '');
-      title = title.replace(/^YouTube\s*[-–]\s*/, '');
-      title = title.replace(/^Instagram\s*[-–]\s*/, '');
-    }
+    // ============================================================
+    // СПЕЦИАЛЬНАЯ ОБРАБОТКА ДЛЯ IAMCOOK
+    // ============================================================
+    if (isIamCook) {
+      sourceType = '🍳 iamcook.ru';
+      
+      // Извлекаем заголовок
+      const titleEl = doc.querySelector('h1.recipe-title, h1.title, .recipe-header h1, h1');
+      if (titleEl) {
+        title = titleEl.textContent.trim();
+      }
+      
+      if (!title) {
+        const ogTitle = doc.querySelector('meta[property="og:title"]');
+        if (ogTitle) title = ogTitle.getAttribute('content') || '';
+      }
 
-    // Если заголовок слишком длинный, обрезаем
-    if (title && title.length > 60) {
-      title = title.substring(0, 57) + '...';
-    }
+      // Ищем ингредиенты в разных местах
+      const ingredientSelectors = [
+        '.ingredients-list li',
+        '.ingredients li',
+        '.recipe-ingredients li',
+        '.ingredient-item',
+        '.ingredient',
+        'ul.ingredients li',
+        '.ingredients-list__item',
+        '.recipe__ingredients li',
+        '[class*="ingredient"] li'
+      ];
 
-    // Определяем источник
-    if (isYouTube) sourceType = '🎬 YouTube';
-    else if (isVK) sourceType = '📱 ВКонтакте';
-    else if (isTelegram) sourceType = '📱 Telegram';
-    else if (isInstagram) sourceType = '📸 Instagram';
-    else if (isPinterest) sourceType = '📌 Pinterest';
-    else if (isZen) sourceType = '📝 Яндекс.Дзен';
-    else sourceType = '🌐 Сайт';
+      for (const selector of ingredientSelectors) {
+        const items = doc.querySelectorAll(selector);
+        if (items.length > 0) {
+          items.forEach(el => {
+            const text = el.textContent.trim();
+            if (text && text.length > 1) {
+              const clean = text.replace(/[×х]/g, '').trim();
+              if (clean.length > 1) {
+                ingredients.push(clean);
+              }
+            }
+          });
+          if (ingredients.length > 2) break;
+        }
+      }
 
-    // Пытаемся извлечь ингредиенты
-    const ingredientSelectors = [
-      '.ingredients-list li', '.recipe-ingredients li', '.ingredients li',
-      '.ingredient-item', '.recipe__ingredients li', '.ingredient',
-      '.ingredients-list .item', 'ul.ingredients li', '.ingredients-list__item'
-    ];
-
-    for (const selector of ingredientSelectors) {
-      const items = doc.querySelectorAll(selector);
-      if (items.length > 0) {
-        items.forEach(el => {
-          const text = el.textContent.trim();
-          if (text && text.length > 1 && !text.includes('Продукты')) {
-            ingredients.push(text);
+      // Если не нашли, пробуем найти ингредиенты в тексте
+      if (ingredients.length === 0) {
+        const sections = doc.querySelectorAll('.recipe-content, .recipe-text, .content, .recipe, .post-content, article');
+        for (const section of sections) {
+          const text = section.textContent;
+          const match = text.match(/ингредиенты\s*[:;]\s*([^]+?)(?:приготовление|способ|пошагово|шаг|процесс|рецепт|спос)/i);
+          if (match && match[1]) {
+            const ingredientText = match[1];
+            const lines = ingredientText.split(/[\n,;]/).map(l => l.trim()).filter(l => l.length > 2);
+            const filtered = lines.filter(l => /\d/.test(l) || /гр|г|мл|л|кг|шт|ст\.|ч\.|зуб|пуч|ветк|головк|лук|морк|картоф|масл|соль|перец|сахар|мук|яйц|молок|сливк|сметан|майонез|кетчуп|соус|уксус|лимон|чеснок|зелень|петрушк|укроп|базилик|тимьян|розмарин|орегано|кориц|ванил|какао|шоколад|орех|миндал|фисташк|кешью|изюм|кураг|чернослив|инжир|мед|сироп|варенье|джем|конфитюр|пастил|мармелад|зефир|безе|меренг|суфле|мусс|крем|глазурь|помадк|карамел|ирис|тянучк|грильяж|пралине|нуга|халв|козинак|печенье|пряник|коврижк|корж|бисквит|рулет|пирожн|торт|кекс|маффин|капкейк|пончик|оладь|блин|сырник|ватрушк|шарлотк|пахлав|наполеон|медовик|сметанник|морковник|ореховик|шоколадник|клубничн|малин|чернич|ежевич|смородин|крыжовник|вишн|черешн|слив|абрикос|персик|нектарин|банан|яблок|груш|айв|хурм|гранат|цитрус|лимон|лайм|грейпфрут|мандарин|апельсин|помело|свити|кумкват|бергамот|памела|унаби|зизифус|джуджуба|финик|кокос|манго|папай|маракуй|питахай|дуриан|джекфрут|личе|рамбутан|лангуст|мангостин|саподилл|чику|канистел|лукум|хала|баге|бриош|круассан|булочк|пирожк|расстегай|кулебяк|курник|каравай|калач|баранк|сушк|сухар|гренк|панцер|шницель|отбивн|эскалоп|медальон|рагу|жульен|фондю|раклет|тост|канапе|тарталетк|волован|корзиночк|павлов|тирамису|паннакот|крем-брюле|флан|пудинг|запеканк|суфле|мусс|парфе|сорбет|шербет|гранит|фраппе|коктейль|смузи|компот|кисель|узвар|морс|квас|лимонад|швепс|тоник|кола|пепси|спрайт|фанта|миринда|газировк|минералк|вод|сок|нектар|напитк|чай|кофе|какао|горячий|шоколад|глинтвейн|сбитень|медовух|квас|сидр|пиво/i.test(l));
+            ingredients = filtered.slice(0, 20);
+            break;
           }
-        });
-        if (ingredients.length > 0) break;
+        }
+      }
+
+      // Очищаем ингредиенты
+      ingredients = ingredients
+        .map(i => i.replace(/^[•\-*\d.]+\s*/, '').trim())
+        .filter((v, i, a) => a.indexOf(v) === i && v.length > 2)
+        .slice(0, 20);
+
+      if (ingredients.length === 0) {
+        ingredients = ['Ингредиенты не найдены. Попробуйте добавить их в заметку вручную.'];
+      }
+
+      if (title && title.length > 60) {
+        title = title.substring(0, 57) + '...';
       }
     }
 
-    // Если ингредиентов нет, ищем списки
-    if (ingredients.length === 0) {
-      const lists = doc.querySelectorAll('ul, ol');
-      for (const list of lists) {
-        const items = list.querySelectorAll('li');
-        let hasIngredients = false;
-        const temp = [];
-        items.forEach(el => {
-          const text = el.textContent.trim();
-          if (text && text.length > 1 && text.length < 100) {
-            if (/\d/.test(text) || /г|мл|кг|л|шт|ст\.|ч\.|зуб/.test(text)) {
-              hasIngredients = true;
-              temp.push(text);
-            }
-          }
-        });
-        if (hasIngredients && temp.length > 2) {
-          ingredients = temp;
+    // ============================================================
+    // ОБРАБОТКА ВК КЛИПОВ
+    // ============================================================
+    else if (isVK && isVKVideo) {
+      sourceType = '🎬 ВК Клип';
+      
+      const pageTitle = doc.querySelector('title');
+      if (pageTitle) {
+        let rawTitle = pageTitle.textContent.trim();
+        rawTitle = rawTitle.replace(/\s*[|]\s*ВКонтакте\s*$/i, '');
+        rawTitle = rawTitle.replace(/\s*[|]\s*VK\s*$/i, '');
+        title = rawTitle;
+      }
+
+      const descSelectors = [
+        '.video_description',
+        '.clip_description',
+        '.video-desc',
+        '.clip-desc',
+        '[class*="video_description"]',
+        '[class*="clip_description"]',
+        '.video-description',
+        '.clip-description'
+      ];
+
+      for (const selector of descSelectors) {
+        const el = doc.querySelector(selector);
+        if (el && el.textContent.trim().length > 5) {
+          content = el.textContent.trim();
           break;
         }
       }
+
+      if (!content) {
+        const metaDesc = doc.querySelector('meta[name="description"]');
+        if (metaDesc) content = metaDesc.getAttribute('content') || '';
+      }
+
+      if (!content) {
+        const ogDesc = doc.querySelector('meta[property="og:description"]');
+        if (ogDesc) content = ogDesc.getAttribute('content') || '';
+      }
+
+      if (content && content.length > 10) {
+        const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+        const productKeywords = [
+          'грамм', 'гр', 'мл', 'литр', 'кг', 'ст.', 'ч.', 'шт', 'зуб', 'пуч',
+          'лук', 'морковь', 'картофель', 'масло', 'соль', 'перец', 'сахар', 'мука',
+          'яйцо', 'молоко', 'сливки', 'сметана', 'майонез', 'кетчуп', 'соус',
+          'уксус', 'лимон', 'чеснок', 'зелень', 'петрушка', 'укроп', 'базилик'
+        ];
+
+        let found = false;
+        for (const line of lines) {
+          const hasNumber = /\d+/.test(line);
+          const hasUnit = /(грамм|гр|мл|литр|кг|ст\.|ч\.|шт|зуб|пуч)/i.test(line);
+          const hasProduct = productKeywords.some(word => line.toLowerCase().includes(word));
+          const hasMarker = /^[•\-*]\s*/.test(line);
+
+          if ((hasNumber && (hasUnit || hasProduct)) || (hasMarker && hasProduct)) {
+            if (line.length > 3 && line.length < 80) {
+              ingredients.push(line);
+              found = true;
+            }
+          }
+        }
+
+        if (!found) {
+          const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
+          if (numLines.length > 0) {
+            ingredients = numLines.slice(0, 15);
+            found = true;
+          }
+        }
+
+        if (!found) {
+          ingredients = ['Ингредиенты не найдены в описании клипа. Добавьте их в заметку вручную.'];
+        }
+      } else {
+        ingredients = ['Для клипов ВК ингредиенты обычно указываются в описании. Попробуйте открыть клип в приложении и скопировать описание.'];
+      }
+
+      ingredients = ingredients.filter((v, i, a) => a.indexOf(v) === i).slice(0, 20);
+
+      if (title && title.length > 60) {
+        title = title.substring(0, 57) + '...';
+      }
     }
 
-    // Убираем дубли
-    ingredients = ingredients.filter((v, i, a) => a.indexOf(v) === i && v.length > 2);
-
-    // Если ингредиентов всё ещё нет
-    if (ingredients.length === 0) {
-      ingredients = ['Ингредиенты не найдены. Вы можете добавить их в заметку вручную.'];
+    // ============================================================
+    // ОСТАЛЬНЫЕ ПЛАТФОРМЫ
+    // ============================================================
+    else {
+      // YouTube
+      if (isYouTube) {
+        sourceType = '🎬 YouTube';
+        const pageTitle = doc.querySelector('title');
+        if (pageTitle) {
+          let rawTitle = pageTitle.textContent.trim();
+          rawTitle = rawTitle.replace(/\s*[-–]\s*YouTube\s*$/i, '');
+          rawTitle = rawTitle.replace(/^YouTube\s*[-–]\s*/, '');
+          title = rawTitle;
+        }
+        // Пробуем найти описание
+        let description = '';
+        const metaDesc = doc.querySelector('meta[name="description"]');
+        if (metaDesc) description = metaDesc.getAttribute('content') || '';
+        if (description) {
+          const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          const numLines = lines.filter(l => /\d/.test(l) && l.length < 100 && l.length > 3);
+          if (numLines.length > 0) {
+            ingredients = numLines.slice(0, 15);
+          }
+        }
+        if (ingredients.length === 0) {
+          ingredients = ['Ингредиенты не найдены в описании видео. Добавьте их в заметку вручную.'];
+        }
+      }
+      // Telegram
+      else if (isTelegram) {
+        sourceType = '📱 Telegram';
+        const pageTitle = doc.querySelector('title');
+        if (pageTitle) {
+          let rawTitle = pageTitle.textContent.trim();
+          rawTitle = rawTitle.replace(/\s*[|]\s*Telegram\s*$/i, '');
+          title = rawTitle;
+        }
+        const contentSelectors = ['.tgme_widget_message_text', '.tgme_msg_text', '.tgme_message_text', '.tgme_widget_message_content .text'];
+        for (const selector of contentSelectors) {
+          const el = doc.querySelector(selector);
+          if (el && el.textContent.trim().length > 20) {
+            content = el.textContent.trim();
+            break;
+          }
+        }
+        if (content) {
+          const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
+          if (numLines.length > 0) {
+            ingredients = numLines.slice(0, 15);
+          }
+        }
+        if (ingredients.length === 0) {
+          ingredients = ['Ингредиенты не найдены в тексте поста. Добавьте их в заметку вручную.'];
+        }
+      }
+      // Instagram
+      else if (isInstagram) {
+        sourceType = '📸 Instagram';
+        const pageTitle = doc.querySelector('title');
+        if (pageTitle) {
+          let rawTitle = pageTitle.textContent.trim();
+          rawTitle = rawTitle.replace(/\s*[|]\s*Instagram\s*$/i, '');
+          title = rawTitle;
+        }
+        let description = '';
+        const metaDesc = doc.querySelector('meta[name="description"]');
+        if (metaDesc) description = metaDesc.getAttribute('content') || '';
+        if (description) {
+          const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
+          if (numLines.length > 0) {
+            ingredients = numLines.slice(0, 15);
+          }
+        }
+        if (ingredients.length === 0) {
+          ingredients = ['Ингредиенты не найдены в описании. Добавьте их в заметку вручную.'];
+        }
+      }
+      // Pinterest
+      else if (isPinterest) {
+        sourceType = '📌 Pinterest';
+        const pageTitle = doc.querySelector('title');
+        if (pageTitle) {
+          let rawTitle = pageTitle.textContent.trim();
+          rawTitle = rawTitle.replace(/\s*[|]\s*Pinterest\s*$/i, '');
+          title = rawTitle;
+        }
+        let description = '';
+        const metaDesc = doc.querySelector('meta[name="description"]');
+        if (metaDesc) description = metaDesc.getAttribute('content') || '';
+        if (description) {
+          const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
+          if (numLines.length > 0) {
+            ingredients = numLines.slice(0, 15);
+          }
+        }
+        if (ingredients.length === 0) {
+          ingredients = ['Ингредиенты не найдены в описании. Добавьте их в заметку вручную.'];
+        }
+      }
+      // Яндекс.Дзен
+      else if (isZen) {
+        sourceType = '📝 Яндекс.Дзен';
+        const pageTitle = doc.querySelector('title');
+        if (pageTitle) {
+          let rawTitle = pageTitle.textContent.trim();
+          rawTitle = rawTitle.replace(/\s*[|]\s*Дзен\s*$/i, '');
+          rawTitle = rawTitle.replace(/\s*[|]\s*Яндекс\s*Дзен\s*$/i, '');
+          title = rawTitle;
+        }
+        const contentSelectors = ['.article-body', '.article-content', '.text-block', '.content-block', 'article .text'];
+        for (const selector of contentSelectors) {
+          const el = doc.querySelector(selector);
+          if (el && el.textContent.trim().length > 50) {
+            content = el.textContent.trim();
+            break;
+          }
+        }
+        if (content) {
+          const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+          const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
+          if (numLines.length > 0) {
+            ingredients = numLines.slice(0, 15);
+          }
+        }
+        if (ingredients.length === 0) {
+          ingredients = ['Ингредиенты не найдены в статье. Добавьте их в заметку вручную.'];
+        }
+      }
+      // Обычный сайт
+      else {
+        sourceType = '🌐 Сайт';
+        const titleSelectors = [
+          'h1[itemprop="name"]', '.recipe-title', '.recipe-header h1',
+          'h1.recipe__title', '.recipe-name', '.title', 'article h1',
+          '.recipe h1', '.post-title', 'h1.entry-title', 'h1'
+        ];
+        for (const selector of titleSelectors) {
+          const el = doc.querySelector(selector);
+          if (el && el.textContent.trim()) {
+            title = el.textContent.trim();
+            break;
+          }
+        }
+        if (!title) {
+          const ogTitle = doc.querySelector('meta[property="og:title"]');
+          if (ogTitle) title = ogTitle.getAttribute('content') || '';
+        }
+        if (title) {
+          title = title.split('|')[0].trim();
+          title = title.split('–')[0].trim();
+          title = title.split('—')[0].trim();
+        }
+        const ingredientSelectors = [
+          '.ingredients-list li', '.recipe-ingredients li', '.ingredients li',
+          '.ingredient-item', '.recipe__ingredients li', '.ingredient',
+          '.ingredients-list .item', 'ul.ingredients li', '.ingredients-list__item'
+        ];
+        for (const selector of ingredientSelectors) {
+          const items = doc.querySelectorAll(selector);
+          if (items.length > 0) {
+            items.forEach(el => {
+              const text = el.textContent.trim();
+              if (text && text.length > 1 && !text.includes('Продукты')) {
+                ingredients.push(text);
+              }
+            });
+            if (ingredients.length > 0) break;
+          }
+        }
+        if (ingredients.length === 0) {
+          const lists = doc.querySelectorAll('ul, ol');
+          for (const list of lists) {
+            const items = list.querySelectorAll('li');
+            let hasIngredients = false;
+            const temp = [];
+            items.forEach(el => {
+              const text = el.textContent.trim();
+              if (text && text.length > 1 && text.length < 100) {
+                if (/\d/.test(text) || /г|мл|кг|л|шт|ст\.|ч\.|зуб/.test(text)) {
+                  hasIngredients = true;
+                  temp.push(text);
+                }
+              }
+            });
+            if (hasIngredients && temp.length > 2) {
+              ingredients = temp;
+              break;
+            }
+          }
+        }
+        ingredients = ingredients.filter((v, i, a) => a.indexOf(v) === i && v.length > 2);
+        if (ingredients.length === 0) {
+          ingredients = ['Ингредиенты не найдены. Добавьте их в заметку вручную.'];
+        }
+      }
     }
 
     // Определяем категорию
     let category = Utils.guessCategory(title || '');
 
+    // Очищаем ингредиенты
+    ingredients = ingredients.filter(i => i && !i.includes('не найдены')).slice(0, 20);
+
     // Отображаем результат
+    const icon = sourceType.split(' ')[0] || '🍽️';
     container.innerHTML = `
       <div class="parsed-recipe">
-        <div class="recipe-name">${sourceType} ${Utils.escapeHtml(title || 'Название не определено')}</div>
-        <div class="recipe-ingredients">
-          <strong>📋 Ингредиенты:</strong>
-          <ul>
-            ${ingredients.map(i => `<li>${Utils.escapeHtml(i)}</li>`).join('')}
-          </ul>
-        </div>
-        <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 8px;">
-          <strong>ℹ️</strong> Ингредиенты извлечены автоматически. Проверьте и при необходимости дополните заметку.
+        <div class="recipe-name">${icon} ${Utils.escapeHtml(title || 'Название не определено')}</div>
+        <div class="platform-badge">${sourceType}</div>
+        ${ingredients.length > 0 ? `
+          <div class="recipe-ingredients">
+            <strong>📋 Ингредиенты:</strong>
+            <ul>
+              ${ingredients.map(i => `<li>${Utils.escapeHtml(i)}</li>`).join('')}
+            </ul>
+          </div>
+        ` : `
+          <div class="recipe-ingredients" style="color: var(--text-muted);">
+            <em>Ингредиенты не найдены автоматически. Вы можете добавить их в заметку вручную.</em>
+          </div>
+        `}
+        <div style="margin-top: 8px; font-size: 13px; color: var(--text-muted); background: var(--badge-bg); padding: 8px 12px; border-radius: var(--radius-sm);">
+          <strong>ℹ️</strong> Ингредиенты извлечены автоматически. 
+          ${isIamCook ? 'Для iamcook.ru проверьте и при необходимости дополните заметку.' : ''}
+          ${isVK && isVKVideo ? 'Для клипов ВК проверьте описание и дополните заметку.' : ''}
         </div>
         <div class="recipe-actions">
-          <button class="btn-add" data-name="${Utils.escapeHtml(title || 'Рецепт')}" data-note="${Utils.escapeHtml(ingredients.filter(i => !i.includes('не найдены')).slice(0, 15).join('; '))}" data-category="${category}">
+          <button class="btn-add" data-name="${Utils.escapeHtml(title || 'Рецепт')}" data-note="${Utils.escapeHtml(ingredients.join('; '))}" data-category="${category}">
             ✅ Добавить в меню
           </button>
           <button class="btn-cancel" id="cancelParsedRecipe">Отмена</button>
@@ -2983,8 +3281,8 @@ async function fetchRecipeFromUrl(url) {
       if (finalName.length > 60) finalName = finalName.substring(0, 57) + '...';
 
       let finalNote = note || `Импортированный рецепт (${sourceType})`;
-      if (ingredients.length === 0 || ingredients[0].includes('не найдены')) {
-        finalNote = `Импортированный рецепт (${sourceType}). Ингредиенты не найдены автоматически.`;
+      if (!note || note.length < 5) {
+        finalNote = `Импортированный рецепт (${sourceType}). Проверьте ингредиенты.`;
       }
 
       DishStore.addDish(finalName, 'planned', dateStr, category, false, finalNote);
@@ -3000,7 +3298,11 @@ async function fetchRecipeFromUrl(url) {
       statusDiv.innerHTML = '';
     });
 
-    statusDiv.innerHTML = `<div class="status-message success">✅ Рецепт найден! Найдено ${ingredients.length} ингредиентов. Источник: ${sourceType}</div>`;
+    statusDiv.innerHTML = `
+      <div class="status-message success">
+        ✅ Рецепт найден! Найдено ${ingredients.length} ингредиентов. Источник: ${sourceType}
+      </div>
+    `;
 
   } catch (error) {
     statusDiv.innerHTML = `<div class="status-message error">❌ Ошибка: ${error.message}</div>`;
@@ -3036,7 +3338,6 @@ function hideWelcome() {
 
   DishStore.init();
 
-  // Тема
   const savedTheme = localStorage.getItem('mealPlannerTheme');
   if (savedTheme === 'dark') document.body.classList.add('dark-theme');
   document.getElementById('themeToggle').addEventListener('click', function() {
@@ -3044,7 +3345,6 @@ function hideWelcome() {
     localStorage.setItem('mealPlannerTheme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
   });
 
-  // Поиск и фильтры
   document.getElementById('searchInput').addEventListener('input', function() {
     Renderer.setSearchQuery(this.value);
   });
@@ -3055,7 +3355,6 @@ function hideWelcome() {
     Renderer.setCategoryFilter(this.value);
   });
 
-  // Drag & Drop
   let draggedDishId = null, draggedFromDate = null;
   document.addEventListener('dragstart', function(e) {
     const target = e.target.closest('.meal-chip');
@@ -3103,7 +3402,6 @@ function hideWelcome() {
     draggedDishId = null; draggedFromDate = null;
   });
 
-  // Навигация
   const now = new Date();
   Renderer.setCurrentDate(now);
   Renderer.setCurrentView('month');
@@ -3157,7 +3455,6 @@ function hideWelcome() {
     if (e.target === this) Renderer.closeRecModal();
   });
 
-  // "Что приготовить?"
   document.getElementById('suggestBtn').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.add('active');
   });
@@ -3222,7 +3519,6 @@ function hideWelcome() {
     noteInput.value = '';
   });
 
-  // URL импорт
   document.getElementById('importUrlBtn').addEventListener('click', openUrlImport);
   document.getElementById('urlImportClose').addEventListener('click', closeUrlImport);
   document.getElementById('urlImportOverlay').addEventListener('click', function(e) {
@@ -3249,7 +3545,6 @@ function hideWelcome() {
     }
   });
 
-  // Экспорт
   document.getElementById('exportBtn').addEventListener('click', function() {
     document.getElementById('exportModalOverlay').classList.add('active');
   });
@@ -3267,7 +3562,6 @@ function hideWelcome() {
     });
   });
 
-  // Импорт файла
   document.getElementById('importBtn').addEventListener('click', function() {
     document.getElementById('importFileInput').click();
   });
@@ -3278,7 +3572,6 @@ function hideWelcome() {
     }
   });
 
-  // Свайпы
   let touchStartX = 0, touchEndX = 0;
   const wrap = document.getElementById('calendarWrap');
   wrap.addEventListener('touchstart', (e) => {
@@ -3320,7 +3613,7 @@ function hideWelcome() {
   });
 
   console.log('✅ Планировщик меню готов!');
-  console.log('📱 Поддерживаются: YouTube, VK, Telegram, Instagram, Pinterest, Яндекс.Дзен, Мессенджеры, Сайты');
+  console.log('📱 Поддерживаются: YouTube, VK, Telegram, Instagram, Pinterest, Яндекс.Дзен, iamcook.ru, Сайты');
 })();
 </script>
 </body>
