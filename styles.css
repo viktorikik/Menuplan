@@ -55,13 +55,11 @@
   --input-padding: 8px 14px;
   --btn-padding: 8px 20px;
 
-  /* Фирменный цвет */
   --accent-color: #ff7a4a;
   --accent-hover: #e6683a;
   --accent-light: rgba(255, 122, 74, 0.12);
 }
 
-/* ===== Тёмная тема ===== */
 body.dark-theme {
   --bg-primary: #0f0f17;
   --bg-app: rgba(25, 25, 38, 0.92);
@@ -102,9 +100,6 @@ body.dark-theme {
   --accent-light: rgba(255, 122, 74, 0.2);
 }
 
-/* ============================================================
-   2. СБРОС И БАЗОВЫЕ СТИЛИ
-   ============================================================ */
 * {
   margin: 0;
   padding: 0;
@@ -130,9 +125,6 @@ textarea:focus-visible {
   outline-offset: 2px;
 }
 
-/* ============================================================
-   3. ПРИЛОЖЕНИЕ
-   ============================================================ */
 .app {
   max-width: 960px;
   width: 100%;
@@ -147,9 +139,7 @@ textarea:focus-visible {
   margin: 0 auto;
 }
 
-/* ============================================================
-   4. ШАПКА
-   ============================================================ */
+/* ===== ШАПКА ===== */
 .app-header {
   display: flex;
   justify-content: space-between;
@@ -234,9 +224,7 @@ textarea:focus-visible {
   background: var(--day-hover);
 }
 
-/* ============================================================
-   5. КНОПКИ ДЕЙСТВИЙ
-   ============================================================ */
+/* ===== КНОПКИ ДЕЙСТВИЙ ===== */
 .actions {
   display: flex;
   flex-direction: column;
@@ -273,7 +261,6 @@ textarea:focus-visible {
   border: none;
 }
 
-/* ----- Первичные кнопки (оранжевые) ----- */
 .btn-row .btn-primary,
 .btn-row .btn-done,
 .btn-row .btn-import-url {
@@ -293,7 +280,6 @@ textarea:focus-visible {
   transform: translateY(0);
 }
 
-/* ----- Вторичные кнопки (прозрачные с обводкой) ----- */
 .btn-row .btn-secondary {
   background: transparent;
   border: 1.5px solid var(--text-muted);
@@ -305,7 +291,6 @@ textarea:focus-visible {
   transform: translateY(-2px);
 }
 
-/* ----- Экспорт и Импорт (нейтральные, менее заметные) ----- */
 .btn-row .btn-export,
 .btn-row .btn-import {
   background: rgba(128, 128, 140, 0.12);
@@ -330,9 +315,7 @@ textarea:focus-visible {
   display: none;
 }
 
-/* ============================================================
-   6. КАЛЕНДАРЬ
-   ============================================================ */
+/* ===== КАЛЕНДАРЬ ===== */
 .calendar-wrap {
   background: rgba(128, 128, 140, 0.04);
   border-radius: var(--radius-md);
@@ -401,7 +384,6 @@ textarea:focus-visible {
   letter-spacing: 0.5px;
 }
 
-/* Кнопка "Сегодня" – теперь в стиле primary */
 .today-btn {
   background: var(--accent-color);
   border: none;
@@ -515,9 +497,7 @@ textarea:focus-visible {
   font-weight: 700;
 }
 
-/* ============================================================
-   7. НЕДЕЛЬНЫЙ ВИД
-   ============================================================ */
+/* ===== НЕДЕЛЬНЫЙ ВИД ===== */
 .week-list {
   display: flex;
   flex-direction: column;
@@ -614,9 +594,7 @@ textarea:focus-visible {
   font-style: italic;
 }
 
-/* ============================================================
-   8. ПОИСК И ФИЛЬТРЫ
-   ============================================================ */
+/* ===== ПОИСК И ФИЛЬТРЫ ===== */
 .search-filter-wrap {
   display: flex;
   flex-wrap: wrap;
@@ -645,9 +623,7 @@ textarea:focus-visible {
   box-shadow: 0 0 0 3px var(--accent-light);
 }
 
-/* ============================================================
-   9. СПИСОК МЕНЮ
-   ============================================================ */
+/* ===== СПИСОК МЕНЮ ===== */
 .menu-list {
   margin-top: 16px;
   background: rgba(128, 128, 140, 0.04);
@@ -710,9 +686,7 @@ textarea:focus-visible {
   font-size: 14px;
 }
 
-/* ============================================================
-   10. МОДАЛКИ (ОБЩИЕ)
-   ============================================================ */
+/* ===== МОДАЛКИ (ОБЩИЕ) ===== */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -937,6 +911,31 @@ textarea:focus-visible {
   font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 10px;
+}
+
+/* ---- ДОБАВЛЯЕМ ПОИСК И ФИЛЬТРЫ ДЛЯ ПРЕДЛОЖЕНИЙ ---- */
+.suggest-controls {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 10px;
+}
+.suggest-controls input,
+.suggest-controls select {
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--cell-border);
+  background: var(--input-bg);
+  font-size: 13px;
+  color: var(--text-primary);
+  outline: none;
+  flex: 1 1 120px;
+  min-width: 100px;
+}
+.suggest-controls input:focus,
+.suggest-controls select:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .modal-add-new {
@@ -1351,9 +1350,7 @@ textarea:focus-visible {
   color: var(--text-muted);
 }
 
-/* ============================================================
-   11. CHOICE OVERLAY
-   ============================================================ */
+/* ===== CHOICE OVERLAY ===== */
 .choice-overlay {
   display: none;
   position: fixed;
@@ -1434,9 +1431,7 @@ textarea:focus-visible {
   color: var(--text-primary);
 }
 
-/* ============================================================
-   12. ПРИВЕТСТВЕННАЯ МОДАЛКА
-   ============================================================ */
+/* ===== ПРИВЕТСТВЕННАЯ МОДАЛКА ===== */
 .welcome-overlay {
   display: none;
   position: fixed;
@@ -1538,9 +1533,7 @@ textarea:focus-visible {
   transform: scale(0.96);
 }
 
-/* ============================================================
-   13. РЕЦЕПТЫ И СПИСОК ПОКУПОК
-   ============================================================ */
+/* ===== РЕЦЕПТЫ И СПИСОК ПОКУПОК ===== */
 .recipe-card {
   background: var(--card-bg);
   border-radius: var(--radius-md);
@@ -1630,6 +1623,25 @@ textarea:focus-visible {
   margin-right: 6px;
 }
 
+/* ---- НОВЫЕ СТИЛИ ДЛЯ РЕДАКТИРУЕМОГО СПИСКА ПОКУПОК ---- */
+#shoppingListResult {
+  width: 100%;
+  min-height: 150px;
+  padding: var(--spacing-sm);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--cell-border);
+  background: var(--input-bg);
+  color: var(--text-primary);
+  font-family: inherit;
+  font-size: 14px;
+  resize: vertical;
+  transition: var(--transition-fast);
+}
+#shoppingListResult:focus {
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
 /* Список сохранённых */
 .saved-list-item {
   display: flex;
@@ -1665,7 +1677,7 @@ textarea:focus-visible {
 }
 
 /* ============================================================
-   14. ДОПОЛНИТЕЛЬНЫЕ ПРАВИЛА ДЛЯ ТЁМНОЙ ТЕМЫ (СПИСОК ПОКУПОК)
+   ДОПОЛНИТЕЛЬНЫЕ ПРАВИЛА ДЛЯ ТЁМНОЙ ТЕМЫ
    ============================================================ */
 body.dark-theme #shoppingListDisplay .shopping-item,
 body.dark-theme #shoppingListDisplay .shopping-group h4,
@@ -1677,8 +1689,15 @@ body.dark-theme #shoppingListDisplay .shopping-item::before {
   color: var(--accent-color);
 }
 
+/* ---- ИСПРАВЛЕНИЕ ЦВЕТА НАДПИСЕЙ "ОТ", "ДО" И "СОХРАНЁННЫЕ СПИСКИ" ---- */
+body.dark-theme #shoppingListOverlay .form-group label,
+body.dark-theme #shoppingListOverlay h4,
+body.dark-theme #savedListsContainer h4 {
+  color: var(--text-primary) !important;
+}
+
 /* ============================================================
-   15. АДАПТИВНОСТЬ
+   АДАПТИВНОСТЬ
    ============================================================ */
 @media (max-width: 480px) {
   .welcome-modal {
@@ -1710,6 +1729,17 @@ body.dark-theme #shoppingListDisplay .shopping-item::before {
   .logo h1::before {
     height: 22px;
   }
+
+  /* ---- ЦЕНТРИРОВАНИЕ ШАПКИ НА МОБИЛЬНЫХ ---- */
+  .app-header {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+  }
+  .controls {
+    justify-content: center;
+  }
+
   #monthTitle {
     font-size: 18px;
     min-width: 80px;
