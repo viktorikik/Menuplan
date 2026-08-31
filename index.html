@@ -285,15 +285,25 @@
       <button class="modal-close" id="shoppingListClose" aria-label="Закрыть">✕</button>
     </div>
     <div>
+      <!-- Блок для выбора даты и генерации -->
       <div class="form-group" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <label for="shoppingDate" style="font-weight:500;">Выберите дату:</label>
         <input type="date" id="shoppingDate">
-        <button class="btn-primary" id="generateShoppingList">Собрать список</button>
+        <button class="btn-primary" id="generateShoppingListBtn">Собрать список</button>
       </div>
-      <div id="shoppingListResult" style="margin-top:12px;"></div>
-      <div style="display:flex; gap:8px; margin-top:12px; flex-wrap:wrap;">
-        <button class="btn-done" id="saveShoppingListBtn">💾 Сохранить как текст</button>
-        <button class="btn-secondary" id="clearShoppingListBtn">🗑️ Очистить список</button>
+
+      <!-- Контейнер для списка сохранённых -->
+      <div id="savedListsContainer">
+        <h4 style="margin:12px 0 8px;">Сохранённые списки</h4>
+        <div id="savedListsList"></div>
+      </div>
+
+      <!-- Контейнер для отображения списка (скрыт по умолчанию) -->
+      <div id="shoppingListDisplay" style="display:none;">
+        <button id="backToSavedListsBtn" class="btn-secondary" style="margin-bottom:8px;">← Назад к спискам</button>
+        <div id="shoppingListResult"></div>
+        <button id="saveCurrentListBtn" class="btn-done" style="margin-top:8px;">💾 Сохранить список</button>
+        <button id="deleteCurrentListBtn" class="btn-secondary" style="margin-top:8px;">🗑️ Удалить этот список</button>
       </div>
     </div>
   </div>
