@@ -20,7 +20,6 @@ const CATEGORY_LABELS = {
   [CATEGORIES.OTHER]: '🍽️ Другое'
 };
 
-// Список слов для определения ингредиентов
 const PRODUCT_WORDS = [
   'лук', 'морковь', 'картофель', 'капуста', 'свекла', 'редис', 'репа',
   'огурец', 'помидор', 'перец', 'баклажан', 'кабачок', 'тыква',
@@ -1231,7 +1230,7 @@ const Renderer = (function() {
 })();
 
 // ============================================================
-// 6. ПАРСЕРЫ ДЛЯ ИМПОРТА ПО ССЫЛКЕ
+// 6. ПАРСЕРЫ ДЛЯ ИМПОРТА ПО ССЫЛКЕ (без изменений)
 // ============================================================
 const Parsers = {
   parseGeneral(doc) {
@@ -2004,16 +2003,19 @@ function openShoppingList() {
   document.getElementById('shoppingListDisplay').style.display = 'none';
   document.getElementById('savedListsContainer').style.display = 'block';
   renderSavedLists();
-  // Устанавливаем сегодняшнюю дату в поле выбора
+  // Устанавливаем сегодня и завтра как период по умолчанию
   const today = new Date();
-  document.getElementById('shoppingDate').value = Utils.formatDateLocal(today);
+  const tomorrow = new Date(today);
+  tomorrow.setDate(tomorrow.getDate() + 1);
+  document.getElementById('shoppingDateFrom').value = Utils.formatDateLocal(today);
+  document.getElementById('shoppingDateTo').value = Utils.formatDateLocal(tomorrow);
 }
 
 function closeShoppingList() {
   document.getElementById('shoppingListOverlay').classList.remove('active');
 }
 
-// Рендерим список сохранённых дат
+// Рендерим список сохранённых дат/периодов
 function renderSavedLists() {
   const container = document.getElementById('savedListsList');
   const keys = getSavedShoppingListKeys();
@@ -2023,14 +2025,35 @@ function renderSavedLists() {
     return;
   }
   keys.forEach(key => {
-    const dateStr = key.replace('shoppingList_', '');
-    const dateObj = new Date(dateStr);
-    const displayDate = Utils.formatDate(dateObj);
+    // Парсим ключ: shoppingList_YYYY-MM-DD или shoppingList_range_YYYY-MM-DD_to_YYYY-MM-DD
+    let label = '';
+    let dateStr = '';
+    if (key.startsWith('shoppingList_range_')) {
+      const parts = key.replace('shoppingList_range_', '').split('_to_');
+      if (parts.length === 2) {
+        const from = parts[0];
+        const to = parts[1];
+        const fromDate = new Date(from);
+        const toDate = new Date(to);
+        if (from === to) {
+          label = Utils.formatDate(fromDate);
+        } else {
+          label = `период ${Utils.formatDate(fromDate)} — ${Utils.formatDate(toDate)}`;
+        }
+        dateStr = from; // используем начальную дату для идентификации
+      }
+    } else {
+      // один день
+      dateStr = key.replace('shoppingList_', '');
+      const dateObj = new Date(dateStr);
+      label = Utils.formatDate(dateObj);
+    }
+
     const item = document.createElement('div');
     item.className = 'saved-list-item';
     const dateSpan = document.createElement('span');
     dateSpan.className = 'list-date';
-    dateSpan.textContent = displayDate;
+    dateSpan.textContent = label;
     item.appendChild(dateSpan);
 
     const deleteBtn = document.createElement('button');
@@ -2039,28 +2062,26 @@ function renderSavedLists() {
     deleteBtn.title = 'Удалить список';
     deleteBtn.addEventListener('click', function(e) {
       e.stopPropagation();
-      if (confirm(`Удалить список на ${displayDate}?`)) {
+      if (confirm(`Удалить список "${label}"?`)) {
         localStorage.removeItem(key);
         renderSavedLists();
-        // Если этот список был открыт, скрываем его
         document.getElementById('shoppingListDisplay').style.display = 'none';
         document.getElementById('savedListsContainer').style.display = 'block';
       }
     });
     item.appendChild(deleteBtn);
 
-    // Клик по элементу загружает список
+    // Клик загружает список
     item.addEventListener('click', function() {
-      loadShoppingList(dateStr);
+      loadShoppingList(key);
     });
 
     container.appendChild(item);
   });
 }
 
-// Загрузить и отобразить конкретный список
-function loadShoppingList(dateStr) {
-  const key = `shoppingList_${dateStr}`;
+// Загрузить и отобразить конкретный список по ключу
+function loadShoppingList(key) {
   const saved = localStorage.getItem(key);
   if (!saved) {
     alert('Список не найден');
@@ -2074,15 +2095,30 @@ function loadShoppingList(dateStr) {
     return;
   }
 
-  // Показать область просмотра, скрыть список сохранённых
   document.getElementById('savedListsContainer').style.display = 'none';
   const displayDiv = document.getElementById('shoppingListDisplay');
   displayDiv.style.display = 'block';
 
-  // Рендерим список
   const resultDiv = document.getElementById('shoppingListResult');
   const groups = data.groups;
-  let html = `<div style="margin-bottom:8px;font-size:14px;color:var(--text-secondary);">Список на ${Utils.formatDate(new Date(dateStr))}</div>`;
+  // Определяем метку периода для заголовка
+  let periodLabel = '';
+  if (key.startsWith('shoppingList_range_')) {
+    const parts = key.replace('shoppingList_range_', '').split('_to_');
+    if (parts.length === 2) {
+      const from = new Date(parts[0]);
+      const to = new Date(parts[1]);
+      if (parts[0] === parts[1]) {
+        periodLabel = Utils.formatDate(from);
+      } else {
+        periodLabel = `${Utils.formatDate(from)} — ${Utils.formatDate(to)}`;
+      }
+    }
+  } else {
+    const dateStr = key.replace('shoppingList_', '');
+    periodLabel = Utils.formatDate(new Date(dateStr));
+  }
+  let html = `<div style="margin-bottom:8px;font-size:14px;color:var(--text-secondary);">Список на ${periodLabel}</div>`;
   const sortedDepartments = Object.keys(groups).sort();
   for (const dept of sortedDepartments) {
     const ingredients = groups[dept];
@@ -2094,20 +2130,37 @@ function loadShoppingList(dateStr) {
   }
   resultDiv.innerHTML = html;
 
-  // Сохраняем текущую дату для кнопок удаления/сохранения
-  displayDiv.dataset.currentDate = dateStr;
-  // Показываем кнопку удаления
+  displayDiv.dataset.currentKey = key;
+  document.getElementById('saveCurrentListBtn').style.display = 'none'; // уже сохранено
   document.getElementById('deleteCurrentListBtn').style.display = 'inline-block';
-  document.getElementById('saveCurrentListBtn').style.display = 'none'; // не нужно сохранять уже сохранённое
 }
 
-// Собрать новый список (предварительный, без сохранения)
+// Собрать новый список за период (предварительный, без сохранения)
 function generateShoppingList() {
-  const dateStr = document.getElementById('shoppingDate').value;
-  if (!dateStr) { alert('Выберите дату'); return; }
-  const dishes = DishStore.getForDate(dateStr);
+  const fromDate = document.getElementById('shoppingDateFrom').value;
+  const toDate = document.getElementById('shoppingDateTo').value;
+  if (!fromDate || !toDate) {
+    alert('Выберите обе даты периода');
+    return;
+  }
+  if (fromDate > toDate) {
+    alert('Дата "От" не может быть позже даты "До"');
+    return;
+  }
+
+  // Собираем все блюда в диапазоне
+  let allDishes = [];
+  let current = new Date(fromDate);
+  const end = new Date(toDate);
+  while (current <= end) {
+    const dateStr = Utils.formatDateLocal(current);
+    const dayDishes = DishStore.getForDate(dateStr);
+    allDishes = allDishes.concat(dayDishes);
+    current.setDate(current.getDate() + 1);
+  }
+
   const items = [];
-  dishes.forEach(dish => {
+  allDishes.forEach(dish => {
     if (dish.recipeId) {
       const recipe = RecipeStore.getById(dish.recipeId);
       if (recipe) {
@@ -2117,8 +2170,9 @@ function generateShoppingList() {
       }
     }
   });
+
   if (items.length === 0) {
-    alert('😌 На эту дату нет блюд с рецептами.');
+    alert('😌 За выбранный период нет блюд с рецептами.');
     return;
   }
 
@@ -2130,14 +2184,14 @@ function generateShoppingList() {
     grouped[dept].push(ing);
   });
 
-  // Показываем предварительный список в области просмотра
+  // Показываем предварительный список
   document.getElementById('savedListsContainer').style.display = 'none';
   const displayDiv = document.getElementById('shoppingListDisplay');
   displayDiv.style.display = 'block';
-  displayDiv.dataset.currentDate = dateStr;
 
   const resultDiv = document.getElementById('shoppingListResult');
-  let html = `<div style="margin-bottom:8px;font-size:14px;color:var(--text-secondary);">Предварительный список на ${Utils.formatDate(new Date(dateStr))}</div>`;
+  const periodLabel = fromDate === toDate ? Utils.formatDate(new Date(fromDate)) : `${Utils.formatDate(new Date(fromDate))} — ${Utils.formatDate(new Date(toDate))}`;
+  let html = `<div style="margin-bottom:8px;font-size:14px;color:var(--text-secondary);">Предварительный список за ${periodLabel}</div>`;
   const sortedDepartments = Object.keys(grouped).sort();
   for (const dept of sortedDepartments) {
     const ingredients = grouped[dept];
@@ -2149,20 +2203,25 @@ function generateShoppingList() {
   }
   resultDiv.innerHTML = html;
 
-  // Показываем кнопку "Сохранить", скрываем "Удалить"
+  // Сохраняем период и данные
+  displayDiv.dataset.fromDate = fromDate;
+  displayDiv.dataset.toDate = toDate;
+  displayDiv.dataset.generatedGroups = JSON.stringify(grouped);
+
   document.getElementById('saveCurrentListBtn').style.display = 'inline-block';
   document.getElementById('deleteCurrentListBtn').style.display = 'none';
-
-  // Сохраняем сгенерированные данные в атрибут для последующего сохранения
-  displayDiv.dataset.generatedGroups = JSON.stringify(grouped);
 }
 
 // Сохранить текущий список (из предварительного)
 function saveCurrentList() {
   const displayDiv = document.getElementById('shoppingListDisplay');
-  const dateStr = displayDiv.dataset.currentDate;
-  if (!dateStr) { alert('Нет даты для сохранения'); return; }
-  
+  const fromDate = displayDiv.dataset.fromDate;
+  const toDate = displayDiv.dataset.toDate;
+  if (!fromDate || !toDate) {
+    alert('Нет данных для сохранения. Сначала сгенерируйте список.');
+    return;
+  }
+
   let groups;
   if (displayDiv.dataset.generatedGroups) {
     groups = JSON.parse(displayDiv.dataset.generatedGroups);
@@ -2171,25 +2230,31 @@ function saveCurrentList() {
     return;
   }
 
-  const key = `shoppingList_${dateStr}`;
-  const data = { date: dateStr, groups: groups };
+  let key;
+  if (fromDate === toDate) {
+    key = `shoppingList_${fromDate}`;
+  } else {
+    key = `shoppingList_range_${fromDate}_to_${toDate}`;
+  }
+
+  const data = { date: fromDate, toDate: toDate, groups: groups };
   localStorage.setItem(key, JSON.stringify(data));
 
   alert('✅ Список сохранён!');
-  // Показываем список сохранённых, скрываем просмотр
   document.getElementById('shoppingListDisplay').style.display = 'none';
   document.getElementById('savedListsContainer').style.display = 'block';
   renderSavedLists();
   delete displayDiv.dataset.generatedGroups;
+  delete displayDiv.dataset.fromDate;
+  delete displayDiv.dataset.toDate;
 }
 
 // Удалить текущий список (кнопка удаления в режиме просмотра)
 function deleteCurrentList() {
   const displayDiv = document.getElementById('shoppingListDisplay');
-  const dateStr = displayDiv.dataset.currentDate;
-  if (!dateStr) return;
-  if (!confirm(`Удалить список на ${Utils.formatDate(new Date(dateStr))}?`)) return;
-  const key = `shoppingList_${dateStr}`;
+  const key = displayDiv.dataset.currentKey;
+  if (!key) return;
+  if (!confirm(`Удалить этот список?`)) return;
   localStorage.removeItem(key);
   document.getElementById('shoppingListDisplay').style.display = 'none';
   document.getElementById('savedListsContainer').style.display = 'block';
