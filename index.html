@@ -277,7 +277,7 @@
   </div>
 </div>
 
-<!-- Модалка "Список покупок" (обновлена: два поля даты) -->
+<!-- Модалка "Список покупок" (обновлена) -->
 <div class="modal-overlay rec-modal" id="shoppingListOverlay" role="dialog" aria-modal="true" aria-labelledby="shoppingListTitle">
   <div class="modal">
     <div class="modal-header">
@@ -285,7 +285,7 @@
       <button class="modal-close" id="shoppingListClose" aria-label="Закрыть">✕</button>
     </div>
     <div>
-      <!-- Блок для выбора периода -->
+      <!-- Блок выбора периода -->
       <div class="form-group" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
         <label for="shoppingDateFrom" style="font-weight:500;">От:</label>
         <input type="date" id="shoppingDateFrom">
@@ -294,18 +294,21 @@
         <button class="btn-primary" id="generateShoppingListBtn">Собрать список</button>
       </div>
 
-      <!-- Контейнер для списка сохранённых -->
+      <!-- Контейнер для сохранённых списков -->
       <div id="savedListsContainer">
         <h4 style="margin:12px 0 8px;">Сохранённые списки</h4>
         <div id="savedListsList"></div>
       </div>
 
-      <!-- Контейнер для отображения списка (скрыт по умолчанию) -->
+      <!-- Контейнер для отображения списка (редактируемый) -->
       <div id="shoppingListDisplay" style="display:none;">
         <button id="backToSavedListsBtn" class="btn-secondary" style="margin-bottom:8px;">← Назад к спискам</button>
-        <div id="shoppingListResult"></div>
-        <button id="saveCurrentListBtn" class="btn-done" style="margin-top:8px;">💾 Сохранить список</button>
-        <button id="deleteCurrentListBtn" class="btn-secondary" style="margin-top:8px;">🗑️ Удалить этот список</button>
+        <textarea id="shoppingListResult" placeholder="Сгенерированный список появится здесь. Вы можете редактировать его вручную."></textarea>
+        <div style="display:flex; flex-wrap:wrap; gap:8px; margin-top:8px;">
+          <button id="saveCurrentListBtn" class="btn-done">💾 Сохранить изменения</button>
+          <button id="deleteCurrentListBtn" class="btn-secondary">🗑️ Удалить этот список</button>
+          <button id="exportShoppingListTxtBtn" class="btn-secondary">📄 Сохранить как .txt</button>
+        </div>
       </div>
     </div>
   </div>
