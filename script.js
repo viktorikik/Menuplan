@@ -20,7 +20,7 @@ const CATEGORY_LABELS = {
   [CATEGORIES.OTHER]: '🍽️ Другое'
 };
 
-// Список слов, характерных для российских кулинарных рецептов
+// Список слов для определения ингредиентов (используется в парсерах)
 const PRODUCT_WORDS = [
   'лук', 'морковь', 'картофель', 'капуста', 'свекла', 'редис', 'репа',
   'огурец', 'помидор', 'перец', 'баклажан', 'кабачок', 'тыква',
@@ -136,12 +136,11 @@ const Utils = {
     return score >= 2;
   },
 
-  // Парсинг текста рецепта (из вставки)
+  // Парсинг текста рецепта из вставки
   parseRecipeText(text) {
     const lines = text.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     let title = '';
     let ingredients = [];
-    // Попробуем найти название в первых строках
     for (let i = 0; i < Math.min(lines.length, 5); i++) {
       const line = lines[i];
       if (line.length > 2 && line.length < 80 && !/\d/.test(line) && !this.isIngredientLine(line)) {
@@ -149,15 +148,12 @@ const Utils = {
         break;
       }
     }
-    // Если не нашли, возьмём первую непустую
     if (!title && lines.length > 0) title = lines[0];
-    // Ищем ингредиенты
     for (const line of lines) {
       if (this.isIngredientLine(line) && line.length < 100) {
         ingredients.push(line);
       }
     }
-    // Если ингредиентов нет, возьмём все строки с цифрами
     if (ingredients.length === 0) {
       for (const line of lines) {
         if (/\d/.test(line) && line.length < 100 && line.length > 3) {
@@ -443,7 +439,6 @@ const DishStore = (function() {
     return { name, category: cat, categoryLabel: CATEGORY_LABELS[cat] };
   }
 
-  // Привязка рецепта к блюду
   function setRecipeId(dishId, recipeId) {
     const dish = dishes.find(d => d.id === dishId);
     if (!dish) return false;
@@ -490,7 +485,6 @@ const Renderer = (function() {
     nameSpan.textContent = dish.name;
     dishDiv.appendChild(nameSpan);
 
-    // Если есть рецепт, добавим иконку
     if (dish.recipeId) {
       const recipeLink = document.createElement('span');
       recipeLink.className = 'recipe-link';
@@ -675,7 +669,6 @@ const Renderer = (function() {
     });
     addForm.appendChild(categorySelect);
 
-    // Выбор рецепта
     const recipeSelect = document.createElement('select');
     recipeSelect.id = 'modalNewDishRecipe';
     recipeSelect.className = 'modal-field-select field-half';
@@ -1183,7 +1176,6 @@ const Renderer = (function() {
 
   // --- Показ карточки рецепта (всплывающее окно) ---
   function showRecipeCard(recipe) {
-    // просто покажем модалку с рецептом
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay active';
     overlay.style.display = 'flex';
@@ -1662,11 +1654,7 @@ function importData(file) {
       if (parsed.dishes && Array.isArray(parsed.dishes)) {
         if (confirm(`Будет импортировано ${parsed.dishes.length} блюд и ${parsed.recipes ? parsed.recipes.length : 0} рецептов. Текущие данные будут заменены. Продолжить?`)) {
           if (parsed.recipes) {
-            // заменить рецепты
-            const recipes = parsed.recipes;
-            // просто перезапишем, но нужно очистить старые
-            localStorage.setItem('smartMenuRecipes_v1', JSON.stringify(recipes));
-            // переинициализируем RecipeStore (просто загрузим заново)
+            localStorage.setItem('smartMenuRecipes_v1', JSON.stringify(parsed.recipes));
             RecipeStore.init();
           }
           DishStore.replaceAll(parsed.dishes);
@@ -1843,11 +1831,38 @@ function hideWelcome() {
 }
 
 // ============================================================
-// 10. ФУНКЦИИ ДЛЯ РЕЦЕПТОВ И СПИСКА ПОКУПОК
+// 10. ФУНКЦИИ ДЛЯ РЕЦЕПТОВ И СПИСКА ПОКУПОК (обновлены)
 // ============================================================
+
+// --- Отделы магазина ---
+const DEPARTMENTS = {
+  'Овощи': ['лук', 'морковь', 'картофель', 'капуста', 'свекла', 'редис', 'репа', 'огурец', 'помидор', 'перец', 'баклажан', 'кабачок', 'тыква', 'чеснок', 'зелень', 'петрушка', 'укроп', 'базилик', 'кинза', 'салат', 'шпинат', 'щавель', 'ревень', 'сельдерей'],
+  'Фрукты, ягоды': ['яблоко', 'груша', 'айва', 'хурма', 'гранат', 'лимон', 'лайм', 'грейпфрут', 'мандарин', 'апельсин', 'клубника', 'малина', 'черника', 'ежевика', 'смородина', 'крыжовник', 'вишня', 'черешня', 'слива', 'абрикос', 'персик', 'нектарин', 'банан', 'киви', 'манго', 'ананас', 'арбуз', 'дыня', 'финик', 'инжир', 'курага', 'чернослив', 'изюм'],
+  'Мясо, птица': ['говядина', 'свинина', 'баранина', 'телятина', 'курица', 'индейка', 'утка', 'гусь', 'кролик', 'фарш', 'печень', 'сердце', 'почки'],
+  'Рыба, морепродукты': ['тунец', 'горбуша', 'лосось', 'форель', 'сёмга', 'кета', 'кижуч', 'треска', 'пикша', 'окунь', 'судак', 'щука', 'сом', 'налим', 'осётр', 'пангасиус', 'тилапия', 'дорада', 'сибас', 'ставрида', 'скумбрия', 'макрель', 'сельдь', 'шпроты', 'килька', 'креветки', 'мидии', 'кальмары', 'краб'],
+  'Молочные продукты, яйца': ['молоко', 'сливки', 'сметана', 'йогурт', 'кефир', 'ряженка', 'творог', 'сыр', 'масло', 'маргарин', 'майонез', 'кетчуп', 'яйцо'],
+  'Бакалея, крупы, макароны': ['рис', 'гречка', 'овсянка', 'перловка', 'пшено', 'кускус', 'булгур', 'макароны', 'паста', 'лапша', 'вермишель', 'спагетти', 'мука', 'сахар', 'дрожжи', 'разрыхлитель', 'сода'],
+  'Специи, приправы': ['соль', 'перец', 'корица', 'ваниль', 'какао', 'шоколад', 'орегано', 'тимьян', 'розмарин', 'кориандр', 'тмин', 'кумин', 'паприка', 'куркума', 'имбирь', 'шафран', 'гвоздика', 'кардамон'],
+  'Жиры, масла': ['оливковое масло', 'подсолнечное масло', 'сливочное масло'],
+  'Напитки, жидкости': ['вода', 'бульон', 'вино', 'коньяк', 'ром', 'пиво', 'чай', 'кофе', 'компот', 'кисель', 'морс', 'квас', 'лимонад', 'сок', 'нектар'],
+  'Грибы': ['гриб', 'шампиньон', 'белый гриб', 'подберёзовик', 'лисичка'],
+  'Заготовки, сладости': ['варенье', 'джем', 'конфитюр', 'мёд', 'сироп', 'пастила', 'мармелад'],
+  'Орехи, сухофрукты': ['орех', 'миндаль', 'фисташка', 'кешью', 'грецкий орех', 'фундук']
+};
+
+function classifyIngredient(ingredient) {
+  const lower = ingredient.toLowerCase();
+  for (const [department, keywords] of Object.entries(DEPARTMENTS)) {
+    if (keywords.some(kw => lower.includes(kw))) {
+      return department;
+    }
+  }
+  return 'Прочее';
+}
+
+// --- Рецепты ---
 function openRecipesModal() {
-  const overlay = document.getElementById('recipesOverlay');
-  overlay.classList.add('active');
+  document.getElementById('recipesOverlay').classList.add('active');
   renderRecipesList();
 }
 
@@ -1969,46 +1984,43 @@ function parseRecipeTextFromForm() {
   }
 }
 
+// --- Список покупок (обновлён) ---
 function openShoppingList() {
   document.getElementById('shoppingListOverlay').classList.add('active');
   const today = new Date();
-  document.getElementById('shoppingDate').value = Utils.formatDateLocal(today);
-  document.getElementById('shoppingListResult').innerHTML = '';
+  const dateInput = document.getElementById('shoppingDate');
+  dateInput.value = Utils.formatDateLocal(today);
+  // Загружаем сохранённый список
+  const saved = localStorage.getItem('shoppingListData');
+  if (saved) {
+    try {
+      const data = JSON.parse(saved);
+      if (data.groups && Object.keys(data.groups).length > 0) {
+        dateInput.value = data.date;
+        renderShoppingList(data.groups, data.date);
+      } else {
+        document.getElementById('shoppingListResult').innerHTML = '<div class="modal-empty">😌 Сохранённый список пуст.</div>';
+      }
+    } catch(e) {
+      localStorage.removeItem('shoppingListData');
+      document.getElementById('shoppingListResult').innerHTML = '';
+    }
+  } else {
+    document.getElementById('shoppingListResult').innerHTML = '';
+  }
 }
 
 function closeShoppingList() {
   document.getElementById('shoppingListOverlay').classList.remove('active');
 }
 
-function generateShoppingList() {
-  const dateStr = document.getElementById('shoppingDate').value;
-  if (!dateStr) { alert('Выберите дату'); return; }
-  const dishes = DishStore.getForDate(dateStr);
+function renderShoppingList(groups, dateStr) {
   const resultDiv = document.getElementById('shoppingListResult');
-  const items = [];
-  dishes.forEach(dish => {
-    if (dish.recipeId) {
-      const recipe = RecipeStore.getById(dish.recipeId);
-      if (recipe) {
-        recipe.ingredients.forEach(ing => {
-          items.push({ dish: dish.name, ingredient: ing });
-        });
-      }
-    }
-  });
-  if (items.length === 0) {
-    resultDiv.innerHTML = '<div class="modal-empty">😌 На эту дату нет блюд с рецептами.</div>';
-    return;
-  }
-  // Группировка по блюдам
-  const grouped = {};
-  items.forEach(item => {
-    if (!grouped[item.dish]) grouped[item.dish] = [];
-    grouped[item.dish].push(item.ingredient);
-  });
-  let html = '';
-  for (const [dish, ingredients] of Object.entries(grouped)) {
-    html += `<div class="shopping-group"><h4>${Utils.escapeHtml(dish)}</h4>`;
+  let html = `<div style="margin-bottom:8px;font-size:14px;color:var(--text-secondary);">Список на ${Utils.formatDate(new Date(dateStr))}</div>`;
+  const sortedDepartments = Object.keys(groups).sort();
+  for (const dept of sortedDepartments) {
+    const ingredients = groups[dept];
+    html += `<div class="shopping-group"><h4>${dept}</h4>`;
     ingredients.forEach(ing => {
       html += `<div class="shopping-item">• ${Utils.escapeHtml(ing)}</div>`;
     });
@@ -2017,11 +2029,79 @@ function generateShoppingList() {
   resultDiv.innerHTML = html;
 }
 
+function generateShoppingList() {
+  const dateStr = document.getElementById('shoppingDate').value;
+  if (!dateStr) { alert('Выберите дату'); return; }
+  const dishes = DishStore.getForDate(dateStr);
+  const items = [];
+  dishes.forEach(dish => {
+    if (dish.recipeId) {
+      const recipe = RecipeStore.getById(dish.recipeId);
+      if (recipe) {
+        recipe.ingredients.forEach(ing => {
+          items.push(ing);
+        });
+      }
+    }
+  });
+  if (items.length === 0) {
+    const resultDiv = document.getElementById('shoppingListResult');
+    resultDiv.innerHTML = '<div class="modal-empty">😌 На эту дату нет блюд с рецептами.</div>';
+    localStorage.removeItem('shoppingListData');
+    return;
+  }
+
+  // Классифицируем и группируем
+  const grouped = {};
+  items.forEach(ing => {
+    const dept = classifyIngredient(ing);
+    if (!grouped[dept]) grouped[dept] = [];
+    grouped[dept].push(ing);
+  });
+
+  // Сохраняем
+  const data = { date: dateStr, groups: grouped };
+  localStorage.setItem('shoppingListData', JSON.stringify(data));
+
+  renderShoppingList(grouped, dateStr);
+}
+
+function saveShoppingListToFile() {
+  const saved = localStorage.getItem('shoppingListData');
+  if (!saved) { alert('Нет сохранённого списка. Сначала сгенерируйте список.'); return; }
+  const data = JSON.parse(saved);
+  const groups = data.groups;
+  const dateStr = data.date;
+  let text = `Список покупок на ${Utils.formatDate(new Date(dateStr))}\n\n`;
+  const sortedDepartments = Object.keys(groups).sort();
+  for (const dept of sortedDepartments) {
+    text += `${dept}:\n`;
+    groups[dept].forEach(ing => {
+      text += `  - ${ing}\n`;
+    });
+    text += '\n';
+  }
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `shopping_list_${dateStr}.txt`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+function clearShoppingList() {
+  if (confirm('Очистить сохранённый список покупок?')) {
+    localStorage.removeItem('shoppingListData');
+    document.getElementById('shoppingListResult').innerHTML = '';
+    alert('Список очищен.');
+  }
+}
+
 // ============================================================
 // 11. ИНИЦИАЛИЗАЦИЯ
 // ============================================================
 (function init() {
-  // Инициализация хранилищ
   RecipeStore.init();
   DishStore.init();
 
@@ -2136,7 +2216,7 @@ function generateShoppingList() {
     });
   });
 
-  // Закрытие модалок по клику вне и Escape
+  // Закрытие модалок
   const modals = [
     { overlay: document.getElementById('modalOverlay'), close: Renderer.closeModal },
     { overlay: document.getElementById('recOverlay'), close: Renderer.closeRecModal },
@@ -2179,7 +2259,7 @@ function generateShoppingList() {
     }
   });
 
-  // Закрытие по кнопкам
+  // Кнопки закрытия
   document.getElementById('modalClose').addEventListener('click', Renderer.closeModal);
   document.getElementById('recClose').addEventListener('click', Renderer.closeRecModal);
   document.getElementById('urlImportClose').addEventListener('click', closeUrlImport);
@@ -2291,7 +2371,7 @@ function generateShoppingList() {
     }
   });
 
-  // Рецепты: форма
+  // Рецепты
   document.getElementById('addRecipeBtn').addEventListener('click', function() {
     openRecipeForm(null);
   });
@@ -2301,6 +2381,8 @@ function generateShoppingList() {
 
   // Список покупок
   document.getElementById('generateShoppingList').addEventListener('click', generateShoppingList);
+  document.getElementById('saveShoppingListBtn').addEventListener('click', saveShoppingListToFile);
+  document.getElementById('clearShoppingListBtn').addEventListener('click', clearShoppingList);
 
   // Свайпы
   let touchStartX = 0, touchEndX = 0;
@@ -2345,5 +2427,5 @@ function generateShoppingList() {
 
   console.log('✅ Планировщик меню готов!');
   console.log('📱 Поддерживаются: YouTube, VK, Telegram, Instagram, Pinterest, Яндекс.Дзен, iamcook.ru, Сайты');
-  console.log('📖 Добавлена поддержка рецептов и списка покупок');
+  console.log('📖 Добавлена поддержка рецептов и списка покупок с сохранением и группировкой по отделам.');
 })();
