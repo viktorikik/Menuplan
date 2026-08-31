@@ -2,7 +2,7 @@
    1. ПЕРЕМЕННЫЕ
    ============================================================ */
 :root {
-  --bg-primary: #f7f5f2;
+  --bg-primary: #f5f3f0;
   --bg-app: rgba(255, 255, 255, 0.85);
   --bg-app-border: rgba(255, 255, 255, 0.5);
   --text-primary: #1c1c2a;
@@ -140,7 +140,7 @@ textarea:focus-visible {
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
   border-radius: var(--radius-lg);
-  padding: var(--spacing-lg) var(--spacing-lg);
+  padding: var(--spacing-xl) var(--spacing-xl);
   box-shadow: var(--shadow);
   border: 1px solid var(--bg-app-border);
   transition: all var(--transition-normal);
@@ -152,7 +152,7 @@ textarea:focus-visible {
    ============================================================ */
 .app-header {
   display: flex;
-  justify-content: center;
+  justify-content: space-between;
   align-items: center;
   flex-wrap: wrap;
   gap: var(--spacing-md);
@@ -161,10 +161,13 @@ textarea:focus-visible {
 
 .logo h1 {
   font-size: 28px;
-  font-weight: 620;
-  letter-spacing: -0.3px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
   color: var(--text-primary);
   margin: 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
 }
 .logo h1::before {
   content: '';
@@ -173,8 +176,6 @@ textarea:focus-visible {
   height: 28px;
   background: var(--accent-color);
   border-radius: 3px;
-  margin-right: 8px;
-  vertical-align: middle;
 }
 
 .controls {
@@ -225,14 +226,12 @@ textarea:focus-visible {
   white-space: nowrap;
 }
 .view-toggle button.active {
-  background: var(--tag-bg);
-  box-shadow: var(--shadow-sm);
-  color: var(--text-primary);
-}
-.view-toggle button.active {
   background: var(--accent-light);
   color: var(--accent-color);
   box-shadow: 0 0 0 1px var(--accent-color);
+}
+.view-toggle button:hover:not(.active) {
+  background: var(--day-hover);
 }
 
 /* ============================================================
@@ -260,11 +259,10 @@ textarea:focus-visible {
   max-width: 220px;
   justify-content: center;
   text-align: center;
-  padding: var(--spacing-sm) var(--spacing-md);
+  padding: var(--btn-padding);
   border-radius: var(--radius-lg);
-  border: none;
   font-size: 14px;
-  font-weight: 580;
+  font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
   display: inline-flex;
@@ -272,69 +270,74 @@ textarea:focus-visible {
   gap: 6px;
   box-shadow: 0 2px 8px rgba(0,0,0,0.06);
   appearance: none;
+  border: none;
 }
 
+/* Первичные кнопки – все в акцентном цвете */
 .btn-row .btn-primary {
   background: var(--accent-color);
   color: white;
-  border: 1px solid var(--accent-color);
 }
 .btn-row .btn-primary:hover {
-  transform: scale(1.02);
-  filter: brightness(1.1);
-  background: var(--accent-hover);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(255, 122, 74, 0.3);
+  filter: brightness(1.05);
 }
 .btn-row .btn-primary:active {
-  transform: scale(0.97);
+  transform: translateY(0);
 }
 
+/* Вторичные кнопки – прозрачные с обводкой */
 .btn-row .btn-secondary {
   background: transparent;
-  border: 1px solid var(--text-muted);
+  border: 1.5px solid var(--text-muted);
   color: var(--text-primary);
 }
 .btn-row .btn-secondary:hover {
   background: var(--cell-bg);
+  border-color: var(--text-primary);
+  transform: translateY(-2px);
 }
 
+/* Специальные кнопки: Done, Export, Import, Import URL – оставляем их цветными, но приводим к единому стилю */
 .btn-row .btn-done {
   background: var(--done-color);
   color: white;
-  box-shadow: 0 4px 12px rgba(52, 211, 153, 0.3);
 }
 .btn-row .btn-done:hover {
-  transform: scale(1.05);
-  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(52, 211, 153, 0.3);
+  filter: brightness(1.05);
 }
 
 .btn-row .btn-export {
   background: #8b5cf6;
   color: white;
-  box-shadow: 0 4px 12px rgba(139, 92, 246, 0.3);
 }
 .btn-row .btn-export:hover {
-  transform: scale(1.05);
-  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
+  filter: brightness(1.05);
 }
 
 .btn-row .btn-import {
   background: #f59e0b;
   color: white;
-  box-shadow: 0 4px 12px rgba(245, 158, 11, 0.3);
 }
 .btn-row .btn-import:hover {
-  transform: scale(1.05);
-  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
+  filter: brightness(1.05);
 }
 
 .btn-row .btn-import-url {
   background: var(--accent-color);
   color: white;
-  box-shadow: 0 4px 12px rgba(255, 122, 74, 0.3);
 }
 .btn-row .btn-import-url:hover {
-  transform: scale(1.05);
-  filter: brightness(1.08);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(255, 122, 74, 0.3);
+  filter: brightness(1.05);
 }
 
 .import-hint {
@@ -354,8 +357,8 @@ textarea:focus-visible {
    ============================================================ */
 .calendar-wrap {
   background: rgba(128, 128, 140, 0.04);
-  border-radius: var(--radius-xl);
-  padding: 10px 6px 14px;
+  border-radius: var(--radius-md);
+  padding: 16px 12px 20px;
   margin-bottom: 16px;
   touch-action: pan-y;
   user-select: none;
@@ -365,7 +368,7 @@ textarea:focus-visible {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0 10px 10px;
+  padding: 0 4px 12px;
   flex-wrap: wrap;
   gap: var(--spacing-sm);
 }
@@ -412,11 +415,12 @@ textarea:focus-visible {
 
 #monthTitle {
   font-size: 22px;
-  font-weight: 560;
+  font-weight: 700;
   color: var(--text-primary);
   text-align: center;
-  min-width: 120px;
+  min-width: 140px;
   margin: 0 6px;
+  letter-spacing: 0.5px;
 }
 
 .today-btn {
@@ -437,29 +441,30 @@ textarea:focus-visible {
   appearance: none;
 }
 .today-btn:hover {
-  transform: scale(1.05);
-  filter: brightness(1.1);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(255, 122, 74, 0.3);
+  filter: brightness(1.05);
 }
 .today-btn:active {
-  transform: scale(0.95);
+  transform: translateY(0);
 }
 
 .weekdays {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
   text-align: center;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--text-muted);
-  font-size: 11px;
-  letter-spacing: 0.3px;
-  padding: 6px 0 4px;
+  font-size: 12px;
+  letter-spacing: 0.5px;
+  padding: 8px 0 6px;
   text-transform: uppercase;
 }
 
 .days-grid {
   display: grid;
   grid-template-columns: repeat(7, 1fr);
-  gap: var(--spacing-xs);
+  gap: var(--spacing-sm);
 }
 
 .day-cell {
@@ -473,13 +478,15 @@ textarea:focus-visible {
   cursor: pointer;
   transition: var(--transition-fast);
   position: relative;
-  min-height: 60px;
-  padding: 8px var(--spacing-xs);
+  min-height: 64px;
+  padding: 8px 4px;
   width: 100%;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.02);
 }
 .day-cell:hover {
   background: var(--day-hover);
   transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.08);
 }
 .day-cell.empty {
   background: transparent;
@@ -490,14 +497,15 @@ textarea:focus-visible {
 }
 .day-cell.empty:hover {
   background: transparent;
+  box-shadow: none;
 }
 
 .day-number {
-  font-weight: 550;
-  font-size: 15px;
+  font-weight: 600;
+  font-size: 16px;
   color: var(--text-primary);
-  line-height: 1;
-  margin-bottom: var(--spacing-xs);
+  line-height: 1.2;
+  margin-bottom: 2px;
 }
 
 .day-cell.has-done {
@@ -521,9 +529,11 @@ textarea:focus-visible {
 .day-cell.today {
   border-color: var(--accent-color);
   border-width: 2px;
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 .day-cell.today .day-number {
   color: var(--accent-color);
+  font-weight: 700;
 }
 
 /* ============================================================
@@ -554,7 +564,7 @@ textarea:focus-visible {
 }
 
 .week-row .date-col {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 16px;
   color: var(--text-primary);
   text-align: center;
@@ -576,7 +586,7 @@ textarea:focus-visible {
 
 .meal-chip {
   font-size: 13px;
-  padding: 2px 10px;
+  padding: 3px 12px;
   border-radius: var(--radius-md);
   background: var(--chip-bg);
   border-left: 3px solid var(--text-muted);
@@ -588,6 +598,7 @@ textarea:focus-visible {
   display: inline-flex;
   align-items: center;
   gap: 4px;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.04);
 }
 .meal-chip:active {
   cursor: grabbing;
@@ -647,6 +658,7 @@ textarea:focus-visible {
   flex: 1 1 150px;
   min-width: 120px;
   appearance: none;
+  transition: var(--transition-fast);
 }
 .search-filter-wrap input:focus,
 .search-filter-wrap select:focus {
@@ -661,15 +673,15 @@ textarea:focus-visible {
   margin-top: 16px;
   background: rgba(128, 128, 140, 0.04);
   border-radius: var(--radius-md);
-  padding: 14px 16px;
+  padding: 16px 18px;
   max-height: 300px;
   overflow-y: auto;
 }
 .menu-list h3 {
-  font-weight: 540;
+  font-weight: 700;
   font-size: 18px;
   color: var(--text-primary);
-  margin-bottom: 10px;
+  margin-bottom: 12px;
 }
 
 .menu-group {
@@ -766,7 +778,7 @@ textarea:focus-visible {
 }
 .modal-header h3 {
   font-size: 22px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--modal-text);
 }
 .modal-close {
@@ -792,7 +804,7 @@ textarea:focus-visible {
 }
 .day-meals-section h4 {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 10px;
   display: flex;
@@ -943,7 +955,7 @@ textarea:focus-visible {
 }
 .modal-add-section h4 {
   font-size: 18px;
-  font-weight: 550;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: 10px;
 }
@@ -991,7 +1003,7 @@ textarea:focus-visible {
   border: none;
   background: var(--accent-color);
   color: white;
-  font-weight: 550;
+  font-weight: 600;
   font-size: 13px;
   cursor: pointer;
   transition: var(--transition-fast);
@@ -999,7 +1011,7 @@ textarea:focus-visible {
   appearance: none;
 }
 .modal-add-new .field-btn:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.05);
   transform: scale(1.02);
 }
 
@@ -1047,7 +1059,7 @@ textarea:focus-visible {
 }
 .rec-modal .rec-section h4 {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: var(--spacing-sm);
 }
@@ -1151,7 +1163,7 @@ textarea:focus-visible {
   border: none;
   border-radius: var(--radius-lg);
   font-size: 16px;
-  font-weight: 550;
+  font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
   appearance: none;
@@ -1161,7 +1173,8 @@ textarea:focus-visible {
   color: white;
 }
 .add-modal .form-actions .btn-primary:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.05);
+  transform: translateY(-2px);
 }
 .add-modal .form-actions .btn-secondary {
   background: transparent;
@@ -1170,6 +1183,7 @@ textarea:focus-visible {
 }
 .add-modal .form-actions .btn-secondary:hover {
   background: var(--cell-bg);
+  transform: translateY(-2px);
 }
 
 /* ----- Модалка экспорта ----- */
@@ -1193,6 +1207,7 @@ textarea:focus-visible {
 }
 .export-modal .export-option:hover {
   background: var(--card-hover-bg);
+  transform: translateX(4px);
 }
 .export-modal .export-option .export-label {
   font-weight: 600;
@@ -1251,14 +1266,15 @@ textarea:focus-visible {
   border-radius: var(--radius-lg);
   background: var(--accent-color);
   color: white;
-  font-weight: 550;
+  font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
   white-space: nowrap;
   appearance: none;
 }
 .url-import-modal .url-input-group button:hover {
-  filter: brightness(1.1);
+  filter: brightness(1.05);
+  transform: translateY(-2px);
 }
 .url-import-modal .url-input-group button:disabled {
   opacity: 0.5;
@@ -1274,7 +1290,7 @@ textarea:focus-visible {
 }
 .url-import-modal .parsed-recipe .recipe-name {
   font-size: 18px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--text-primary);
   margin-bottom: var(--spacing-sm);
 }
@@ -1302,7 +1318,7 @@ textarea:focus-visible {
   padding: 8px 16px;
   border: none;
   border-radius: var(--radius-lg);
-  font-weight: 550;
+  font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
   appearance: none;
@@ -1312,7 +1328,8 @@ textarea:focus-visible {
   color: white;
 }
 .url-import-modal .parsed-recipe .recipe-actions .btn-add:hover {
-  filter: brightness(1.08);
+  filter: brightness(1.05);
+  transform: translateY(-2px);
 }
 .url-import-modal .parsed-recipe .recipe-actions .btn-cancel {
   background: transparent;
@@ -1388,7 +1405,7 @@ textarea:focus-visible {
 }
 .choice-modal h2 {
   font-size: 24px;
-  font-weight: 600;
+  font-weight: 700;
   color: var(--modal-text);
   margin-bottom: var(--spacing-lg);
 }
@@ -1399,7 +1416,7 @@ textarea:focus-visible {
   border: none;
   border-radius: var(--radius-lg);
   font-size: 18px;
-  font-weight: 550;
+  font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
   margin-bottom: var(--spacing-md);
@@ -1409,11 +1426,12 @@ textarea:focus-visible {
   appearance: none;
 }
 .choice-modal .choice-btn:hover {
-  transform: scale(1.02);
-  filter: brightness(1.1);
+  transform: translateY(-3px);
+  box-shadow: 0 8px 16px rgba(255, 122, 74, 0.3);
+  filter: brightness(1.05);
 }
 .choice-modal .choice-btn:active {
-  transform: scale(0.97);
+  transform: translateY(0);
 }
 .choice-modal .choice-btn.secondary {
   background: transparent;
@@ -1431,6 +1449,7 @@ textarea:focus-visible {
   cursor: pointer;
   margin-top: var(--spacing-sm);
   text-decoration: underline;
+  transition: var(--transition-fast);
 }
 .choice-modal .choice-close:hover {
   color: var(--text-primary);
@@ -1484,7 +1503,7 @@ textarea:focus-visible {
 }
 .welcome-modal .welcome-text {
   font-size: 14px;
-  line-height: 1.5;
+  line-height: 1.6;
   color: var(--text-secondary);
   margin-bottom: var(--spacing-md);
   text-align: left;
@@ -1534,7 +1553,7 @@ textarea:focus-visible {
 }
 .welcome-modal .welcome-btn:hover {
   transform: scale(1.04);
-  filter: brightness(1.1);
+  filter: brightness(1.05);
 }
 .welcome-modal .welcome-btn:active {
   transform: scale(0.96);
@@ -1554,6 +1573,7 @@ textarea:focus-visible {
 .recipe-card:hover {
   background: var(--card-hover-bg);
   transform: translateY(-2px);
+  box-shadow: 0 8px 16px rgba(0,0,0,0.06);
 }
 .recipe-card .recipe-header {
   display: flex;
@@ -1562,7 +1582,7 @@ textarea:focus-visible {
   margin-bottom: var(--spacing-sm);
 }
 .recipe-card .recipe-name {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 16px;
   color: var(--text-primary);
 }
@@ -1611,7 +1631,7 @@ textarea:focus-visible {
   margin-bottom: 14px;
 }
 #shoppingListDisplay .shopping-group h4 {
-  font-weight: 600;
+  font-weight: 700;
   font-size: 16px;
   color: var(--text-primary);
   margin-bottom: 4px;
@@ -1701,6 +1721,10 @@ body.dark-theme #shoppingListDisplay .shopping-item::before {
     min-width: 140px;
   }
 
+  .app {
+    padding: var(--spacing-md) var(--spacing-sm);
+    border-radius: var(--radius-md);
+  }
   .logo h1 {
     font-size: 22px;
   }
@@ -1816,8 +1840,8 @@ body.dark-theme #shoppingListDisplay .shopping-item::before {
     border-radius: var(--radius-lg);
   }
   .day-cell {
-    min-height: 70px;
-    padding: 8px var(--spacing-xs);
+    min-height: 72px;
+    padding: 8px 4px;
   }
   .day-number {
     font-size: 16px;
