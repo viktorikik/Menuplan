@@ -1614,7 +1614,17 @@ textarea:focus-visible {
 }
 
 /* ============================================================
-   14. АДАПТИВНОСТЬ
+   14. ДОПОЛНИТЕЛЬНЫЕ ПРАВИЛА ДЛЯ ТЁМНОЙ ТЕМЫ (СПИСОК ПОКУПОК)
+   ============================================================ */
+body.dark-theme #shoppingListDisplay .shopping-item,
+body.dark-theme #shoppingListDisplay .shopping-group h4,
+body.dark-theme .saved-list-item .list-date,
+body.dark-theme #savedListsList .saved-list-item {
+  color: var(--text-primary) !important;
+}
+
+/* ============================================================
+   15. АДАПТИВНОСТЬ
    ============================================================ */
 @media (max-width: 480px) {
   .welcome-modal {
