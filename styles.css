@@ -1500,7 +1500,7 @@ textarea:focus-visible {
 }
 
 /* ============================================================
-   13. РЕЦЕПТЫ И СПИСОК ПОКУПОК (новые стили)
+   13. РЕЦЕПТЫ И СПИСОК ПОКУПОК
    ============================================================ */
 .recipe-card {
   background: var(--card-bg);
@@ -1564,6 +1564,7 @@ textarea:focus-visible {
   margin-top: 4px;
 }
 
+/* Список покупок */
 #shoppingListResult .shopping-group {
   margin-bottom: 12px;
 }
