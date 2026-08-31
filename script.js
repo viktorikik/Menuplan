@@ -229,7 +229,7 @@ const RecipeStore = (function() {
 })();
 
 // ============================================================
-// 4. ХРАНИЛИЩЕ ДАННЫХ (блюда) – обновлено: getRecommendations с категорией
+// 4. ХРАНИЛИЩЕ ДАННЫХ (блюда)
 // ============================================================
 const DishStore = (function() {
   const STORAGE_KEY = 'smartMenuDishes_v5';
@@ -405,13 +405,11 @@ const DishStore = (function() {
     return result;
   }
 
-  // --- ОБНОВЛЕНА: добавлен параметр category для фильтрации ---
-  function getRecommendations(category = null) {
+  function getRecommendations() {
     if (cacheRecs) return cacheRecs;
     const doneDishes = dishes.filter(d => d.status === STATUSES.DONE);
     const map = {};
     doneDishes.forEach(d => {
-      if (category && d.category !== category) return;
       if (!map[d.name] || d.date > map[d.name]) {
         map[d.name] = { name: d.name, lastDate: d.date, liked: d.liked };
       }
@@ -456,7 +454,7 @@ const DishStore = (function() {
 })();
 
 // ============================================================
-// 5. РЕНДЕРЕР (основной) – обновлён: openRecommendations, добавлена showCategoryChoice
+// 5. РЕНДЕРЕР (основной)
 // ============================================================
 const Renderer = (function() {
   let currentView = 'month';
@@ -474,7 +472,7 @@ const Renderer = (function() {
   const recTitle = document.getElementById('recTitle');
   const recContent = document.getElementById('recContent');
 
-  // --- Вспомогательные функции (buildDishElement, buildAddForm) без изменений ---
+  // --- Вспомогательные функции ---
   function buildDishElement(dish, dateStr) {
     const dishDiv = document.createElement('div');
     dishDiv.className = `modal-dish ${dish.status}`;
@@ -766,6 +764,7 @@ const Renderer = (function() {
           const suggestItem = document.createElement('div');
           suggestItem.className = 'modal-suggest-item';
           suggestItem.dataset.name = item.name;
+          // Определяем категорию: берём из существующего блюда или угадываем
           const existingDish = DishStore.getAll().find(d => d.name === item.name);
           const category = existingDish ? existingDish.category : Utils.guessCategory(item.name);
           suggestItem.dataset.category = category;
@@ -793,12 +792,12 @@ const Renderer = (function() {
           });
           suggestList.appendChild(suggestItem);
         });
-        filterSuggestions();
+        filterSuggestions(); // применить начальные фильтры
       }
     }
     renderSuggestions();
 
-    // Автоподстановка названия из рецепта
+    // ---- Автоподстановка названия из рецепта ----
     recipeSelect.addEventListener('change', function() {
       const recipeId = this.value;
       if (recipeId) {
@@ -809,6 +808,7 @@ const Renderer = (function() {
       }
     });
 
+    // Кнопка "Добавить"
     addBtn.addEventListener('click', function() {
       const name = nameInput.value.trim();
       if (!name) { alert('Введи название блюда'); return; }
@@ -827,7 +827,7 @@ const Renderer = (function() {
     return addSection;
   }
 
-  // --- Основные функции рендерера (renderCalendar, renderMonthView, renderWeekView, renderMenu) без изменений ---
+  // --- Основные функции рендерера ---
   function renderCalendar(view, date) {
     currentView = view;
     currentDate = date;
@@ -1055,60 +1055,15 @@ const Renderer = (function() {
     modalOverlay.classList.remove('active');
   }
 
-  // --- НОВЫЙ МЕТОД: выбор категории для рекомендаций ---
-  function showCategoryChoiceForRecommendations() {
-    const overlay = document.createElement('div');
-    overlay.className = 'modal-overlay active';
-    overlay.style.display = 'flex';
-    overlay.id = 'categoryChoiceOverlay';
-
-    const modal = document.createElement('div');
-    modal.className = 'modal';
-    modal.style.maxWidth = '400px';
-    modal.innerHTML = `
-      <div class="modal-header">
-        <h3>Выберите категорию</h3>
-        <button class="modal-close" id="categoryChoiceClose">✕</button>
-      </div>
-      <div style="display:flex; flex-direction:column; gap:10px;">
-        <button class="choice-btn" data-category="all">Все категории</button>
-        <button class="choice-btn secondary" data-category="${CATEGORIES.SOUP}">🍲 Супы</button>
-        <button class="choice-btn secondary" data-category="${CATEGORIES.SALAD}">🥗 Салаты</button>
-        <button class="choice-btn secondary" data-category="${CATEGORIES.MAIN}">🍖 Основные</button>
-        <button class="choice-btn secondary" data-category="${CATEGORIES.OTHER}">🍽️ Другое</button>
-      </div>
-    `;
-    overlay.appendChild(modal);
-    document.body.appendChild(overlay);
-
-    const close = () => overlay.remove();
-    overlay.querySelector('#categoryChoiceClose').addEventListener('click', close);
-    overlay.addEventListener('click', (e) => { if (e.target === overlay) close(); });
-
-    modal.querySelectorAll('.choice-btn').forEach(btn => {
-      btn.addEventListener('click', function() {
-        const category = this.dataset.category === 'all' ? null : this.dataset.category;
-        close();
-        openRecommendations(category);
-      });
-    });
-  }
-
-  // --- ОБНОВЛЕНА: openRecommendations с параметром category ---
-  function openRecommendations(category = null) {
-    if (!category) {
-      showCategoryChoiceForRecommendations();
-      return;
-    }
-
-    recTitle.textContent = `🍽️ Рекомендации (${CATEGORY_LABELS[category] || 'все'})`;
-    const { liked, others } = DishStore.getRecommendations(category);
+  // --- Рекомендации и любимые ---
+  function openRecommendations() {
+    recTitle.textContent = '🍽️ Рекомендации';
+    const { liked, others } = DishStore.getRecommendations();
     recContent.innerHTML = '';
-
     if (liked.length === 0 && others.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'modal-empty';
-      empty.textContent = `😌 Нет блюд в категории «${CATEGORY_LABELS[category] || 'все'}». Добавьте несколько блюд, и я буду предлагать!`;
+      empty.textContent = '😌 Нет блюд в истории. Добавьте несколько блюд, и я буду предлагать!';
       recContent.appendChild(empty);
     } else {
       if (liked.length > 0) {
@@ -1946,8 +1901,10 @@ function hideWelcome() {
 }
 
 // ============================================================
-// 10. ФУНКЦИИ ДЛЯ РЕЦЕПТОВ И СПИСКА ПОКУПОК
+// 10. ФУНКЦИИ ДЛЯ РЕЦЕПТОВ И СПИСКА ПОКУПОК (обновлены)
 // ============================================================
+
+// --- Отделы магазина ---
 const DEPARTMENTS = {
   'Овощи': ['лук', 'морковь', 'картофель', 'капуста', 'свекла', 'редис', 'репа', 'огурец', 'помидор', 'перец', 'баклажан', 'кабачок', 'тыква', 'чеснок', 'зелень', 'петрушка', 'укроп', 'базилик', 'кинза', 'салат', 'шпинат', 'щавель', 'ревень', 'сельдерей'],
   'Фрукты, ягоды': ['яблоко', 'груша', 'айва', 'хурма', 'гранат', 'лимон', 'лайм', 'грейпфрут', 'мандарин', 'апельсин', 'клубника', 'малина', 'черника', 'ежевика', 'смородина', 'крыжовник', 'вишня', 'черешня', 'слива', 'абрикос', 'персик', 'нектарин', 'банан', 'киви', 'манго', 'ананас', 'арбуз', 'дыня', 'финик', 'инжир', 'курага', 'чернослив', 'изюм'],
@@ -2004,20 +1961,20 @@ function renderRecipesList() {
           <button class="add-recipe-to-calendar" data-id="${recipe.id}" title="Добавить в календарь">📅</button>
         </div>
       </div>
-      <div class="recipe-details" style="display:none;"></div>
+      <div class="recipe-details">
+        <div class="ingredients"><strong>Ингредиенты:</strong><ul>${recipe.ingredients.map(i => `<li>${Utils.escapeHtml(i)}</li>`).join('')}</ul></div>
+        ${recipe.instructions ? `<div class="instructions"><strong>Инструкция:</strong><pre>${Utils.escapeHtml(recipe.instructions)}</pre></div>` : ''}
+      </div>
     `;
     list.appendChild(card);
 
-    // Клик по названию открывает карточку
-    const nameSpan = card.querySelector('.recipe-name');
-    nameSpan.style.cursor = 'pointer';
-    nameSpan.addEventListener('click', function(e) {
-      e.stopPropagation();
-      const recipe = RecipeStore.getById(Number(card.dataset.id));
+    // Клик по карточке (кроме кнопок) – открыть просмотр
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.recipe-actions')) return;
+      const recipe = RecipeStore.getById(Number(this.dataset.id));
       if (recipe) Renderer.showRecipeCard(recipe);
     });
 
-    // Кнопки
     card.querySelector('.edit-recipe').addEventListener('click', function(e) {
       e.stopPropagation();
       openRecipeForm(Number(this.dataset.id));
@@ -2105,7 +2062,9 @@ function parseRecipeTextFromForm() {
   }
 }
 
-// --- Список покупок ---
+// --- Список покупок (обновлённая логика с редактируемым текстом) ---
+
+// Получить все сохранённые ключи списков
 function getSavedShoppingListKeys() {
   const keys = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -2114,9 +2073,10 @@ function getSavedShoppingListKeys() {
       keys.push(key);
     }
   }
-  return keys.sort();
+  return keys.sort(); // по дате
 }
 
+// Открыть модалку списка покупок
 function openShoppingList() {
   document.getElementById('shoppingListOverlay').classList.add('active');
   document.getElementById('shoppingListDisplay').style.display = 'none';
@@ -2133,6 +2093,7 @@ function closeShoppingList() {
   document.getElementById('shoppingListOverlay').classList.remove('active');
 }
 
+// Рендерим список сохранённых дат/периодов
 function renderSavedLists() {
   const container = document.getElementById('savedListsList');
   const keys = getSavedShoppingListKeys();
@@ -2181,6 +2142,7 @@ function renderSavedLists() {
     });
     item.appendChild(deleteBtn);
 
+    // Клик загружает список
     item.addEventListener('click', function() {
       loadShoppingList(key);
     });
@@ -2189,16 +2151,19 @@ function renderSavedLists() {
   });
 }
 
+// Загрузить и отобразить конкретный список по ключу
 function loadShoppingList(key) {
   const saved = localStorage.getItem(key);
   if (!saved) {
     alert('Список не найден');
     return;
   }
+  // Старый формат мог быть JSON, новый - plain text
   let text = saved;
   try {
     const parsed = JSON.parse(saved);
     if (parsed.groups) {
+      // Старый формат – преобразуем в текст
       let txt = '';
       const sorted = Object.keys(parsed.groups).sort();
       for (const dept of sorted) {
@@ -2210,7 +2175,9 @@ function loadShoppingList(key) {
       }
       text = txt;
     }
-  } catch(e) {}
+  } catch(e) {
+    // Это plain text, оставляем как есть
+  }
 
   document.getElementById('savedListsContainer').style.display = 'none';
   const displayDiv = document.getElementById('shoppingListDisplay');
@@ -2219,6 +2186,7 @@ function loadShoppingList(key) {
   const resultTextarea = document.getElementById('shoppingListResult');
   resultTextarea.value = text;
 
+  // Определяем метку периода для заголовка
   let periodLabel = '';
   if (key.startsWith('shoppingList_range_')) {
     const parts = key.replace('shoppingList_range_', '').split('_to_');
@@ -2235,20 +2203,29 @@ function loadShoppingList(key) {
     const dateStr = key.replace('shoppingList_', '');
     periodLabel = Utils.formatDate(new Date(dateStr));
   }
+  // Добавим заголовок над textarea (можно через placeholder или отдельный элемент)
+  // Уже есть placeholder, но добавим сверху
+  const header = document.createElement('div');
+  header.style.cssText = 'margin-bottom:8px;font-size:14px;color:var(--text-secondary);';
+  header.textContent = `Список на ${periodLabel}`;
+  // Вставим перед textarea
   const container = displayDiv;
+  const textarea = document.getElementById('shoppingListResult');
+  // Удалим старый заголовок, если есть
   const oldHeader = container.querySelector('.list-header');
   if (oldHeader) oldHeader.remove();
   const newHeader = document.createElement('div');
   newHeader.className = 'list-header';
   newHeader.textContent = `📋 Список на ${periodLabel}`;
   newHeader.style.cssText = 'margin-bottom:8px;font-size:14px;color:var(--text-secondary);';
-  container.insertBefore(newHeader, resultTextarea);
+  container.insertBefore(newHeader, textarea);
 
   displayDiv.dataset.currentKey = key;
-  document.getElementById('saveCurrentListBtn').style.display = 'none';
+  document.getElementById('saveCurrentListBtn').style.display = 'none'; // уже сохранено
   document.getElementById('deleteCurrentListBtn').style.display = 'inline-block';
 }
 
+// Собрать новый список за период (предварительный, без сохранения)
 function generateShoppingList() {
   const fromDate = document.getElementById('shoppingDateFrom').value;
   const toDate = document.getElementById('shoppingDateTo').value;
@@ -2288,6 +2265,7 @@ function generateShoppingList() {
     return;
   }
 
+  // Группируем по отделам и формируем текст
   const grouped = {};
   items.forEach(ing => {
     const dept = classifyIngredient(ing);
@@ -2305,12 +2283,14 @@ function generateShoppingList() {
     text += '\n';
   }
 
+  // Показываем предварительный список в textarea
   document.getElementById('savedListsContainer').style.display = 'none';
   const displayDiv = document.getElementById('shoppingListDisplay');
   displayDiv.style.display = 'block';
 
   const resultTextarea = document.getElementById('shoppingListResult');
   const periodLabel = fromDate === toDate ? Utils.formatDate(new Date(fromDate)) : `${Utils.formatDate(new Date(fromDate))} — ${Utils.formatDate(new Date(toDate))}`;
+  // Добавим заголовок
   const container = displayDiv;
   const oldHeader = container.querySelector('.list-header');
   if (oldHeader) oldHeader.remove();
@@ -2324,12 +2304,13 @@ function generateShoppingList() {
 
   displayDiv.dataset.fromDate = fromDate;
   displayDiv.dataset.toDate = toDate;
-  displayDiv.dataset.generatedGroups = JSON.stringify(grouped);
+  displayDiv.dataset.generatedGroups = JSON.stringify(grouped); // сохраняем структуру на случай, если понадобится
 
   document.getElementById('saveCurrentListBtn').style.display = 'inline-block';
   document.getElementById('deleteCurrentListBtn').style.display = 'none';
 }
 
+// Сохранить текущий список (из textarea)
 function saveCurrentList() {
   const displayDiv = document.getElementById('shoppingListDisplay');
   const fromDate = displayDiv.dataset.fromDate;
@@ -2361,10 +2342,12 @@ function saveCurrentList() {
   delete displayDiv.dataset.generatedGroups;
   delete displayDiv.dataset.fromDate;
   delete displayDiv.dataset.toDate;
+  // Удаляем заголовок
   const header = displayDiv.querySelector('.list-header');
   if (header) header.remove();
 }
 
+// Удалить текущий список (кнопка удаления в режиме просмотра)
 function deleteCurrentList() {
   const displayDiv = document.getElementById('shoppingListDisplay');
   const key = displayDiv.dataset.currentKey;
@@ -2376,12 +2359,14 @@ function deleteCurrentList() {
   renderSavedLists();
 }
 
+// Вернуться к списку сохранённых
 function backToSavedLists() {
   document.getElementById('shoppingListDisplay').style.display = 'none';
   document.getElementById('savedListsContainer').style.display = 'block';
   renderSavedLists();
 }
 
+// Экспорт текущего списка в .txt
 function exportShoppingListTxt() {
   const text = document.getElementById('shoppingListResult').value;
   if (!text.trim()) {
@@ -2397,6 +2382,7 @@ function exportShoppingListTxt() {
   URL.revokeObjectURL(a.href);
 }
 
+// Инициализация обработчиков для списка покупок
 function initShoppingListHandlers() {
   document.getElementById('generateShoppingListBtn').addEventListener('click', generateShoppingList);
   document.getElementById('saveCurrentListBtn').addEventListener('click', saveCurrentList);
@@ -2566,6 +2552,7 @@ function initShoppingListHandlers() {
     }
   });
 
+  // Кнопки закрытия
   document.getElementById('modalClose').addEventListener('click', Renderer.closeModal);
   document.getElementById('recClose').addEventListener('click', Renderer.closeRecModal);
   document.getElementById('urlImportClose').addEventListener('click', closeUrlImport);
@@ -2583,13 +2570,10 @@ function initShoppingListHandlers() {
   document.getElementById('choiceClose').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
   });
-
-  // Из моего меню → выбор категории
   document.getElementById('choiceFromMenu').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
     Renderer.openRecommendations();
   });
-
   document.getElementById('choiceFromTaste').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
     const random = DishStore.getRandomDishFromTaste();
@@ -2606,33 +2590,11 @@ function initShoppingListHandlers() {
     }
   });
 
-  // Из рецептов
-  document.getElementById('choiceFromRecipes').addEventListener('click', function() {
-    document.getElementById('choiceOverlay').classList.remove('active');
-    const recipes = RecipeStore.getAll();
-    if (recipes.length === 0) {
-      alert('😌 У вас пока нет сохранённых рецептов. Добавьте рецепты в разделе «Мои рецепты».');
-      return;
-    }
-    const randomRecipe = recipes[Math.floor(Math.random() * recipes.length)];
-    const answer = `📖 Рецепт: ${randomRecipe.name}\n\nХотите добавить его в план на завтра?`;
-    if (confirm(answer)) {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const dateStr = Utils.formatDateLocal(tomorrow);
-      const category = Utils.guessCategory(randomRecipe.name);
-      DishStore.addDish(randomRecipe.name, STATUSES.PLANNED, dateStr, category, false, '', randomRecipe.id);
-      const view = Renderer.getCurrentView();
-      const curDate = Renderer.getCurrentDate();
-      Renderer.renderCalendar(view, curDate);
-      alert(`✅ Блюдо "${randomRecipe.name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
-    }
-  });
-
   document.getElementById('favoritesBtn').addEventListener('click', Renderer.openFavorites);
   document.getElementById('recipesBtn').addEventListener('click', openRecipesModal);
   document.getElementById('shoppingListBtn').addEventListener('click', openShoppingList);
 
+  // Добавление блюда
   document.getElementById('addDishBtn').addEventListener('click', Renderer.openAddModal);
   document.getElementById('addModalSave').addEventListener('click', function() {
     const nameInput = document.getElementById('newDishName');
@@ -2658,6 +2620,7 @@ function initShoppingListHandlers() {
     noteInput.value = '';
   });
 
+  // URL импорт
   document.getElementById('importUrlBtn').addEventListener('click', openUrlImport);
   document.getElementById('fetchRecipeBtn').addEventListener('click', function() {
     const url = document.getElementById('recipeUrlInput').value.trim();
@@ -2678,6 +2641,7 @@ function initShoppingListHandlers() {
     }
   });
 
+  // Экспорт
   document.getElementById('exportBtn').addEventListener('click', function() {
     document.getElementById('exportModalOverlay').classList.add('active');
   });
@@ -2689,6 +2653,7 @@ function initShoppingListHandlers() {
     });
   });
 
+  // Импорт файла
   document.getElementById('importBtn').addEventListener('click', function() {
     document.getElementById('importFileInput').click();
   });
@@ -2699,6 +2664,7 @@ function initShoppingListHandlers() {
     }
   });
 
+  // Рецепты
   document.getElementById('addRecipeBtn').addEventListener('click', function() {
     openRecipeForm(null);
   });
@@ -2706,6 +2672,7 @@ function initShoppingListHandlers() {
   document.getElementById('recipeFormSave').addEventListener('click', saveRecipeForm);
   document.getElementById('recipeParseBtn').addEventListener('click', parseRecipeTextFromForm);
 
+  // Список покупок – инициализация обработчиков
   initShoppingListHandlers();
 
   // Свайпы
