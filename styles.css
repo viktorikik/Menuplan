@@ -2,9 +2,9 @@
    1. ПЕРЕМЕННЫЕ
    ============================================================ */
 :root {
-  --bg-primary: #f5f3f0;
-  --bg-app: rgba(255, 255, 255, 0.8);
-  --bg-app-border: rgba(255, 255, 255, 0.4);
+  --bg-primary: #f7f5f2;
+  --bg-app: rgba(255, 255, 255, 0.85);
+  --bg-app-border: rgba(255, 255, 255, 0.5);
   --text-primary: #1c1c2a;
   --text-secondary: #4a4a5a;
   --text-muted: #6b6b7a;
@@ -52,8 +52,13 @@
 
   --card-bg: var(--cell-bg);
   --card-hover-bg: var(--day-hover);
-  --input-padding: 6px 12px;
-  --btn-padding: 6px 18px;
+  --input-padding: 8px 14px;
+  --btn-padding: 8px 20px;
+
+  /* Фирменный цвет */
+  --accent-color: #ff7a4a;
+  --accent-hover: #e6683a;
+  --accent-light: rgba(255, 122, 74, 0.12);
 }
 
 /* ===== Тёмная тема ===== */
@@ -94,6 +99,7 @@ body.dark-theme {
   --search-border: rgba(255, 255, 255, 0.1);
   --card-bg: var(--cell-bg);
   --card-hover-bg: var(--day-hover);
+  --accent-light: rgba(255, 122, 74, 0.2);
 }
 
 /* ============================================================
@@ -120,7 +126,7 @@ button:focus-visible,
 input:focus-visible,
 select:focus-visible,
 textarea:focus-visible {
-  outline: 2px solid var(--done-color);
+  outline: 2px solid var(--accent-color);
   outline-offset: 2px;
 }
 
@@ -154,11 +160,21 @@ textarea:focus-visible {
 }
 
 .logo h1 {
-  font-size: 24px;
+  font-size: 28px;
   font-weight: 620;
   letter-spacing: -0.3px;
   color: var(--text-primary);
   margin: 0;
+}
+.logo h1::before {
+  content: '';
+  display: inline-block;
+  width: 6px;
+  height: 28px;
+  background: var(--accent-color);
+  border-radius: 3px;
+  margin-right: 8px;
+  vertical-align: middle;
 }
 
 .controls {
@@ -213,6 +229,11 @@ textarea:focus-visible {
   box-shadow: var(--shadow-sm);
   color: var(--text-primary);
 }
+.view-toggle button.active {
+  background: var(--accent-light);
+  color: var(--accent-color);
+  box-shadow: 0 0 0 1px var(--accent-color);
+}
 
 /* ============================================================
    5. КНОПКИ ДЕЙСТВИЙ
@@ -254,13 +275,14 @@ textarea:focus-visible {
 }
 
 .btn-row .btn-primary {
-  background: var(--btn-bg);
-  color: var(--btn-text);
-  border: 1px solid rgba(255,255,255,0.06);
+  background: var(--accent-color);
+  color: white;
+  border: 1px solid var(--accent-color);
 }
 .btn-row .btn-primary:hover {
   transform: scale(1.02);
-  filter: brightness(1.12);
+  filter: brightness(1.1);
+  background: var(--accent-hover);
 }
 .btn-row .btn-primary:active {
   transform: scale(0.97);
@@ -306,9 +328,9 @@ textarea:focus-visible {
 }
 
 .btn-row .btn-import-url {
-  background: #3b82f6;
+  background: var(--accent-color);
   color: white;
-  box-shadow: 0 4px 12px rgba(59, 130, 246, 0.3);
+  box-shadow: 0 4px 12px rgba(255, 122, 74, 0.3);
 }
 .btn-row .btn-import-url:hover {
   transform: scale(1.05);
@@ -389,7 +411,7 @@ textarea:focus-visible {
 }
 
 #monthTitle {
-  font-size: 18px;
+  font-size: 22px;
   font-weight: 560;
   color: var(--text-primary);
   text-align: center;
@@ -398,7 +420,7 @@ textarea:focus-visible {
 }
 
 .today-btn {
-  background: var(--done-color);
+  background: var(--accent-color);
   border: none;
   border-radius: var(--radius-md);
   padding: var(--spacing-sm) var(--spacing-lg);
@@ -408,7 +430,7 @@ textarea:focus-visible {
   cursor: pointer;
   transition: var(--transition-fast);
   line-height: 1.2;
-  box-shadow: 0 2px 12px rgba(52, 211, 153, 0.3);
+  box-shadow: 0 2px 12px rgba(255, 122, 74, 0.3);
   min-height: 40px;
   white-space: nowrap;
   flex-shrink: 0;
@@ -416,7 +438,7 @@ textarea:focus-visible {
 }
 .today-btn:hover {
   transform: scale(1.05);
-  filter: brightness(1.08);
+  filter: brightness(1.1);
 }
 .today-btn:active {
   transform: scale(0.95);
@@ -452,17 +474,19 @@ textarea:focus-visible {
   transition: var(--transition-fast);
   position: relative;
   min-height: 60px;
-  padding: 6px var(--spacing-xs);
+  padding: 8px var(--spacing-xs);
   width: 100%;
 }
 .day-cell:hover {
   background: var(--day-hover);
+  transform: translateY(-2px);
 }
 .day-cell.empty {
   background: transparent;
   border: 1px dashed var(--empty-border);
   cursor: default;
   pointer-events: none;
+  transform: none;
 }
 .day-cell.empty:hover {
   background: transparent;
@@ -470,7 +494,7 @@ textarea:focus-visible {
 
 .day-number {
   font-weight: 550;
-  font-size: 14px;
+  font-size: 15px;
   color: var(--text-primary);
   line-height: 1;
   margin-bottom: var(--spacing-xs);
@@ -495,8 +519,11 @@ textarea:focus-visible {
   border-color: var(--done-color);
 }
 .day-cell.today {
-  border-color: var(--text-primary);
+  border-color: var(--accent-color);
   border-width: 2px;
+}
+.day-cell.today .day-number {
+  color: var(--accent-color);
 }
 
 /* ============================================================
@@ -523,11 +550,12 @@ textarea:focus-visible {
 }
 .week-row:hover {
   background: var(--day-hover);
+  transform: translateX(4px);
 }
 
 .week-row .date-col {
   font-weight: 600;
-  font-size: 15px;
+  font-size: 16px;
   color: var(--text-primary);
   text-align: center;
 }
@@ -609,7 +637,7 @@ textarea:focus-visible {
 }
 .search-filter-wrap input,
 .search-filter-wrap select {
-  padding: 6px var(--spacing-md);
+  padding: 8px 14px;
   border-radius: var(--radius-md);
   border: 1px solid var(--cell-border);
   background: var(--search-bg);
@@ -622,8 +650,8 @@ textarea:focus-visible {
 }
 .search-filter-wrap input:focus,
 .search-filter-wrap select:focus {
-  border-color: var(--done-color);
-  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 /* ============================================================
@@ -639,7 +667,7 @@ textarea:focus-visible {
 }
 .menu-list h3 {
   font-weight: 540;
-  font-size: 15px;
+  font-size: 18px;
   color: var(--text-primary);
   margin-bottom: 10px;
 }
@@ -650,15 +678,15 @@ textarea:focus-visible {
 .menu-date {
   font-weight: 600;
   color: var(--text-secondary);
-  font-size: 14px;
+  font-size: 15px;
   margin-bottom: var(--spacing-xs);
 }
 
 .menu-item {
-  padding: 5px var(--spacing-md);
+  padding: 6px 14px;
   border-radius: var(--radius-sm);
   background: var(--menu-item-bg);
-  margin-bottom: 3px;
+  margin-bottom: 4px;
   font-size: 14px;
   color: var(--text-primary);
   display: flex;
@@ -710,6 +738,12 @@ textarea:focus-visible {
 }
 .modal-overlay.active {
   display: flex;
+  animation: modalFadeIn 0.25s ease forwards;
+}
+
+@keyframes modalFadeIn {
+  0% { opacity: 0; transform: scale(0.96); }
+  100% { opacity: 1; transform: scale(1); }
 }
 
 .modal {
@@ -731,7 +765,7 @@ textarea:focus-visible {
   margin-bottom: 18px;
 }
 .modal-header h3 {
-  font-size: 20px;
+  font-size: 22px;
   font-weight: 600;
   color: var(--modal-text);
 }
@@ -743,9 +777,11 @@ textarea:focus-visible {
   color: var(--text-muted);
   padding: 0 var(--spacing-sm);
   line-height: 1;
+  transition: var(--transition-fast);
 }
 .modal-close:hover {
   color: var(--text-primary);
+  transform: rotate(90deg);
 }
 
 /* ----- Модалка дня ----- */
@@ -755,7 +791,7 @@ textarea:focus-visible {
   padding-bottom: 16px;
 }
 .day-meals-section h4 {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 10px;
@@ -765,7 +801,7 @@ textarea:focus-visible {
 }
 
 .modal-dish {
-  padding: 10px 14px;
+  padding: 12px 16px;
   border-radius: 16px;
   margin-bottom: var(--spacing-sm);
   display: flex;
@@ -869,8 +905,8 @@ textarea:focus-visible {
   outline: none;
 }
 .edit-input:focus {
-  border-color: var(--done-color);
-  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 .edit-container {
   display: flex;
@@ -906,7 +942,7 @@ textarea:focus-visible {
   padding-top: 16px;
 }
 .modal-add-section h4 {
-  font-size: 15px;
+  font-size: 18px;
   font-weight: 550;
   color: var(--text-primary);
   margin-bottom: 10px;
@@ -934,8 +970,8 @@ textarea:focus-visible {
 }
 .modal-field-input:focus,
 .modal-field-select:focus {
-  border-color: var(--done-color);
-  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 
 .modal-add-new .field-full {
@@ -953,8 +989,8 @@ textarea:focus-visible {
   padding: var(--btn-padding);
   border-radius: var(--radius-lg);
   border: none;
-  background: var(--btn-bg);
-  color: var(--btn-text);
+  background: var(--accent-color);
+  color: white;
   font-weight: 550;
   font-size: 13px;
   cursor: pointer;
@@ -963,7 +999,8 @@ textarea:focus-visible {
   appearance: none;
 }
 .modal-add-new .field-btn:hover {
-  filter: brightness(1.12);
+  filter: brightness(1.1);
+  transform: scale(1.02);
 }
 
 .modal-suggest-list {
@@ -975,7 +1012,7 @@ textarea:focus-visible {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 6px var(--spacing-md);
+  padding: 6px 14px;
   background: var(--suggest-item-bg);
   border-radius: var(--radius-md);
   cursor: pointer;
@@ -985,6 +1022,7 @@ textarea:focus-visible {
 }
 .modal-suggest-item:hover {
   background: var(--day-hover);
+  transform: translateX(4px);
 }
 .modal-suggest-item .suggest-name {
   font-weight: 500;
@@ -1008,7 +1046,7 @@ textarea:focus-visible {
   margin-bottom: 16px;
 }
 .rec-modal .rec-section h4 {
-  font-size: 16px;
+  font-size: 18px;
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: var(--spacing-sm);
@@ -1029,6 +1067,7 @@ textarea:focus-visible {
 }
 .rec-modal .rec-item:hover {
   background: var(--day-hover);
+  transform: translateX(4px);
 }
 .rec-modal .rec-item .rec-name {
   font-weight: 500;
@@ -1098,8 +1137,8 @@ textarea:focus-visible {
 .add-modal .form-group input:focus,
 .add-modal .form-group select:focus,
 .add-modal .form-group textarea:focus {
-  border-color: var(--done-color);
-  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 .add-modal .form-actions {
   display: flex;
@@ -1118,11 +1157,11 @@ textarea:focus-visible {
   appearance: none;
 }
 .add-modal .form-actions .btn-primary {
-  background: var(--btn-bg);
-  color: var(--btn-text);
+  background: var(--accent-color);
+  color: white;
 }
 .add-modal .form-actions .btn-primary:hover {
-  filter: brightness(1.12);
+  filter: brightness(1.1);
 }
 .add-modal .form-actions .btn-secondary {
   background: transparent;
@@ -1203,15 +1242,15 @@ textarea:focus-visible {
   appearance: none;
 }
 .url-import-modal .url-input-group input:focus {
-  border-color: var(--done-color);
-  box-shadow: 0 0 0 3px rgba(52, 211, 153, 0.15);
+  border-color: var(--accent-color);
+  box-shadow: 0 0 0 3px var(--accent-light);
 }
 .url-import-modal .url-input-group button {
   padding: 10px 20px;
   border: none;
   border-radius: var(--radius-lg);
-  background: var(--btn-bg);
-  color: var(--btn-text);
+  background: var(--accent-color);
+  color: white;
   font-weight: 550;
   cursor: pointer;
   transition: var(--transition-fast);
@@ -1219,7 +1258,7 @@ textarea:focus-visible {
   appearance: none;
 }
 .url-import-modal .url-input-group button:hover {
-  filter: brightness(1.12);
+  filter: brightness(1.1);
 }
 .url-import-modal .url-input-group button:disabled {
   opacity: 0.5;
@@ -1335,6 +1374,7 @@ textarea:focus-visible {
 }
 .choice-overlay.active {
   display: flex;
+  animation: modalFadeIn 0.25s ease forwards;
 }
 .choice-modal {
   background: var(--modal-bg);
@@ -1363,14 +1403,14 @@ textarea:focus-visible {
   cursor: pointer;
   transition: var(--transition-fast);
   margin-bottom: var(--spacing-md);
-  background: var(--btn-bg);
-  color: var(--btn-text);
+  background: var(--accent-color);
+  color: white;
   text-align: center;
   appearance: none;
 }
 .choice-modal .choice-btn:hover {
   transform: scale(1.02);
-  filter: brightness(1.12);
+  filter: brightness(1.1);
 }
 .choice-modal .choice-btn:active {
   transform: scale(0.97);
@@ -1415,6 +1455,7 @@ textarea:focus-visible {
 }
 .welcome-overlay.active {
   display: flex;
+  animation: modalFadeIn 0.3s ease forwards;
 }
 .welcome-modal {
   background: var(--modal-bg);
@@ -1430,12 +1471,12 @@ textarea:focus-visible {
   position: relative;
 }
 .welcome-modal .welcome-icon {
-  font-size: 36px;
+  font-size: 48px;
   margin-bottom: var(--spacing-xs);
   display: block;
 }
 .welcome-modal h2 {
-  font-size: 20px;
+  font-size: 24px;
   font-weight: 700;
   color: var(--modal-text);
   margin-bottom: var(--spacing-sm);
@@ -1477,23 +1518,23 @@ textarea:focus-visible {
   flex-shrink: 0;
 }
 .welcome-modal .welcome-btn {
-  background: var(--btn-bg);
+  background: var(--accent-color);
   border: none;
   padding: 10px 32px;
   border-radius: var(--radius-lg);
-  color: var(--btn-text);
+  color: white;
   font-size: 16px;
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 16px rgba(255, 122, 74, 0.3);
   min-width: 160px;
   margin-top: var(--spacing-sm);
   appearance: none;
 }
 .welcome-modal .welcome-btn:hover {
   transform: scale(1.04);
-  filter: brightness(1.12);
+  filter: brightness(1.1);
 }
 .welcome-modal .welcome-btn:active {
   transform: scale(0.96);
@@ -1512,6 +1553,7 @@ textarea:focus-visible {
 }
 .recipe-card:hover {
   background: var(--card-hover-bg);
+  transform: translateY(-2px);
 }
 .recipe-card .recipe-header {
   display: flex;
@@ -1566,18 +1608,27 @@ textarea:focus-visible {
 
 /* Список покупок */
 #shoppingListDisplay .shopping-group {
-  margin-bottom: 12px;
+  margin-bottom: 14px;
 }
 #shoppingListDisplay .shopping-group h4 {
   font-weight: 600;
+  font-size: 16px;
   color: var(--text-primary);
   margin-bottom: 4px;
+  border-left: 4px solid var(--accent-color);
+  padding-left: 8px;
 }
 #shoppingListDisplay .shopping-item {
   font-size: 14px;
   color: var(--text-secondary);
-  padding: 2px 0;
+  padding: 4px 0 4px 12px;
   border-bottom: 1px dashed var(--cell-border);
+}
+#shoppingListDisplay .shopping-item::before {
+  content: '•';
+  color: var(--accent-color);
+  font-weight: bold;
+  margin-right: 6px;
 }
 
 /* Список сохранённых */
@@ -1585,7 +1636,7 @@ textarea:focus-visible {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 12px;
+  padding: 10px 14px;
   background: var(--card-bg);
   border-radius: var(--radius-md);
   margin-bottom: 6px;
@@ -1595,6 +1646,7 @@ textarea:focus-visible {
 }
 .saved-list-item:hover {
   background: var(--card-hover-bg);
+  transform: translateX(4px);
 }
 .saved-list-item .list-date {
   font-weight: 500;
@@ -1622,6 +1674,9 @@ body.dark-theme .saved-list-item .list-date,
 body.dark-theme #savedListsList .saved-list-item {
   color: var(--text-primary) !important;
 }
+body.dark-theme #shoppingListDisplay .shopping-item::before {
+  color: var(--accent-color);
+}
 
 /* ============================================================
    15. АДАПТИВНОСТЬ
@@ -1632,7 +1687,7 @@ body.dark-theme #savedListsList .saved-list-item {
     max-width: 100%;
   }
   .welcome-modal h2 {
-    font-size: 18px;
+    font-size: 20px;
   }
   .welcome-modal .welcome-features {
     grid-template-columns: 1fr;
@@ -1644,6 +1699,100 @@ body.dark-theme #savedListsList .saved-list-item {
     font-size: 15px;
     padding: 8px 24px;
     min-width: 140px;
+  }
+
+  .logo h1 {
+    font-size: 22px;
+  }
+  .logo h1::before {
+    height: 22px;
+  }
+  #monthTitle {
+    font-size: 18px;
+    min-width: 80px;
+  }
+  .month-nav button {
+    padding: 4px 10px;
+    font-size: 18px;
+    min-height: 34px;
+    min-width: 34px;
+  }
+  .today-btn {
+    font-size: 13px;
+    padding: var(--spacing-xs) 14px;
+    min-height: 34px;
+  }
+  .day-cell {
+    min-height: 44px;
+    padding: 4px var(--spacing-xs);
+    border-radius: 14px;
+  }
+  .day-number {
+    font-size: 13px;
+  }
+  .week-row {
+    grid-template-columns: 30px 50px 1fr;
+    gap: var(--spacing-xs);
+    padding: var(--spacing-xs) var(--spacing-sm);
+    border-radius: 10px;
+  }
+  .week-row .date-col {
+    font-size: 13px;
+  }
+  .week-row .day-col {
+    font-size: 11px;
+  }
+  .meal-chip {
+    font-size: 11px;
+    padding: 1px 6px;
+  }
+  .btn-row .btn {
+    min-width: 120px;
+    max-width: 180px;
+    font-size: 13px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  .modal {
+    padding: 16px var(--spacing-md);
+    border-radius: var(--radius-md);
+  }
+  .modal-header h3 {
+    font-size: 18px;
+  }
+  .modal-dish {
+    font-size: 13px;
+    padding: var(--spacing-sm) 10px;
+  }
+  .modal-add-new .field-half {
+    flex: 0 0 100%;
+    max-width: 100%;
+  }
+  .modal-field-input,
+  .modal-field-select {
+    font-size: 12px;
+  }
+  .modal-add-new .field-btn {
+    font-size: 12px;
+    padding: 6px 16px;
+  }
+  .rec-modal .rec-item {
+    font-size: 13px;
+    padding: 6px 10px;
+  }
+  .choice-modal h2 {
+    font-size: 20px;
+  }
+  .import-hint {
+    font-size: 11px;
+  }
+  .url-import-modal .url-input-group {
+    flex-direction: column;
+  }
+  #shoppingListDisplay .shopping-group h4 {
+    font-size: 15px;
+  }
+  #shoppingListDisplay .shopping-item {
+    font-size: 13px;
   }
 }
 
@@ -1663,26 +1812,25 @@ body.dark-theme #savedListsList .saved-list-item {
 
 @media (min-width: 700px) {
   .app {
-    padding: var(--spacing-lg) var(--spacing-lg);
+    padding: var(--spacing-xl) var(--spacing-xl);
     border-radius: var(--radius-lg);
   }
   .day-cell {
-    min-height: 60px;
-    padding: 6px var(--spacing-xs);
+    min-height: 70px;
+    padding: 8px var(--spacing-xs);
   }
   .day-number {
-    font-size: 14px;
+    font-size: 16px;
   }
   .app-header {
     flex-direction: row;
-    justify-content: center;
+    justify-content: space-between;
   }
   .controls {
-    justify-content: center;
+    justify-content: flex-end;
   }
   .logo h1 {
-    font-size: 24px;
-    text-align: center;
+    font-size: 28px;
   }
   .btn-row .btn {
     min-width: 160px;
@@ -1739,8 +1887,8 @@ body.dark-theme #savedListsList .saved-list-item {
     min-height: 40px;
   }
   #monthTitle {
-    font-size: 18px;
-    min-width: 120px;
+    font-size: 22px;
+    min-width: 140px;
   }
   .month-nav button {
     padding: 6px 14px;
@@ -1752,108 +1900,14 @@ body.dark-theme #savedListsList .saved-list-item {
 
 @media (min-width: 1000px) {
   .day-cell {
-    min-height: 70px;
-    padding: var(--spacing-sm) 6px;
+    min-height: 80px;
+    padding: 10px 6px;
   }
   .day-number {
-    font-size: 16px;
+    font-size: 18px;
   }
   .modal-add-new .field-half {
     flex: 0 0 calc(50% - 10px);
     max-width: calc(50% - 10px);
-  }
-}
-
-@media (max-width: 479px) {
-  body {
-    padding: var(--spacing-sm);
-  }
-  .app {
-    padding: var(--spacing-md) var(--spacing-sm);
-    border-radius: var(--radius-md);
-  }
-  .day-cell {
-    min-height: 44px;
-    border-radius: 14px;
-  }
-  .day-number {
-    font-size: 12px;
-  }
-  .weekdays {
-    font-size: 10px;
-  }
-  #monthTitle {
-    font-size: 15px;
-    min-width: 80px;
-  }
-  .month-nav button {
-    padding: var(--spacing-xs) 10px;
-    font-size: 18px;
-    min-height: 34px;
-    min-width: 34px;
-  }
-  .today-btn {
-    font-size: 13px;
-    padding: var(--spacing-xs) 14px;
-    min-height: 34px;
-  }
-  .controls .view-toggle button {
-    font-size: 11px;
-    padding: var(--spacing-xs) 10px;
-  }
-  .btn-row .btn {
-    min-width: 120px;
-    max-width: 180px;
-    font-size: 13px;
-    padding: var(--spacing-xs) var(--spacing-sm);
-  }
-  .modal {
-    padding: 16px var(--spacing-md);
-    border-radius: var(--radius-md);
-  }
-  .modal-dish {
-    font-size: 13px;
-    padding: var(--spacing-sm) 10px;
-  }
-  .choice-modal h2 {
-    font-size: 20px;
-  }
-  .week-row {
-    grid-template-columns: 30px 50px 1fr;
-    gap: var(--spacing-xs);
-    padding: var(--spacing-xs) var(--spacing-sm);
-    border-radius: 10px;
-  }
-  .week-row .date-col {
-    font-size: 13px;
-  }
-  .week-row .day-col {
-    font-size: 11px;
-  }
-  .meal-chip {
-    font-size: 11px;
-    padding: 1px 6px;
-  }
-  .rec-modal .rec-item {
-    font-size: 13px;
-    padding: 6px 10px;
-  }
-  .modal-add-new .field-half {
-    flex: 0 0 100%;
-    max-width: 100%;
-  }
-  .modal-field-input,
-  .modal-field-select {
-    font-size: 12px;
-  }
-  .modal-add-new .field-btn {
-    font-size: 12px;
-    padding: 6px 16px;
-  }
-  .import-hint {
-    font-size: 11px;
-  }
-  .url-import-modal .url-input-group {
-    flex-direction: column;
   }
 }
