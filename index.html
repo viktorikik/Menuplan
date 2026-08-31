@@ -277,7 +277,7 @@
   </div>
 </div>
 
-<!-- Модалка "Список покупок" (обновлена) -->
+<!-- Модалка "Список покупок" (обновлена: два поля даты) -->
 <div class="modal-overlay rec-modal" id="shoppingListOverlay" role="dialog" aria-modal="true" aria-labelledby="shoppingListTitle">
   <div class="modal">
     <div class="modal-header">
@@ -285,10 +285,12 @@
       <button class="modal-close" id="shoppingListClose" aria-label="Закрыть">✕</button>
     </div>
     <div>
-      <!-- Блок для выбора даты и генерации -->
+      <!-- Блок для выбора периода -->
       <div class="form-group" style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
-        <label for="shoppingDate" style="font-weight:500;">Выберите дату:</label>
-        <input type="date" id="shoppingDate">
+        <label for="shoppingDateFrom" style="font-weight:500;">От:</label>
+        <input type="date" id="shoppingDateFrom">
+        <label for="shoppingDateTo" style="font-weight:500;">До:</label>
+        <input type="date" id="shoppingDateTo">
         <button class="btn-primary" id="generateShoppingListBtn">Собрать список</button>
       </div>
 
