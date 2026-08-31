@@ -1565,19 +1565,52 @@ textarea:focus-visible {
 }
 
 /* Список покупок */
-#shoppingListResult .shopping-group {
+#shoppingListDisplay .shopping-group {
   margin-bottom: 12px;
 }
-#shoppingListResult .shopping-group h4 {
+#shoppingListDisplay .shopping-group h4 {
   font-weight: 600;
   color: var(--text-primary);
   margin-bottom: 4px;
 }
-#shoppingListResult .shopping-item {
+#shoppingListDisplay .shopping-item {
   font-size: 14px;
   color: var(--text-secondary);
   padding: 2px 0;
   border-bottom: 1px dashed var(--cell-border);
+}
+
+/* Список сохранённых */
+.saved-list-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 12px;
+  background: var(--card-bg);
+  border-radius: var(--radius-md);
+  margin-bottom: 6px;
+  border: 1px solid var(--cell-border);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+.saved-list-item:hover {
+  background: var(--card-hover-bg);
+}
+.saved-list-item .list-date {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+.saved-list-item .list-delete {
+  background: none;
+  border: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-muted);
+  transition: var(--transition-fast);
+}
+.saved-list-item .list-delete:hover {
+  color: #e55a5a;
+  transform: scale(1.2);
 }
 
 /* ============================================================
@@ -1813,50 +1846,4 @@ textarea:focus-visible {
   .url-import-modal .url-input-group {
     flex-direction: column;
   }
-}
-/* Стили для списка сохранённых */
-.saved-list-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 8px 12px;
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  margin-bottom: 6px;
-  border: 1px solid var(--cell-border);
-  cursor: pointer;
-  transition: var(--transition-fast);
-}
-.saved-list-item:hover {
-  background: var(--card-hover-bg);
-}
-.saved-list-item .list-date {
-  font-weight: 500;
-  color: var(--text-primary);
-}
-.saved-list-item .list-delete {
-  background: none;
-  border: none;
-  font-size: 18px;
-  cursor: pointer;
-  color: var(--text-muted);
-  transition: var(--transition-fast);
-}
-.saved-list-item .list-delete:hover {
-  color: #e55a5a;
-  transform: scale(1.2);
-}
-#shoppingListDisplay .shopping-group {
-  margin-bottom: 12px;
-}
-#shoppingListDisplay .shopping-group h4 {
-  font-weight: 600;
-  color: var(--text-primary);
-  margin-bottom: 4px;
-}
-#shoppingListDisplay .shopping-item {
-  font-size: 14px;
-  color: var(--text-secondary);
-  padding: 2px 0;
-  border-bottom: 1px dashed var(--cell-border);
 }
