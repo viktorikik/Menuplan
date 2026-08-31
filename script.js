@@ -474,7 +474,7 @@ const Renderer = (function() {
   const recTitle = document.getElementById('recTitle');
   const recContent = document.getElementById('recContent');
 
-  // --- Вспомогательные функции (buildDishElement, buildAddForm) ---
+  // --- Вспомогательные функции (buildDishElement, buildAddForm) без изменений ---
   function buildDishElement(dish, dateStr) {
     const dishDiv = document.createElement('div');
     dishDiv.className = `modal-dish ${dish.status}`;
@@ -827,7 +827,7 @@ const Renderer = (function() {
     return addSection;
   }
 
-  // --- Основные функции рендерера ---
+  // --- Основные функции рендерера (renderCalendar, renderMonthView, renderWeekView, renderMenu) без изменений ---
   function renderCalendar(view, date) {
     currentView = view;
     currentDate = date;
