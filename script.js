@@ -690,6 +690,37 @@ const Renderer = (function() {
 
     addSection.appendChild(addForm);
 
+    // ---- Блок поиска и фильтров для предложений ----
+    const suggestControls = document.createElement('div');
+    suggestControls.className = 'suggest-controls';
+    const searchInput = document.createElement('input');
+    searchInput.type = 'text';
+    searchInput.placeholder = '🔍 Поиск по названию';
+    searchInput.id = 'suggestSearch';
+    searchInput.className = 'modal-field-input';
+    suggestControls.appendChild(searchInput);
+
+    const filterSelect = document.createElement('select');
+    filterSelect.id = 'suggestCategoryFilter';
+    filterSelect.className = 'modal-field-select';
+    const allOpt = document.createElement('option');
+    allOpt.value = 'all';
+    allOpt.textContent = 'Все категории';
+    filterSelect.appendChild(allOpt);
+    [
+      { val: CATEGORIES.SOUP, label: '🍲 Суп' },
+      { val: CATEGORIES.SALAD, label: '🥗 Салат' },
+      { val: CATEGORIES.MAIN, label: '🍖 Основное' },
+      { val: CATEGORIES.OTHER, label: '🍽️ Другое' }
+    ].forEach(cat => {
+      const opt = document.createElement('option');
+      opt.value = cat.val;
+      opt.textContent = cat.label;
+      filterSelect.appendChild(opt);
+    });
+    suggestControls.appendChild(filterSelect);
+    addSection.appendChild(suggestControls);
+
     const suggestTitle = document.createElement('h4');
     suggestTitle.textContent = '📖 Выбрать из меню';
     suggestTitle.style.marginTop = '12px';
@@ -697,46 +728,87 @@ const Renderer = (function() {
 
     const suggestList = document.createElement('div');
     suggestList.className = 'modal-suggest-list';
-    const allUnique = DishStore.getAllUniqueWithLastDone();
-    const dayDishes = DishStore.getForDate(dateStr);
-    const existingNames = dayDishes.map(d => d.name);
-    const available = allUnique.filter(item => !existingNames.includes(item.name));
-    if (available.length === 0) {
-      const noSuggest = document.createElement('div');
-      noSuggest.className = 'modal-no-suggest';
-      noSuggest.textContent = 'Все блюда уже добавлены на этот день';
-      suggestList.appendChild(noSuggest);
-    } else {
-      available.forEach(item => {
-        const suggestItem = document.createElement('div');
-        suggestItem.className = 'modal-suggest-item';
-        suggestItem.dataset.name = item.name;
-        const nameSpan = document.createElement('span');
-        nameSpan.className = 'suggest-name';
-        nameSpan.textContent = item.name;
-        suggestItem.appendChild(nameSpan);
-        const lastSpan = document.createElement('span');
-        lastSpan.className = 'suggest-last';
-        if (item.lastDoneDate) {
-          lastSpan.textContent = `Последний раз: ${Utils.daysAgo(item.lastDoneDate)}`;
-        } else {
-          lastSpan.textContent = 'ещё не готовили';
-        }
-        suggestItem.appendChild(lastSpan);
-        suggestItem.addEventListener('click', function() {
-          const name = this.dataset.name;
-          const existing = DishStore.getAll().find(d => d.name === name);
-          const category = existing ? existing.category : Utils.guessCategory(name);
-          const recipeId = existing ? existing.recipeId : null;
-          DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '', recipeId);
-          openModal(dateStr);
-          renderCalendar(currentView, currentDate);
-        });
-        suggestList.appendChild(suggestItem);
-      });
-    }
     addSection.appendChild(suggestList);
 
+    // Функция фильтрации предложений
+    function filterSuggestions() {
+      const query = searchInput.value.trim().toLowerCase();
+      const cat = filterSelect.value;
+      const items = suggestList.querySelectorAll('.modal-suggest-item');
+      items.forEach(item => {
+        const name = item.dataset.name.toLowerCase();
+        const itemCat = item.dataset.category || '';
+        const matchName = name.includes(query);
+        const matchCat = cat === 'all' || itemCat === cat;
+        item.style.display = (matchName && matchCat) ? '' : 'none';
+      });
+    }
+
+    searchInput.addEventListener('input', filterSuggestions);
+    filterSelect.addEventListener('change', filterSuggestions);
+
+    // Заполнение списка предложений
+    function renderSuggestions() {
+      const allUnique = DishStore.getAllUniqueWithLastDone();
+      const dayDishes = DishStore.getForDate(dateStr);
+      const existingNames = dayDishes.map(d => d.name);
+      const available = allUnique.filter(item => !existingNames.includes(item.name));
+      suggestList.innerHTML = '';
+      if (available.length === 0) {
+        const noSuggest = document.createElement('div');
+        noSuggest.className = 'modal-no-suggest';
+        noSuggest.textContent = 'Все блюда уже добавлены на этот день';
+        suggestList.appendChild(noSuggest);
+      } else {
+        available.forEach(item => {
+          const suggestItem = document.createElement('div');
+          suggestItem.className = 'modal-suggest-item';
+          suggestItem.dataset.name = item.name;
+          // Определяем категорию: берём из существующего блюда или угадываем
+          const existingDish = DishStore.getAll().find(d => d.name === item.name);
+          const category = existingDish ? existingDish.category : Utils.guessCategory(item.name);
+          suggestItem.dataset.category = category;
+
+          const nameSpan = document.createElement('span');
+          nameSpan.className = 'suggest-name';
+          nameSpan.textContent = item.name;
+          suggestItem.appendChild(nameSpan);
+          const lastSpan = document.createElement('span');
+          lastSpan.className = 'suggest-last';
+          if (item.lastDoneDate) {
+            lastSpan.textContent = `Последний раз: ${Utils.daysAgo(item.lastDoneDate)}`;
+          } else {
+            lastSpan.textContent = 'ещё не готовили';
+          }
+          suggestItem.appendChild(lastSpan);
+          suggestItem.addEventListener('click', function() {
+            const name = this.dataset.name;
+            const existing = DishStore.getAll().find(d => d.name === name);
+            const category = existing ? existing.category : Utils.guessCategory(name);
+            const recipeId = existing ? existing.recipeId : null;
+            DishStore.addDish(name, STATUSES.PLANNED, dateStr, category, false, '', recipeId);
+            openModal(dateStr);
+            renderCalendar(currentView, currentDate);
+          });
+          suggestList.appendChild(suggestItem);
+        });
+        filterSuggestions(); // применить начальные фильтры
+      }
+    }
+    renderSuggestions();
+
+    // ---- Автоподстановка названия из рецепта ----
+    recipeSelect.addEventListener('change', function() {
+      const recipeId = this.value;
+      if (recipeId) {
+        const recipe = RecipeStore.getById(Number(recipeId));
+        if (recipe) {
+          nameInput.value = recipe.name;
+        }
+      }
+    });
+
+    // Кнопка "Добавить"
     addBtn.addEventListener('click', function() {
       const name = nameInput.value.trim();
       if (!name) { alert('Введи название блюда'); return; }
@@ -1230,7 +1302,7 @@ const Renderer = (function() {
 })();
 
 // ============================================================
-// 6. ПАРСЕРЫ ДЛЯ ИМПОРТА ПО ССЫЛКЕ (без изменений)
+// 6. ПАРСЕРЫ ДЛЯ ИМПОРТА ПО ССЫЛКЕ
 // ============================================================
 const Parsers = {
   parseGeneral(doc) {
@@ -1879,6 +1951,7 @@ function renderRecipesList() {
   recipes.forEach(recipe => {
     const card = document.createElement('div');
     card.className = 'recipe-card';
+    card.dataset.id = recipe.id;
     card.innerHTML = `
       <div class="recipe-header">
         <span class="recipe-name">${Utils.escapeHtml(recipe.name)}</span>
@@ -1894,6 +1967,13 @@ function renderRecipesList() {
       </div>
     `;
     list.appendChild(card);
+
+    // Клик по карточке (кроме кнопок) – открыть просмотр
+    card.addEventListener('click', function(e) {
+      if (e.target.closest('.recipe-actions')) return;
+      const recipe = RecipeStore.getById(Number(this.dataset.id));
+      if (recipe) Renderer.showRecipeCard(recipe);
+    });
 
     card.querySelector('.edit-recipe').addEventListener('click', function(e) {
       e.stopPropagation();
@@ -1982,7 +2062,7 @@ function parseRecipeTextFromForm() {
   }
 }
 
-// --- Список покупок (обновлённая логика) ---
+// --- Список покупок (обновлённая логика с редактируемым текстом) ---
 
 // Получить все сохранённые ключи списков
 function getSavedShoppingListKeys() {
@@ -1993,17 +2073,15 @@ function getSavedShoppingListKeys() {
       keys.push(key);
     }
   }
-  return keys.sort(); // по дате (ключ вида shoppingList_YYYY-MM-DD)
+  return keys.sort(); // по дате
 }
 
-// Открыть модалку списка покупок – показываем сохранённые списки
+// Открыть модалку списка покупок
 function openShoppingList() {
   document.getElementById('shoppingListOverlay').classList.add('active');
-  // Скрываем область просмотра списка, показываем список сохранённых
   document.getElementById('shoppingListDisplay').style.display = 'none';
   document.getElementById('savedListsContainer').style.display = 'block';
   renderSavedLists();
-  // Устанавливаем сегодня и завтра как период по умолчанию
   const today = new Date();
   const tomorrow = new Date(today);
   tomorrow.setDate(tomorrow.getDate() + 1);
@@ -2025,28 +2103,21 @@ function renderSavedLists() {
     return;
   }
   keys.forEach(key => {
-    // Парсим ключ: shoppingList_YYYY-MM-DD или shoppingList_range_YYYY-MM-DD_to_YYYY-MM-DD
     let label = '';
-    let dateStr = '';
     if (key.startsWith('shoppingList_range_')) {
       const parts = key.replace('shoppingList_range_', '').split('_to_');
       if (parts.length === 2) {
-        const from = parts[0];
-        const to = parts[1];
-        const fromDate = new Date(from);
-        const toDate = new Date(to);
-        if (from === to) {
-          label = Utils.formatDate(fromDate);
+        const from = new Date(parts[0]);
+        const to = new Date(parts[1]);
+        if (parts[0] === parts[1]) {
+          label = Utils.formatDate(from);
         } else {
-          label = `период ${Utils.formatDate(fromDate)} — ${Utils.formatDate(toDate)}`;
+          label = `период ${Utils.formatDate(from)} — ${Utils.formatDate(to)}`;
         }
-        dateStr = from; // используем начальную дату для идентификации
       }
     } else {
-      // один день
-      dateStr = key.replace('shoppingList_', '');
-      const dateObj = new Date(dateStr);
-      label = Utils.formatDate(dateObj);
+      const dateStr = key.replace('shoppingList_', '');
+      label = Utils.formatDate(new Date(dateStr));
     }
 
     const item = document.createElement('div');
@@ -2087,20 +2158,34 @@ function loadShoppingList(key) {
     alert('Список не найден');
     return;
   }
-  let data;
+  // Старый формат мог быть JSON, новый - plain text
+  let text = saved;
   try {
-    data = JSON.parse(saved);
+    const parsed = JSON.parse(saved);
+    if (parsed.groups) {
+      // Старый формат – преобразуем в текст
+      let txt = '';
+      const sorted = Object.keys(parsed.groups).sort();
+      for (const dept of sorted) {
+        txt += dept + ':\n';
+        parsed.groups[dept].forEach(ing => {
+          txt += '• ' + ing + '\n';
+        });
+        txt += '\n';
+      }
+      text = txt;
+    }
   } catch(e) {
-    alert('Ошибка чтения списка');
-    return;
+    // Это plain text, оставляем как есть
   }
 
   document.getElementById('savedListsContainer').style.display = 'none';
   const displayDiv = document.getElementById('shoppingListDisplay');
   displayDiv.style.display = 'block';
 
-  const resultDiv = document.getElementById('shoppingListResult');
-  const groups = data.groups;
+  const resultTextarea = document.getElementById('shoppingListResult');
+  resultTextarea.value = text;
+
   // Определяем метку периода для заголовка
   let periodLabel = '';
   if (key.startsWith('shoppingList_range_')) {
@@ -2118,17 +2203,22 @@ function loadShoppingList(key) {
     const dateStr = key.replace('shoppingList_', '');
     periodLabel = Utils.formatDate(new Date(dateStr));
   }
-  let html = `<div style="margin-bottom:8px;font-size:14px;color:var(--text-secondary);">Список на ${periodLabel}</div>`;
-  const sortedDepartments = Object.keys(groups).sort();
-  for (const dept of sortedDepartments) {
-    const ingredients = groups[dept];
-    html += `<div class="shopping-group"><h4>${dept}</h4>`;
-    ingredients.forEach(ing => {
-      html += `<div class="shopping-item">• ${Utils.escapeHtml(ing)}</div>`;
-    });
-    html += '</div>';
-  }
-  resultDiv.innerHTML = html;
+  // Добавим заголовок над textarea (можно через placeholder или отдельный элемент)
+  // Уже есть placeholder, но добавим сверху
+  const header = document.createElement('div');
+  header.style.cssText = 'margin-bottom:8px;font-size:14px;color:var(--text-secondary);';
+  header.textContent = `Список на ${periodLabel}`;
+  // Вставим перед textarea
+  const container = displayDiv;
+  const textarea = document.getElementById('shoppingListResult');
+  // Удалим старый заголовок, если есть
+  const oldHeader = container.querySelector('.list-header');
+  if (oldHeader) oldHeader.remove();
+  const newHeader = document.createElement('div');
+  newHeader.className = 'list-header';
+  newHeader.textContent = `📋 Список на ${periodLabel}`;
+  newHeader.style.cssText = 'margin-bottom:8px;font-size:14px;color:var(--text-secondary);';
+  container.insertBefore(newHeader, textarea);
 
   displayDiv.dataset.currentKey = key;
   document.getElementById('saveCurrentListBtn').style.display = 'none'; // уже сохранено
@@ -2148,7 +2238,6 @@ function generateShoppingList() {
     return;
   }
 
-  // Собираем все блюда в диапазоне
   let allDishes = [];
   let current = new Date(fromDate);
   const end = new Date(toDate);
@@ -2176,7 +2265,7 @@ function generateShoppingList() {
     return;
   }
 
-  // Классифицируем и группируем
+  // Группируем по отделам и формируем текст
   const grouped = {};
   items.forEach(ing => {
     const dept = classifyIngredient(ing);
@@ -2184,35 +2273,44 @@ function generateShoppingList() {
     grouped[dept].push(ing);
   });
 
-  // Показываем предварительный список
+  let text = '';
+  const sortedDepartments = Object.keys(grouped).sort();
+  for (const dept of sortedDepartments) {
+    text += dept + ':\n';
+    grouped[dept].forEach(ing => {
+      text += '• ' + ing + '\n';
+    });
+    text += '\n';
+  }
+
+  // Показываем предварительный список в textarea
   document.getElementById('savedListsContainer').style.display = 'none';
   const displayDiv = document.getElementById('shoppingListDisplay');
   displayDiv.style.display = 'block';
 
-  const resultDiv = document.getElementById('shoppingListResult');
+  const resultTextarea = document.getElementById('shoppingListResult');
   const periodLabel = fromDate === toDate ? Utils.formatDate(new Date(fromDate)) : `${Utils.formatDate(new Date(fromDate))} — ${Utils.formatDate(new Date(toDate))}`;
-  let html = `<div style="margin-bottom:8px;font-size:14px;color:var(--text-secondary);">Предварительный список за ${periodLabel}</div>`;
-  const sortedDepartments = Object.keys(grouped).sort();
-  for (const dept of sortedDepartments) {
-    const ingredients = grouped[dept];
-    html += `<div class="shopping-group"><h4>${dept}</h4>`;
-    ingredients.forEach(ing => {
-      html += `<div class="shopping-item">• ${Utils.escapeHtml(ing)}</div>`;
-    });
-    html += '</div>';
-  }
-  resultDiv.innerHTML = html;
+  // Добавим заголовок
+  const container = displayDiv;
+  const oldHeader = container.querySelector('.list-header');
+  if (oldHeader) oldHeader.remove();
+  const newHeader = document.createElement('div');
+  newHeader.className = 'list-header';
+  newHeader.textContent = `📋 Предварительный список за ${periodLabel}`;
+  newHeader.style.cssText = 'margin-bottom:8px;font-size:14px;color:var(--text-secondary);';
+  container.insertBefore(newHeader, resultTextarea);
 
-  // Сохраняем период и данные
+  resultTextarea.value = text;
+
   displayDiv.dataset.fromDate = fromDate;
   displayDiv.dataset.toDate = toDate;
-  displayDiv.dataset.generatedGroups = JSON.stringify(grouped);
+  displayDiv.dataset.generatedGroups = JSON.stringify(grouped); // сохраняем структуру на случай, если понадобится
 
   document.getElementById('saveCurrentListBtn').style.display = 'inline-block';
   document.getElementById('deleteCurrentListBtn').style.display = 'none';
 }
 
-// Сохранить текущий список (из предварительного)
+// Сохранить текущий список (из textarea)
 function saveCurrentList() {
   const displayDiv = document.getElementById('shoppingListDisplay');
   const fromDate = displayDiv.dataset.fromDate;
@@ -2222,11 +2320,9 @@ function saveCurrentList() {
     return;
   }
 
-  let groups;
-  if (displayDiv.dataset.generatedGroups) {
-    groups = JSON.parse(displayDiv.dataset.generatedGroups);
-  } else {
-    alert('Сначала сгенерируйте список, нажав "Собрать список"');
+  const text = document.getElementById('shoppingListResult').value;
+  if (!text.trim()) {
+    alert('Список пуст, нечего сохранять.');
     return;
   }
 
@@ -2237,8 +2333,7 @@ function saveCurrentList() {
     key = `shoppingList_range_${fromDate}_to_${toDate}`;
   }
 
-  const data = { date: fromDate, toDate: toDate, groups: groups };
-  localStorage.setItem(key, JSON.stringify(data));
+  localStorage.setItem(key, text);
 
   alert('✅ Список сохранён!');
   document.getElementById('shoppingListDisplay').style.display = 'none';
@@ -2247,6 +2342,9 @@ function saveCurrentList() {
   delete displayDiv.dataset.generatedGroups;
   delete displayDiv.dataset.fromDate;
   delete displayDiv.dataset.toDate;
+  // Удаляем заголовок
+  const header = displayDiv.querySelector('.list-header');
+  if (header) header.remove();
 }
 
 // Удалить текущий список (кнопка удаления в режиме просмотра)
@@ -2268,12 +2366,29 @@ function backToSavedLists() {
   renderSavedLists();
 }
 
+// Экспорт текущего списка в .txt
+function exportShoppingListTxt() {
+  const text = document.getElementById('shoppingListResult').value;
+  if (!text.trim()) {
+    alert('Нет текста для экспорта.');
+    return;
+  }
+  const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  const now = new Date();
+  a.download = `shopping_list_${Utils.formatDateLocal(now)}.txt`;
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
 // Инициализация обработчиков для списка покупок
 function initShoppingListHandlers() {
   document.getElementById('generateShoppingListBtn').addEventListener('click', generateShoppingList);
   document.getElementById('saveCurrentListBtn').addEventListener('click', saveCurrentList);
   document.getElementById('deleteCurrentListBtn').addEventListener('click', deleteCurrentList);
   document.getElementById('backToSavedListsBtn').addEventListener('click', backToSavedLists);
+  document.getElementById('exportShoppingListTxtBtn').addEventListener('click', exportShoppingListTxt);
 }
 
 // ============================================================
