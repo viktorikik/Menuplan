@@ -218,7 +218,7 @@ textarea:focus-visible {
   background: transparent;
   padding: 6px 14px;
   border-radius: var(--radius-md);
-  font-weight: 550;
+  font-weight: 600;
   font-size: 13px;
   color: var(--text-secondary);
   cursor: pointer;
@@ -273,21 +273,27 @@ textarea:focus-visible {
   border: none;
 }
 
-/* Первичные кнопки – все в акцентном цвете */
-.btn-row .btn-primary {
+/* ----- Первичные кнопки (оранжевые) ----- */
+.btn-row .btn-primary,
+.btn-row .btn-done,
+.btn-row .btn-import-url {
   background: var(--accent-color);
   color: white;
 }
-.btn-row .btn-primary:hover {
+.btn-row .btn-primary:hover,
+.btn-row .btn-done:hover,
+.btn-row .btn-import-url:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 16px rgba(255, 122, 74, 0.3);
   filter: brightness(1.05);
 }
-.btn-row .btn-primary:active {
+.btn-row .btn-primary:active,
+.btn-row .btn-done:active,
+.btn-row .btn-import-url:active {
   transform: translateY(0);
 }
 
-/* Вторичные кнопки – прозрачные с обводкой */
+/* ----- Вторичные кнопки (прозрачные с обводкой) ----- */
 .btn-row .btn-secondary {
   background: transparent;
   border: 1.5px solid var(--text-muted);
@@ -299,45 +305,17 @@ textarea:focus-visible {
   transform: translateY(-2px);
 }
 
-/* Специальные кнопки: Done, Export, Import, Import URL – оставляем их цветными, но приводим к единому стилю */
-.btn-row .btn-done {
-  background: var(--done-color);
-  color: white;
-}
-.btn-row .btn-done:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(52, 211, 153, 0.3);
-  filter: brightness(1.05);
-}
-
-.btn-row .btn-export {
-  background: #8b5cf6;
-  color: white;
-}
-.btn-row .btn-export:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(139, 92, 246, 0.3);
-  filter: brightness(1.05);
-}
-
+/* ----- Экспорт и Импорт (нейтральные, менее заметные) ----- */
+.btn-row .btn-export,
 .btn-row .btn-import {
-  background: #f59e0b;
-  color: white;
+  background: rgba(128, 128, 140, 0.12);
+  color: var(--text-primary);
+  border: 1px solid rgba(128, 128, 140, 0.2);
 }
+.btn-row .btn-export:hover,
 .btn-row .btn-import:hover {
+  background: rgba(128, 128, 140, 0.2);
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(245, 158, 11, 0.3);
-  filter: brightness(1.05);
-}
-
-.btn-row .btn-import-url {
-  background: var(--accent-color);
-  color: white;
-}
-.btn-row .btn-import-url:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(255, 122, 74, 0.3);
-  filter: brightness(1.05);
 }
 
 .import-hint {
@@ -423,6 +401,7 @@ textarea:focus-visible {
   letter-spacing: 0.5px;
 }
 
+/* Кнопка "Сегодня" – теперь в стиле primary */
 .today-btn {
   background: var(--accent-color);
   border: none;
