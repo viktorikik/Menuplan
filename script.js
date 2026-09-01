@@ -14,9 +14,9 @@ const CATEGORIES = {
 };
 
 const CATEGORY_LABELS = {
-  [CATEGORIES.SOUP]: '🍲 Суп',
-  [CATEGORIES.SALAD]: '🥗 Салат',
-  [CATEGORIES.MAIN]: '🍖 Основное',
+  [CATEGORIES.SOUP]: '🍲 Супы',
+  [CATEGORIES.SALAD]: '🥗 Салаты',
+  [CATEGORIES.MAIN]: '🍖 Основные блюда',
   [CATEGORIES.OTHER]: '🍽️ Другое'
 };
 
@@ -164,7 +164,7 @@ const Utils = {
 };
 
 // ============================================================
-// 3. ХРАНИЛИЩЕ РЕЦЕПТОВ
+// 3. ХРАНИЛИЩЕ РЕЦЕПТОВ (с категорией)
 // ============================================================
 const RecipeStore = (function() {
   const STORAGE_KEY = 'smartMenuRecipes_v1';
@@ -178,7 +178,10 @@ const RecipeStore = (function() {
       if (saved) {
         const parsed = JSON.parse(saved);
         if (Array.isArray(parsed)) {
-          recipes = parsed;
+          recipes = parsed.map(r => {
+            if (!r.category) r.category = Utils.guessCategory(r.name);
+            return r;
+          });
           return true;
         }
       }
@@ -201,19 +204,27 @@ const RecipeStore = (function() {
 
   function getAll() { return recipes.slice(); }
   function getById(id) { return recipes.find(r => r.id === id); }
-  function add(name, ingredients, instructions) {
+  function add(name, ingredients, instructions, category) {
     const id = generateId();
-    const recipe = { id, name, ingredients: ingredients.split('\n').filter(s => s.trim()), instructions: instructions || '', createdAt: new Date().toISOString() };
+    const recipe = {
+      id,
+      name,
+      ingredients: ingredients.split('\n').filter(s => s.trim()),
+      instructions: instructions || '',
+      category: category || Utils.guessCategory(name),
+      createdAt: new Date().toISOString()
+    };
     recipes.push(recipe);
     save();
     return recipe;
   }
-  function update(id, name, ingredients, instructions) {
+  function update(id, name, ingredients, instructions, category) {
     const recipe = getById(id);
     if (!recipe) return false;
     recipe.name = name;
     recipe.ingredients = ingredients.split('\n').filter(s => s.trim());
     recipe.instructions = instructions || '';
+    recipe.category = category || Utils.guessCategory(name);
     save();
     return true;
   }
@@ -1510,7 +1521,7 @@ function classifyIngredient(ingredient) {
   return 'Прочее';
 }
 
-// --- Рецепты ---
+// --- Рецепты (с категориями и группировкой) ---
 function openRecipesModal() {
   document.getElementById('recipesOverlay').classList.add('active');
   renderRecipesList();
@@ -1528,30 +1539,68 @@ function renderRecipesList() {
     list.innerHTML = '<div class="modal-empty">😌 У вас пока нет рецептов. Нажмите «Добавить рецепт».</div>';
     return;
   }
-  const ul = document.createElement('ul');
-  ul.style.listStyle = 'none';
-  ul.style.padding = '0';
-  ul.style.margin = '0';
+
+  // Группируем по категориям
+  const grouped = {};
   recipes.forEach(recipe => {
-    const li = document.createElement('li');
-    li.style.padding = '10px 14px';
-    li.style.borderBottom = '1px solid var(--cell-border)';
-    li.style.cursor = 'pointer';
-    li.style.transition = 'var(--transition-fast)';
-    li.style.borderRadius = 'var(--radius-sm)';
-    li.textContent = recipe.name;
-    li.addEventListener('mouseenter', () => {
-      li.style.background = 'var(--day-hover)';
-    });
-    li.addEventListener('mouseleave', () => {
-      li.style.background = 'transparent';
-    });
-    li.addEventListener('click', () => {
-      Renderer.showRecipeCard(recipe);
-    });
-    ul.appendChild(li);
+    const cat = recipe.category || Utils.guessCategory(recipe.name);
+    if (!grouped[cat]) grouped[cat] = [];
+    grouped[cat].push(recipe);
   });
-  list.appendChild(ul);
+
+  // Сортируем категории в порядке: супы, салаты, основные, другое
+  const categoryOrder = [CATEGORIES.SOUP, CATEGORIES.SALAD, CATEGORIES.MAIN, CATEGORIES.OTHER];
+  const sortedCategories = Object.keys(grouped).sort((a, b) => {
+    return categoryOrder.indexOf(a) - categoryOrder.indexOf(b);
+  });
+
+  sortedCategories.forEach(cat => {
+    const section = document.createElement('div');
+    section.className = 'recipe-category-section';
+    section.style.marginBottom = '16px';
+
+    const header = document.createElement('h4');
+    header.style.cssText = `
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text-primary);
+      padding: 6px 10px;
+      background: var(--badge-bg);
+      border-radius: var(--radius-sm);
+      margin-bottom: 8px;
+      border-left: 4px solid var(--accent-color);
+    `;
+    header.textContent = CATEGORY_LABELS[cat] || cat;
+    section.appendChild(header);
+
+    const ul = document.createElement('ul');
+    ul.style.listStyle = 'none';
+    ul.style.padding = '0';
+    ul.style.margin = '0';
+
+    grouped[cat].forEach(recipe => {
+      const li = document.createElement('li');
+      li.style.padding = '8px 14px';
+      li.style.borderBottom = '1px solid var(--cell-border)';
+      li.style.cursor = 'pointer';
+      li.style.transition = 'var(--transition-fast)';
+      li.style.borderRadius = 'var(--radius-sm)';
+      li.textContent = recipe.name;
+      li.addEventListener('mouseenter', () => {
+        li.style.background = 'var(--day-hover)';
+      });
+      li.addEventListener('mouseleave', () => {
+        li.style.background = 'transparent';
+      });
+      li.addEventListener('click', () => {
+        Renderer.showRecipeCard(recipe);
+      });
+      ul.appendChild(li);
+    });
+
+    section.appendChild(ul);
+    list.appendChild(section);
+  });
 }
 
 function openRecipeForm(recipeId = null) {
@@ -1560,6 +1609,7 @@ function openRecipeForm(recipeId = null) {
   const nameInput = document.getElementById('recipeName');
   const ingrInput = document.getElementById('recipeIngredients');
   const instrInput = document.getElementById('recipeInstructions');
+  const categorySelect = document.getElementById('recipeCategory');
 
   if (recipeId) {
     const recipe = RecipeStore.getById(recipeId);
@@ -1568,12 +1618,14 @@ function openRecipeForm(recipeId = null) {
     nameInput.value = recipe.name;
     ingrInput.value = recipe.ingredients.join('\n');
     instrInput.value = recipe.instructions || '';
+    categorySelect.value = recipe.category || Utils.guessCategory(recipe.name);
     document.getElementById('recipeFormTitle').textContent = '✎ Редактировать рецепт';
   } else {
     formId.value = '';
     nameInput.value = '';
     ingrInput.value = '';
     instrInput.value = '';
+    categorySelect.value = CATEGORIES.OTHER;
     document.getElementById('recipeFormTitle').textContent = '📝 Новый рецепт';
   }
   overlay.classList.add('active');
@@ -1588,12 +1640,15 @@ function saveRecipeForm() {
   const name = document.getElementById('recipeName').value.trim();
   const ingredients = document.getElementById('recipeIngredients').value.trim();
   const instructions = document.getElementById('recipeInstructions').value.trim();
+  const category = document.getElementById('recipeCategory').value;
+
   if (!name) { alert('Введите название рецепта'); return; }
   if (!ingredients) { alert('Введите ингредиенты'); return; }
+
   if (id) {
-    RecipeStore.update(Number(id), name, ingredients, instructions);
+    RecipeStore.update(Number(id), name, ingredients, instructions, category);
   } else {
-    RecipeStore.add(name, ingredients, instructions);
+    RecipeStore.add(name, ingredients, instructions, category);
   }
   closeRecipeForm();
   renderRecipesList();
@@ -1604,6 +1659,9 @@ function parseRecipeTextFromForm() {
   const result = Utils.parseRecipeText(ingrText);
   if (result.title) {
     document.getElementById('recipeName').value = result.title;
+    // Автоопределение категории
+    const cat = Utils.guessCategory(result.title);
+    document.getElementById('recipeCategory').value = cat;
   }
   if (result.ingredients) {
     document.getElementById('recipeIngredients').value = result.ingredients;
@@ -2239,7 +2297,7 @@ function initShoppingListHandlers() {
   });
 
   console.log('✅ Планировщик меню готов!');
-  console.log('📖 Рецепты отображаются списком, клик по названию открывает карточку.');
+  console.log('📖 Рецепты сгруппированы по категориям.');
   console.log('🔄 В недельном виде есть подсказка о перетаскивании блюд.');
   console.log('🌓 Тема определяется автоматически по настройкам системы.');
 })();
