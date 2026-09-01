@@ -139,7 +139,6 @@ textarea:focus-visible {
   margin: 0 auto;
 }
 
-/* ===== ШАПКА ===== */
 .app-header {
   display: flex;
   justify-content: space-between;
@@ -224,7 +223,6 @@ textarea:focus-visible {
   background: var(--day-hover);
 }
 
-/* ===== КНОПКИ ДЕЙСТВИЙ ===== */
 .actions {
   display: flex;
   flex-direction: column;
@@ -312,7 +310,6 @@ textarea:focus-visible {
   display: none;
 }
 
-/* ===== КАЛЕНДАРЬ ===== */
 .calendar-wrap {
   background: rgba(128, 128, 140, 0.04);
   border-radius: var(--radius-md);
@@ -494,7 +491,6 @@ textarea:focus-visible {
   font-weight: 700;
 }
 
-/* ===== НЕДЕЛЬНЫЙ ВИД ===== */
 .week-list {
   display: flex;
   flex-direction: column;
@@ -603,7 +599,6 @@ textarea:focus-visible {
   font-style: italic;
 }
 
-/* ===== ПОИСК И ФИЛЬТРЫ ===== */
 .search-filter-wrap {
   display: flex;
   flex-wrap: wrap;
@@ -632,7 +627,6 @@ textarea:focus-visible {
   box-shadow: 0 0 0 3px var(--accent-light);
 }
 
-/* ===== СПИСОК МЕНЮ ===== */
 .menu-list {
   margin-top: 16px;
   background: rgba(128, 128, 140, 0.04);
@@ -695,7 +689,6 @@ textarea:focus-visible {
   font-size: 14px;
 }
 
-/* ===== МОДАЛКИ (ОБЩИЕ) ===== */
 .modal-overlay {
   display: none;
   position: fixed;
@@ -758,7 +751,6 @@ textarea:focus-visible {
   transform: rotate(90deg);
 }
 
-/* ----- Модалка дня ----- */
 .day-meals-section {
   margin-bottom: var(--spacing-lg);
   border-bottom: 2px solid var(--cell-border);
@@ -910,7 +902,6 @@ textarea:focus-visible {
   font-size: 15px;
 }
 
-/* ----- Блок добавления в модалке дня ----- */
 .modal-add-section {
   margin-top: var(--spacing-sm);
   padding-top: 16px;
@@ -922,7 +913,6 @@ textarea:focus-visible {
   margin-bottom: 10px;
 }
 
-/* ---- ДОБАВЛЯЕМ ПОИСК И ФИЛЬТРЫ ДЛЯ ПРЕДЛОЖЕНИЙ ---- */
 .suggest-controls {
   display: flex;
   flex-wrap: wrap;
@@ -1037,7 +1027,6 @@ textarea:focus-visible {
   padding: var(--spacing-sm) 0;
 }
 
-/* ----- Модалка рекомендаций ----- */
 .rec-modal .modal {
   max-width: 480px;
 }
@@ -1122,7 +1111,6 @@ textarea:focus-visible {
   transform: translateX(4px);
 }
 
-/* ----- Модалка добавления (глобальная) ----- */
 .add-modal .modal {
   max-width: 400px;
 }
@@ -1191,7 +1179,6 @@ textarea:focus-visible {
   transform: translateY(-2px);
 }
 
-/* ----- Модалка экспорта ----- */
 .export-modal .modal {
   max-width: 400px;
 }
@@ -1224,7 +1211,6 @@ textarea:focus-visible {
   margin-top: 2px;
 }
 
-/* ===== CHOICE OVERLAY ===== */
 .choice-overlay {
   display: none;
   position: fixed;
@@ -1305,7 +1291,6 @@ textarea:focus-visible {
   color: var(--text-primary);
 }
 
-/* ===== ПРИВЕТСТВЕННАЯ МОДАЛКА ===== */
 .welcome-overlay {
   display: none;
   position: fixed;
@@ -1407,7 +1392,6 @@ textarea:focus-visible {
   transform: scale(0.96);
 }
 
-/* ===== РЕЦЕПТЫ И СПИСОК ПОКУПОК ===== */
 .recipe-card {
   background: var(--card-bg);
   border-radius: var(--radius-md);
@@ -1486,7 +1470,29 @@ body.dark-theme #recipesList li button:hover {
   color: var(--text-primary);
 }
 
-/* Список покупок */
+/* ===== КАРТОЧКА РЕЦЕПТА (просмотр) – исправление цвета в тёмной теме ===== */
+.recipe-view-modal,
+.recipe-view-modal .modal-header h3,
+.recipe-view-modal ul,
+.recipe-view-modal li,
+.recipe-view-modal pre,
+.recipe-view-modal strong,
+.recipe-view-modal .btn-primary,
+.recipe-view-modal .btn-secondary {
+  color: var(--text-primary);
+}
+.recipe-view-modal li {
+  border-bottom-color: var(--cell-border);
+}
+.recipe-view-modal pre {
+  background: var(--cell-bg);
+  padding: 8px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--cell-border);
+  color: var(--text-primary);
+}
+
+/* ===== СПИСОК ПОКУПОК ===== */
 #shoppingListDisplay .shopping-group {
   margin-bottom: 14px;
 }
@@ -1610,6 +1616,9 @@ body.dark-theme #savedListsContainer h4 {
   color: var(--text-primary);
 }
 
+/* ============================================================
+   АДАПТИВНОСТЬ
+   ============================================================ */
 @media (max-width: 480px) {
   .backup-row .btn {
     min-width: 120px;
@@ -1621,12 +1630,6 @@ body.dark-theme #savedListsContainer h4 {
     margin-top: 16px;
     padding-top: 12px;
   }
-}
-
-/* ============================================================
-   АДАПТИВНОСТЬ
-   ============================================================ */
-@media (max-width: 480px) {
   .welcome-modal {
     padding: var(--spacing-md) var(--spacing-sm);
     max-width: 100%;
