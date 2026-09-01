@@ -1,41 +1,41 @@
 /* ============================================================
-   1. ПЕРЕМЕННЫЕ
+   1. ПЕРЕМЕННЫЕ – СВЕТЛАЯ ТЕМА (улучшенная контрастность)
    ============================================================ */
 :root {
-  --bg-primary: #f5f3f0;
-  --bg-app: rgba(255, 255, 255, 0.85);
-  --bg-app-border: rgba(255, 255, 255, 0.5);
-  --text-primary: #1c1c2a;
-  --text-secondary: #4a4a5a;
-  --text-muted: #6b6b7a;
-  --cell-bg: rgba(255, 255, 255, 0.5);
-  --cell-border: rgba(255, 255, 255, 0.7);
+  --bg-primary: #f2f0ed;
+  --bg-app: #ffffff;
+  --bg-app-border: rgba(0, 0, 0, 0.08);
+  --text-primary: #0f0f1a;
+  --text-secondary: #2a2a3a;
+  --text-muted: #5a5a6e;
+  --cell-bg: #ffffff;
+  --cell-border: rgba(0, 0, 0, 0.12);
   --tag-bg: white;
-  --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+  --shadow: 0 20px 40px -12px rgba(0, 0, 0, 0.2);
   --btn-bg: #1e1e2a;
   --btn-text: white;
-  --input-bg: rgba(255, 255, 255, 0.7);
+  --input-bg: #ffffff;
   --badge-bg: rgba(0, 0, 0, 0.05);
-  --empty-border: rgba(0, 0, 0, 0.05);
-  --planned-color: #fbbf24;
-  --done-color: #34d399;
+  --empty-border: rgba(0, 0, 0, 0.08);
+  --planned-color: #f59e0b;
+  --done-color: #10b981;
   --liked-color: #ef4444;
-  --planned-bg: rgba(251, 191, 36, 0.15);
-  --done-bg: rgba(52, 211, 153, 0.15);
-  --modal-overlay: rgba(0, 0, 0, 0.4);
-  --modal-bg: white;
+  --planned-bg: rgba(245, 158, 11, 0.12);
+  --done-bg: rgba(16, 185, 129, 0.12);
+  --modal-overlay: rgba(0, 0, 0, 0.35);
+  --modal-bg: #ffffff;
   --day-hover: rgba(0, 0, 0, 0.04);
-  --modal-text: #1c1c2a;
-  --chip-bg: rgba(255, 255, 255, 0.7);
-  --week-row-bg: rgba(255, 255, 255, 0.3);
-  --menu-item-bg: rgba(255, 255, 255, 0.3);
-  --suggest-item-bg: rgba(128, 128, 140, 0.06);
-  --rec-item-bg: rgba(128, 128, 140, 0.06);
-  --color-soup: #fbbf24;
-  --color-salad: #34d399;
+  --modal-text: #0f0f1a;
+  --chip-bg: #f0f0f5;
+  --week-row-bg: rgba(255, 255, 255, 0.8);
+  --menu-item-bg: #f8f8fc;
+  --suggest-item-bg: rgba(0, 0, 0, 0.03);
+  --rec-item-bg: rgba(0, 0, 0, 0.03);
+  --color-soup: #f59e0b;
+  --color-salad: #10b981;
   --color-main: #ef4444;
-  --search-bg: rgba(255, 255, 255, 0.7);
-  --search-border: #ddd;
+  --search-bg: #ffffff;
+  --search-border: #d1d1d9;
 
   --spacing-xs: 4px;
   --spacing-sm: 8px;
@@ -46,31 +46,31 @@
   --radius-md: 24px;
   --radius-lg: 40px;
   --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.06);
-  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.25);
+  --shadow-md: 0 8px 24px -8px rgba(0, 0, 0, 0.15);
   --transition-fast: 0.15s;
   --transition-normal: 0.25s;
 
-  --card-bg: var(--cell-bg);
-  --card-hover-bg: var(--day-hover);
+  --card-bg: #ffffff;
+  --card-hover-bg: #f5f5fa;
   --input-padding: 8px 14px;
   --btn-padding: 8px 20px;
 
-  --accent-color: #ff7a4a;
-  --accent-hover: #e6683a;
-  --accent-light: rgba(255, 122, 74, 0.12);
+  --accent-color: #ff6b35;
+  --accent-hover: #e55a2b;
+  --accent-light: rgba(255, 107, 53, 0.12);
 }
 
 body.dark-theme {
   --bg-primary: #0f0f17;
-  --bg-app: rgba(25, 25, 38, 0.92);
+  --bg-app: rgba(25, 25, 38, 0.95);
   --bg-app-border: rgba(255, 255, 255, 0.06);
   --text-primary: #ececf0;
   --text-secondary: #b0b0c8;
   --text-muted: #7a7a92;
-  --cell-bg: rgba(40, 40, 56, 0.5);
-  --cell-border: rgba(255, 255, 255, 0.05);
+  --cell-bg: rgba(40, 40, 56, 0.6);
+  --cell-border: rgba(255, 255, 255, 0.08);
   --tag-bg: rgba(45, 45, 65, 0.7);
-  --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.6);
+  --shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
   --btn-bg: #3a3a52;
   --btn-text: #f0f0f5;
   --input-bg: rgba(45, 45, 65, 0.6);
@@ -95,9 +95,9 @@ body.dark-theme {
   --color-main: #f87171;
   --search-bg: rgba(45, 45, 65, 0.6);
   --search-border: rgba(255, 255, 255, 0.1);
-  --card-bg: var(--cell-bg);
-  --card-hover-bg: var(--day-hover);
-  --accent-light: rgba(255, 122, 74, 0.2);
+  --card-bg: rgba(40, 40, 56, 0.7);
+  --card-hover-bg: rgba(255, 255, 255, 0.05);
+  --accent-light: rgba(255, 107, 53, 0.2);
 }
 
 * {
@@ -269,7 +269,7 @@ textarea:focus-visible {
 .btn-row .btn-primary:hover,
 .btn-row .btn-done:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(255, 122, 74, 0.3);
+  box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
   filter: brightness(1.05);
 }
 .btn-row .btn-primary:active,
@@ -392,7 +392,7 @@ textarea:focus-visible {
   cursor: pointer;
   transition: var(--transition-fast);
   line-height: 1.2;
-  box-shadow: 0 2px 12px rgba(255, 122, 74, 0.3);
+  box-shadow: 0 2px 12px rgba(255, 107, 53, 0.3);
   min-height: 40px;
   white-space: nowrap;
   flex-shrink: 0;
@@ -400,7 +400,7 @@ textarea:focus-visible {
 }
 .today-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 16px rgba(255, 122, 74, 0.3);
+  box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
   filter: brightness(1.05);
 }
 .today-btn:active {
@@ -500,6 +500,16 @@ textarea:focus-visible {
   flex-direction: column;
   gap: 6px;
   padding: var(--spacing-xs) 0;
+}
+
+.week-drag-hint {
+  font-size: 13px;
+  color: var(--text-muted);
+  text-align: center;
+  padding: 6px 0;
+  opacity: 0.7;
+  border-bottom: 1px dashed var(--cell-border);
+  margin-bottom: 8px;
 }
 
 .week-row {
@@ -1094,7 +1104,6 @@ textarea:focus-visible {
   padding-top: var(--spacing-md);
 }
 
-/* Стили для выбора категории в рекомендациях */
 .category-choice-btn {
   display: block;
   width: 100%;
@@ -1268,7 +1277,7 @@ textarea:focus-visible {
 }
 .choice-modal .choice-btn:hover {
   transform: translateY(-3px);
-  box-shadow: 0 8px 16px rgba(255, 122, 74, 0.3);
+  box-shadow: 0 8px 16px rgba(255, 107, 53, 0.3);
   filter: brightness(1.05);
 }
 .choice-modal .choice-btn:active {
@@ -1385,7 +1394,7 @@ textarea:focus-visible {
   font-weight: 600;
   cursor: pointer;
   transition: var(--transition-fast);
-  box-shadow: 0 4px 16px rgba(255, 122, 74, 0.3);
+  box-shadow: 0 4px 16px rgba(255, 107, 53, 0.3);
   min-width: 160px;
   margin-top: var(--spacing-sm);
   appearance: none;
@@ -1463,6 +1472,11 @@ textarea:focus-visible {
   margin-top: 4px;
 }
 
+/* ===== СПИСОК РЕЦЕПТОВ (исправление цвета в тёмной теме) ===== */
+#recipesList li {
+  color: var(--text-primary);
+}
+
 /* Список покупок */
 #shoppingListDisplay .shopping-group {
   margin-bottom: 14px;
@@ -1488,7 +1502,6 @@ textarea:focus-visible {
   margin-right: 6px;
 }
 
-/* ---- НОВЫЕ СТИЛИ ДЛЯ РЕДАКТИРУЕМОГО СПИСКА ПОКУПОК ---- */
 #shoppingListResult {
   width: 100%;
   min-height: 150px;
@@ -1507,7 +1520,6 @@ textarea:focus-visible {
   box-shadow: 0 0 0 3px var(--accent-light);
 }
 
-/* Список сохранённых */
 .saved-list-item {
   display: flex;
   justify-content: space-between;
@@ -1594,7 +1606,6 @@ body.dark-theme #savedListsContainer h4 {
     height: 22px;
   }
 
-  /* ---- ЦЕНТРИРОВАНИЕ ШАПКИ НА МОБИЛЬНЫХ ---- */
   .app-header {
     flex-direction: column;
     align-items: center;
@@ -1693,6 +1704,11 @@ body.dark-theme #savedListsContainer h4 {
   }
   .month-nav-wrapper {
     flex: 1 1 auto;
+  }
+  .backup-section .backup-row .btn {
+    min-width: 120px;
+    max-width: 160px;
+    font-size: 13px;
   }
 }
 
@@ -1799,6 +1815,36 @@ body.dark-theme #savedListsContainer h4 {
     min-height: 40px;
     min-width: 40px;
   }
+
+  .btn-row.center-row .btn {
+    max-width: 200px;
+  }
+
+  .backup-section {
+    margin-top: 24px;
+    padding-top: 16px;
+    border-top: 2px solid var(--cell-border);
+    text-align: center;
+  }
+  .backup-row {
+    display: flex;
+    justify-content: center;
+    gap: var(--spacing-md);
+    flex-wrap: wrap;
+  }
+  .backup-row .btn {
+    min-width: 140px;
+    max-width: 200px;
+  }
+  .backup-hint {
+    margin-top: 8px;
+    font-size: 13px;
+    color: var(--text-muted);
+    line-height: 1.5;
+  }
+  .backup-hint strong {
+    color: var(--text-primary);
+  }
 }
 
 @media (min-width: 1000px) {
@@ -1813,39 +1859,4 @@ body.dark-theme #savedListsContainer h4 {
     flex: 0 0 calc(50% - 10px);
     max-width: calc(50% - 10px);
   }
-}
-
-/* ===== НОВЫЙ ПОРЯДОК КНОПОК ===== */
-.btn-row.center-row {
-  justify-content: center;
-}
-.btn-row.center-row .btn {
-  max-width: 200px;
-}
-
-/* ===== БЛОК ЭКСПОРТА/ИМПОРТА ВНИЗУ ===== */
-.backup-section {
-  margin-top: 24px;
-  padding-top: 16px;
-  border-top: 2px solid var(--cell-border);
-  text-align: center;
-}
-.backup-row {
-  display: flex;
-  justify-content: center;
-  gap: var(--spacing-md);
-  flex-wrap: wrap;
-}
-.backup-row .btn {
-  min-width: 140px;
-  max-width: 200px;
-}
-.backup-hint {
-  margin-top: 8px;
-  font-size: 13px;
-  color: var(--text-muted);
-  line-height: 1.5;
-}
-.backup-hint strong {
-  color: var(--text-primary);
 }
