@@ -1079,24 +1079,6 @@ const Renderer = (function() {
       const btn = document.createElement('button');
       btn.className = 'category-choice-btn';
       btn.textContent = cat.label;
-      btn.style.display = 'block';
-      btn.style.width = '100%';
-      btn.style.padding = '12px';
-      btn.style.marginBottom = '8px';
-      btn.style.borderRadius = 'var(--radius-lg)';
-      btn.style.border = '1px solid var(--cell-border)';
-      btn.style.background = 'var(--card-bg)';
-      btn.style.fontSize = '16px';
-      btn.style.cursor = 'pointer';
-      btn.style.transition = 'var(--transition-fast)';
-      btn.addEventListener('mouseenter', () => {
-        btn.style.background = 'var(--card-hover-bg)';
-        btn.style.transform = 'translateX(4px)';
-      });
-      btn.addEventListener('mouseleave', () => {
-        btn.style.background = 'var(--card-bg)';
-        btn.style.transform = 'none';
-      });
       btn.addEventListener('click', () => {
         showRecommendationsForCategory(cat.key);
       });
@@ -1125,27 +1107,21 @@ const Renderer = (function() {
   function showRecommendationsForCategory(category) {
     recTitle.textContent = `🍽️ Рекомендации: ${CATEGORY_LABELS[category] || category}`;
 
-    // Получаем все уникальные блюда с последней датой
     const allUnique = DishStore.getAllUniqueWithLastDone();
-    // Фильтруем по категории
     const filtered = [];
     allUnique.forEach(item => {
       const dish = DishStore.getAll().find(d => d.name === item.name);
       if (dish && dish.category === category && item.lastDoneDate) {
-        // Есть дата готовки
         const liked = DishStore.getAll().some(d => d.name === item.name && d.liked);
         filtered.push({ name: item.name, lastDate: item.lastDoneDate, liked });
       }
     });
 
-    // Сортируем по дате (старые сверху)
     filtered.sort((a, b) => a.lastDate.localeCompare(b.lastDate));
 
-    // Разделяем на любимые и другие
     const likedItems = filtered.filter(item => item.liked);
     const otherItems = filtered.filter(item => !item.liked);
 
-    // Берём первые: 1 любимое, 3 других
     const likedResult = likedItems.slice(0, 1);
     const othersResult = otherItems.slice(0, 3);
 
@@ -1233,7 +1209,6 @@ const Renderer = (function() {
       recContent.appendChild(hint);
     }
 
-    // Кнопка "Назад к выбору категории"
     const backBtn = document.createElement('button');
     backBtn.className = 'rec-back-btn';
     backBtn.textContent = '← Назад к категориям';
@@ -1953,10 +1928,24 @@ function initShoppingListHandlers() {
   RecipeStore.init();
   DishStore.init();
 
-  setTimeout(showWelcome, 300);
+  // Приветственная модалка
+  function showWelcome() {
+    const overlay = document.getElementById('welcomeOverlay');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    overlay.focus();
+  }
 
+  function hideWelcome() {
+    const overlay = document.getElementById('welcomeOverlay');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
+  setTimeout(showWelcome, 300);
   document.getElementById('welcomeStartBtn').addEventListener('click', hideWelcome);
 
+  // Тема
   const savedTheme = localStorage.getItem('mealPlannerTheme');
   if (savedTheme === 'dark') document.body.classList.add('dark-theme');
   document.getElementById('themeToggle').addEventListener('click', function() {
@@ -1964,6 +1953,7 @@ function initShoppingListHandlers() {
     localStorage.setItem('mealPlannerTheme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
   });
 
+  // Поиск и фильтры
   document.getElementById('searchInput').addEventListener('input', function() {
     Renderer.setSearchQuery(this.value);
   });
@@ -2022,7 +2012,7 @@ function initShoppingListHandlers() {
     draggedDishId = null; draggedFromDate = null;
   });
 
-  // Навигация
+  // Навигация по календарю
   const now = new Date();
   Renderer.setCurrentDate(now);
   Renderer.setCurrentView('month');
@@ -2064,7 +2054,7 @@ function initShoppingListHandlers() {
     });
   });
 
-  // Закрытие модалок
+  // Закрытие модалок по клику вне или Escape
   const modals = [
     { overlay: document.getElementById('modalOverlay'), close: Renderer.closeModal },
     { overlay: document.getElementById('recOverlay'), close: Renderer.closeRecModal },
@@ -2105,7 +2095,7 @@ function initShoppingListHandlers() {
     }
   });
 
-  // Кнопки закрытия
+  // Кнопки закрытия модалок
   document.getElementById('modalClose').addEventListener('click', Renderer.closeModal);
   document.getElementById('recClose').addEventListener('click', Renderer.closeRecModal);
   document.getElementById('addModalClose').addEventListener('click', Renderer.closeAddModal);
@@ -2115,7 +2105,7 @@ function initShoppingListHandlers() {
   document.getElementById('recipeFormClose').addEventListener('click', closeRecipeForm);
   document.getElementById('shoppingListClose').addEventListener('click', closeShoppingList);
 
-  // "Что приготовить?"
+  // Кнопка "Что приготовить?"
   document.getElementById('suggestBtn').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.add('active');
   });
@@ -2124,7 +2114,7 @@ function initShoppingListHandlers() {
   });
   document.getElementById('choiceFromMenu').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
-    Renderer.showCategorySelection(); // теперь выбор категории
+    Renderer.showCategorySelection();
   });
   document.getElementById('choiceFromTaste').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
@@ -2141,17 +2131,17 @@ function initShoppingListHandlers() {
       alert(`✅ Блюдо "${random.name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
     }
   });
-  // Добавляем обработчик для "Из рецептов"
   document.getElementById('choiceFromRecipes').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
     openRecipesModal();
   });
 
+  // Кнопка "Любимые"
   document.getElementById('favoritesBtn').addEventListener('click', Renderer.openFavorites);
   document.getElementById('recipesBtn').addEventListener('click', openRecipesModal);
   document.getElementById('shoppingListBtn').addEventListener('click', openShoppingList);
 
-  // Добавление блюда
+  // Кнопка "Добавить блюдо"
   document.getElementById('addDishBtn').addEventListener('click', Renderer.openAddModal);
   document.getElementById('addModalSave').addEventListener('click', function() {
     const nameInput = document.getElementById('newDishName');
@@ -2189,7 +2179,7 @@ function initShoppingListHandlers() {
     });
   });
 
-  // Импорт файла
+  // Импорт
   document.getElementById('importBtn').addEventListener('click', function() {
     document.getElementById('importFileInput').click();
   });
@@ -2252,20 +2242,5 @@ function initShoppingListHandlers() {
     }
   });
 
-  // Приветственная модалка
-  function showWelcome() {
-    const overlay = document.getElementById('welcomeOverlay');
-    overlay.classList.add('active');
-    document.body.style.overflow = 'hidden';
-    overlay.focus();
-  }
-
-  function hideWelcome() {
-    const overlay = document.getElementById('welcomeOverlay');
-    overlay.classList.remove('active');
-    document.body.style.overflow = '';
-  }
-
   console.log('✅ Планировщик меню готов!');
-  console.log('📖 Добавлена поддержка рецептов и списка покупок с сохранением и группировкой по отделам.');
 })();
