@@ -269,22 +269,10 @@ const DishStore = (function() {
     { name: 'Паста Болоньезе', status: STATUSES.PLANNED, date: '2026-09-12', category: CATEGORIES.MAIN, note: 'сделать с фаршем индейки' },
   ];
 
-  // ===== ОБНОВЛЁННЫЙ СПИСОК БЛЮД «НА ВКУС» =====
   const TASTE_DISHES = {
-    [CATEGORIES.SOUP]: [
-      'Борщ', 'Солянка', 'Щи', 'Гороховый суп', 'Рассольник',
-      'Уха', 'Куриный суп с лапшой', 'Харчо', 'Сырный суп', 'Окрошка'
-    ],
-    [CATEGORIES.MAIN]: [
-      'Картофельное пюре с котлетой', 'Пельмени', 'Манты', 'Гречка с мясом',
-      'Голубцы', 'Жаркое', 'Макароны по-флотски', 'Плов',
-      'Бефстроганов', 'Фаршированные перцы', 'Запеканка из фарша и овощей',
-      'Паста с курицей, грибами и сливками', 'Котлета с картофельным пюре'
-    ],
-    [CATEGORIES.SALAD]: [
-      'Селедка под шубой', 'Оливье', 'Крабовый', 'Цезарь с курицей',
-      'Мимоза', 'Винегрет', 'Греческий салат', 'Салат из свежих овощей'
-    ]
+    [CATEGORIES.SOUP]: ['Борщ', 'Солянка', 'Уха', 'Щи', 'Сырный суп', 'Гороховый суп', 'Рассольник', 'Окрошка'],
+    [CATEGORIES.MAIN]: ['Картофельное пюре с котлетой', 'Пельмени', 'Манты', 'Гречка с мясом', 'Голубцы', 'Жаркое', 'Макароны по-флотски', 'Плов'],
+    [CATEGORIES.SALAD]: ['Селедка под шубой', 'Оливье', 'Крабовый', 'Цезарь с курицей', 'Мимоза', 'Винегрет', 'Греческий салат', 'Салат из свежих овощей']
   };
 
   function generateId() {
@@ -472,8 +460,7 @@ const DishStore = (function() {
     init, editDishName, updateNote, getAll, getForDate, addDish, removeDish,
     toggleStatus, toggleLike, getAllUniqueWithLastDone,
     getRecommendations, getFavorites, invalidateCache, replaceAll,
-    getRandomDishFromTaste, setRecipeId,
-    TASTE_DISHES   // <-- ДОБАВЛЕНО ДЛЯ ДОСТУПА ИЗ РЕНДЕРЕРА
+    getRandomDishFromTaste, setRecipeId
   };
 })();
 
@@ -505,6 +492,7 @@ const Renderer = (function() {
     const nameSpan = document.createElement('span');
     nameSpan.className = 'dish-name';
     
+    // Иконка рецепта (📖) теперь слева от названия
     if (dish.recipeId) {
       const recipeLink = document.createElement('span');
       recipeLink.className = 'recipe-link';
@@ -1277,105 +1265,6 @@ const Renderer = (function() {
     recOverlay.focus();
   }
 
-  // ===== НОВЫЕ МЕТОДЫ ДЛЯ "НА ТВОЙ ВКУС" =====
-  showTasteCategorySelection() {
-    recTitle.textContent = '🍽️ Выберите категорию (на вкус)';
-    recContent.innerHTML = '';
-
-    const container = document.createElement('div');
-    container.className = 'rec-category-selection';
-
-    const desc = document.createElement('p');
-    desc.textContent = 'Выберите категорию блюд, которые вы хотели бы попробовать:';
-    desc.style.marginBottom = '16px';
-    desc.style.color = 'var(--text-secondary)';
-    container.appendChild(desc);
-
-    const categories = [
-      { key: CATEGORIES.SOUP, label: '🍲 Супы' },
-      { key: CATEGORIES.MAIN, label: '🍖 Основные блюда' },
-      { key: CATEGORIES.SALAD, label: '🥗 Салаты' }
-    ];
-
-    categories.forEach(cat => {
-      const btn = document.createElement('button');
-      btn.className = 'category-choice-btn';
-      btn.textContent = cat.label;
-      btn.style.display = 'block';
-      btn.style.width = '100%';
-      btn.style.padding = '12px';
-      btn.style.marginBottom = '8px';
-      btn.style.borderRadius = 'var(--radius-lg)';
-      btn.style.border = '1px solid var(--cell-border)';
-      btn.style.background = 'var(--card-bg)';
-      btn.style.fontSize = '16px';
-      btn.style.cursor = 'pointer';
-      btn.style.transition = 'var(--transition-fast)';
-      btn.addEventListener('mouseenter', () => {
-        btn.style.background = 'var(--card-hover-bg)';
-        btn.style.transform = 'translateX(4px)';
-      });
-      btn.addEventListener('mouseleave', () => {
-        btn.style.background = 'var(--card-bg)';
-        btn.style.transform = 'none';
-      });
-      btn.addEventListener('click', () => {
-        this.showTasteDishForCategory(cat.key);
-      });
-      container.appendChild(btn);
-    });
-
-    const backBtn = document.createElement('button');
-    backBtn.className = 'rec-back-btn';
-    backBtn.textContent = '← Назад';
-    backBtn.style.marginTop = '12px';
-    backBtn.style.background = 'transparent';
-    backBtn.style.border = 'none';
-    backBtn.style.color = 'var(--text-muted)';
-    backBtn.style.cursor = 'pointer';
-    backBtn.style.fontSize = '14px';
-    backBtn.addEventListener('click', () => {
-      recOverlay.classList.remove('active');
-    });
-    container.appendChild(backBtn);
-
-    recContent.appendChild(container);
-    recOverlay.classList.add('active');
-    recOverlay.focus();
-  },
-
-  showTasteDishForCategory(category) {
-    const dishes = DishStore.TASTE_DISHES[category];
-    if (!dishes || dishes.length === 0) {
-      alert('В этой категории пока нет блюд. Попробуйте другую.');
-      this.showTasteCategorySelection();
-      return;
-    }
-
-    const randomIndex = Math.floor(Math.random() * dishes.length);
-    const dishName = dishes[randomIndex];
-    const categoryLabel = CATEGORY_LABELS[category] || category;
-
-    const message = `🍽️ ${categoryLabel}\n\n${dishName}\n\nХотите добавить его в план на завтра?`;
-    if (confirm(message)) {
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const dateStr = Utils.formatDateLocal(tomorrow);
-      DishStore.addDish(dishName, STATUSES.PLANNED, dateStr, category, false, '');
-      recOverlay.classList.remove('active');
-      const view = Renderer.getCurrentView();
-      const curDate = Renderer.getCurrentDate();
-      Renderer.renderCalendar(view, curDate);
-      alert(`✅ Блюдо "${dishName}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
-    } else {
-      if (confirm('Выбрать другое блюдо?')) {
-        this.showTasteDishForCategory(category);
-      } else {
-        recOverlay.classList.remove('active');
-      }
-    }
-  },
-
   // --- Любимые ---
   function openFavorites() {
     recTitle.textContent = '❤️ Любимые блюда';
@@ -1531,9 +1420,7 @@ const Renderer = (function() {
     setCurrentView: (v) => { currentView = v; },
     showRecipeCard,
     showCategorySelection,
-    showRecommendationsForCategory,
-    showTasteCategorySelection,
-    showTasteDishForCategory
+    showRecommendationsForCategory
   };
 })();
 
@@ -2367,10 +2254,20 @@ function initShoppingListHandlers() {
     document.getElementById('choiceOverlay').classList.remove('active');
     Renderer.showCategorySelection();
   });
-  // ===== ИЗМЕНЁННЫЙ ОБРАБОТЧИК ДЛЯ "НА ТВОЙ ВКУС" =====
   document.getElementById('choiceFromTaste').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
-    Renderer.showTasteCategorySelection();
+    const random = DishStore.getRandomDishFromTaste();
+    const answer = `🍽️ ${random.categoryLabel}\n\n${random.name}\n\nХотите добавить его в план на завтра?`;
+    if (confirm(answer)) {
+      const tomorrow = new Date();
+      tomorrow.setDate(tomorrow.getDate() + 1);
+      const dateStr = Utils.formatDateLocal(tomorrow);
+      DishStore.addDish(random.name, STATUSES.PLANNED, dateStr, random.category, false, '');
+      const view = Renderer.getCurrentView();
+      const curDate = Renderer.getCurrentDate();
+      Renderer.renderCalendar(view, curDate);
+      alert(`✅ Блюдо "${random.name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
+    }
   });
   document.getElementById('choiceFromRecipes').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
