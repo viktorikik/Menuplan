@@ -262,21 +262,18 @@ textarea:focus-visible {
 }
 
 .btn-row .btn-primary,
-.btn-row .btn-done,
-.btn-row .btn-import-url {
+.btn-row .btn-done {
   background: var(--accent-color);
   color: white;
 }
 .btn-row .btn-primary:hover,
-.btn-row .btn-done:hover,
-.btn-row .btn-import-url:hover {
+.btn-row .btn-done:hover {
   transform: translateY(-2px);
   box-shadow: 0 8px 16px rgba(255, 122, 74, 0.3);
   filter: brightness(1.05);
 }
 .btn-row .btn-primary:active,
-.btn-row .btn-done:active,
-.btn-row .btn-import-url:active {
+.btn-row .btn-done:active {
   transform: translateY(0);
 }
 
@@ -327,10 +324,10 @@ textarea:focus-visible {
 
 .calendar-header {
   display: flex;
-  justify-content: space-between;
+  flex-wrap: nowrap;
   align-items: center;
+  justify-content: space-between;
   padding: 0 4px 12px;
-  flex-wrap: wrap;
   gap: var(--spacing-sm);
 }
 
@@ -340,7 +337,7 @@ textarea:focus-visible {
   gap: 6px;
   flex: 1 1 auto;
   justify-content: center;
-  min-width: 200px;
+  min-width: 0;
 }
 
 .month-nav {
@@ -550,7 +547,9 @@ textarea:focus-visible {
   background: var(--chip-bg);
   border-left: 3px solid var(--text-muted);
   color: var(--text-primary);
-  white-space: nowrap;
+  white-space: normal;
+  word-break: break-word;
+  max-width: 100%;
   cursor: grab;
   transition: var(--transition-fast);
   user-select: none;
@@ -1095,6 +1094,25 @@ textarea:focus-visible {
   padding-top: var(--spacing-md);
 }
 
+/* Стили для выбора категории в рекомендациях */
+.category-choice-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 8px;
+  border-radius: var(--radius-lg);
+  border: 1px solid var(--cell-border);
+  background: var(--card-bg);
+  font-size: 16px;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  color: var(--text-primary);
+}
+.category-choice-btn:hover {
+  background: var(--card-hover-bg);
+  transform: translateX(4px);
+}
+
 /* ----- Модалка добавления (глобальная) ----- */
 .add-modal .modal {
   max-width: 400px;
@@ -1195,159 +1213,6 @@ textarea:focus-visible {
   color: var(--text-muted);
   display: block;
   margin-top: 2px;
-}
-
-/* ----- Модалка импорта по ссылке ----- */
-.url-import-modal .modal {
-  max-width: 480px;
-}
-.url-import-modal .modal-desc {
-  margin-bottom: var(--spacing-md);
-  color: var(--text-secondary);
-  font-size: 14px;
-}
-.url-import-modal .platform-tags {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 6px;
-  margin-bottom: 12px;
-}
-.url-import-modal .platform-tags span {
-  font-size: 12px;
-  background: var(--badge-bg);
-  padding: 2px 8px;
-  border-radius: 12px;
-}
-.url-import-modal .url-input-group {
-  display: flex;
-  gap: 10px;
-  margin-bottom: var(--spacing-md);
-}
-.url-import-modal .url-input-group input {
-  flex: 1;
-  padding: 10px 14px;
-  border-radius: var(--radius-lg);
-  border: 1px solid var(--cell-border);
-  background: var(--input-bg);
-  font-size: 14px;
-  color: var(--text-primary);
-  outline: none;
-  appearance: none;
-}
-.url-import-modal .url-input-group input:focus {
-  border-color: var(--accent-color);
-  box-shadow: 0 0 0 3px var(--accent-light);
-}
-.url-import-modal .url-input-group button {
-  padding: 10px 20px;
-  border: none;
-  border-radius: var(--radius-lg);
-  background: var(--accent-color);
-  color: white;
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition-fast);
-  white-space: nowrap;
-  appearance: none;
-}
-.url-import-modal .url-input-group button:hover {
-  filter: brightness(1.05);
-  transform: translateY(-2px);
-}
-.url-import-modal .url-input-group button:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.url-import-modal .parsed-recipe {
-  background: var(--card-bg);
-  border-radius: var(--radius-md);
-  padding: var(--spacing-md);
-  margin-top: var(--spacing-md);
-  border: 1px solid var(--cell-border);
-}
-.url-import-modal .parsed-recipe .recipe-name {
-  font-size: 18px;
-  font-weight: 700;
-  color: var(--text-primary);
-  margin-bottom: var(--spacing-sm);
-}
-.url-import-modal .parsed-recipe .recipe-ingredients {
-  font-size: 14px;
-  color: var(--text-secondary);
-  margin-bottom: var(--spacing-sm);
-}
-.url-import-modal .parsed-recipe .recipe-ingredients ul {
-  list-style: none;
-  padding: 0;
-  margin: 4px 0;
-}
-.url-import-modal .parsed-recipe .recipe-ingredients li {
-  padding: 2px 0;
-  border-bottom: 1px solid var(--cell-border);
-}
-.url-import-modal .parsed-recipe .recipe-actions {
-  display: flex;
-  gap: 10px;
-  margin-top: var(--spacing-md);
-}
-.url-import-modal .parsed-recipe .recipe-actions button {
-  flex: 1;
-  padding: 8px 16px;
-  border: none;
-  border-radius: var(--radius-lg);
-  font-weight: 600;
-  cursor: pointer;
-  transition: var(--transition-fast);
-  appearance: none;
-}
-.url-import-modal .parsed-recipe .recipe-actions .btn-add {
-  background: var(--done-color);
-  color: white;
-}
-.url-import-modal .parsed-recipe .recipe-actions .btn-add:hover {
-  filter: brightness(1.05);
-  transform: translateY(-2px);
-}
-.url-import-modal .parsed-recipe .recipe-actions .btn-cancel {
-  background: transparent;
-  border: 1px solid var(--text-muted);
-  color: var(--text-primary);
-}
-.url-import-modal .parsed-recipe .recipe-actions .btn-cancel:hover {
-  background: var(--card-hover-bg);
-}
-
-.url-import-modal .status-message {
-  padding: var(--spacing-sm);
-  border-radius: var(--radius-sm);
-  margin: var(--spacing-sm) 0;
-  font-size: 14px;
-}
-.url-import-modal .status-message.error {
-  background: rgba(239, 68, 68, 0.1);
-  color: #ef4444;
-  border: 1px solid rgba(239, 68, 68, 0.2);
-}
-.url-import-modal .status-message.success {
-  background: rgba(52, 211, 153, 0.1);
-  color: #34d399;
-  border: 1px solid rgba(52, 211, 153, 0.2);
-}
-.url-import-modal .status-message.info {
-  background: rgba(59, 130, 246, 0.1);
-  color: #3b82f6;
-  border: 1px solid rgba(59, 130, 246, 0.2);
-}
-.url-import-modal .platform-badge {
-  display: inline-block;
-  padding: 2px 10px;
-  border-radius: var(--radius-md);
-  font-size: 12px;
-  font-weight: 500;
-  margin-bottom: 8px;
-  background: var(--badge-bg);
-  color: var(--text-muted);
 }
 
 /* ===== CHOICE OVERLAY ===== */
@@ -1689,7 +1554,6 @@ body.dark-theme #shoppingListDisplay .shopping-item::before {
   color: var(--accent-color);
 }
 
-/* ---- ИСПРАВЛЕНИЕ ЦВЕТА НАДПИСЕЙ "ОТ", "ДО" И "СОХРАНЁННЫЕ СПИСКИ" ---- */
 body.dark-theme #shoppingListOverlay .form-group label,
 body.dark-theme #shoppingListOverlay h4,
 body.dark-theme #savedListsContainer h4 {
@@ -1777,7 +1641,7 @@ body.dark-theme #savedListsContainer h4 {
   }
   .meal-chip {
     font-size: 11px;
-    padding: 1px 6px;
+    padding: 2px 6px;
   }
   .btn-row .btn {
     min-width: 120px;
@@ -1818,14 +1682,17 @@ body.dark-theme #savedListsContainer h4 {
   .import-hint {
     font-size: 11px;
   }
-  .url-import-modal .url-input-group {
-    flex-direction: column;
-  }
   #shoppingListDisplay .shopping-group h4 {
     font-size: 15px;
   }
   #shoppingListDisplay .shopping-item {
     font-size: 13px;
+  }
+  .calendar-header {
+    flex-wrap: nowrap;
+  }
+  .month-nav-wrapper {
+    flex: 1 1 auto;
   }
 }
 
@@ -1905,11 +1772,13 @@ body.dark-theme #savedListsContainer h4 {
     flex-direction: row;
     align-items: center;
     gap: var(--spacing-sm);
+    flex-wrap: nowrap;
   }
   .month-nav-wrapper {
     order: 0;
     justify-content: center;
     flex-wrap: nowrap;
+    flex: 1 1 auto;
   }
   .today-btn {
     order: 1;
@@ -1918,6 +1787,7 @@ body.dark-theme #savedListsContainer h4 {
     padding: var(--spacing-sm) var(--spacing-lg);
     font-size: 15px;
     min-height: 40px;
+    flex-shrink: 0;
   }
   #monthTitle {
     font-size: 22px;
