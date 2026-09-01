@@ -1425,7 +1425,7 @@ const Renderer = (function() {
 })();
 
 // ============================================================
-// 6. ФУНКЦИИ ЭКСПОРТА / ИМПОРТА (добавлен TXT)
+// 6. ФУНКЦИИ ЭКСПОРТА / ИМПОРТА (обновлён TXT)
 // ============================================================
 function exportData(format) {
   const data = DishStore.getAll();
@@ -1465,30 +1465,60 @@ function exportData(format) {
     a.click();
     URL.revokeObjectURL(url);
   } else if (format === 'txt') {
-    // Текстовый экспорт
+    // Текстовый экспорт с группировкой по дням и категориям
+    const weekdays = ['Понедельник', 'Вторник', 'Среда', 'Четверг', 'Пятница', 'Суббота', 'Воскресенье'];
+    const categoryOrder = [CATEGORIES.SOUP, CATEGORIES.SALAD, CATEGORIES.MAIN, CATEGORIES.OTHER];
+    
+    // Группируем блюда по дате, а внутри по категории
+    const groupedByDate = {};
+    data.forEach(dish => {
+      if (!groupedByDate[dish.date]) {
+        groupedByDate[dish.date] = {};
+      }
+      if (!groupedByDate[dish.date][dish.category]) {
+        groupedByDate[dish.date][dish.category] = [];
+      }
+      groupedByDate[dish.date][dish.category].push(dish);
+    });
+
+    // Сортируем даты
+    const sortedDates = Object.keys(groupedByDate).sort();
+
     let text = '📋 МОЁ МЕНЮ\n';
     text += `Дата экспорта: ${new Date().toLocaleDateString()}\n`;
     text += '='.repeat(45) + '\n\n';
-    
-    const sorted = data.slice().sort((a, b) => a.date.localeCompare(b.date));
-    let currentDate = '';
-    sorted.forEach(dish => {
-      if (dish.date !== currentDate) {
-        currentDate = dish.date;
-        const d = new Date(currentDate);
-        text += `📅 ${Utils.formatDate(d)}\n`;
-        text += '─'.repeat(35) + '\n';
-      }
-      const statusIcon = dish.status === STATUSES.DONE ? '✅' : '📅';
-      const likedIcon = dish.liked ? ' ❤️' : '';
-      const noteText = dish.note ? ` (${dish.note})` : '';
-      const catLabel = CATEGORY_LABELS[dish.category] || dish.category;
-      text += `${statusIcon} ${dish.name}${likedIcon} [${catLabel}]${noteText}\n`;
+
+    sortedDates.forEach(dateStr => {
+      const d = new Date(dateStr + 'T00:00:00'); // чтобы не было смещения по времени
+      const dayOfWeek = weekdays[d.getDay() === 0 ? 6 : d.getDay() - 1];
+      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, '0');
+      const year = d.getFullYear();
+      const formattedDate = `${day}.${month}.${year}`;
+      
+      text += `${dayOfWeek} | ${formattedDate}\n\n`;
+
+      // Группируем по категориям
+      const categoriesInDay = groupedByDate[dateStr];
+      // Сортируем категории по порядку
+      const sortedCategories = Object.keys(categoriesInDay).sort((a, b) => {
+        return categoryOrder.indexOf(a) - categoryOrder.indexOf(b);
+      });
+
+      sortedCategories.forEach(cat => {
+        const dishes = categoriesInDay[cat];
+        const catLabel = CATEGORY_LABELS[cat] || cat;
+        text += `${catLabel}:\n`;
+        dishes.forEach(dish => {
+          text += `  ${dish.name}\n`;
+        });
+        text += '\n';
+      });
     });
-    
-    text += '\n' + '='.repeat(45) + '\n';
+
+    text += '='.repeat(45) + '\n';
     text += `Всего блюд: ${data.length}`;
-    
+
     const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
