@@ -491,9 +491,8 @@ const Renderer = (function() {
 
     const nameSpan = document.createElement('span');
     nameSpan.className = 'dish-name';
-    nameSpan.textContent = dish.name;
-    dishDiv.appendChild(nameSpan);
-
+    
+    // Иконка рецепта (📖) теперь слева от названия
     if (dish.recipeId) {
       const recipeLink = document.createElement('span');
       recipeLink.className = 'recipe-link';
@@ -510,6 +509,10 @@ const Renderer = (function() {
       });
       nameSpan.appendChild(recipeLink);
     }
+    
+    const nameText = document.createTextNode(' ' + dish.name);
+    nameSpan.appendChild(nameText);
+    dishDiv.appendChild(nameSpan);
 
     const actions = document.createElement('div');
     actions.className = 'dish-actions';
@@ -529,7 +532,7 @@ const Renderer = (function() {
       const id = Number(this.dataset.id);
       const parentDish = this.closest('.modal-dish');
       const nameSpanEl = parentDish.querySelector('.dish-name');
-      const currentName = nameSpanEl.textContent;
+      const currentName = nameSpanEl.textContent.trim();
       const noteDiv = parentDish.querySelector('.dish-note');
       const currentNote = noteDiv ? noteDiv.textContent : '';
 
@@ -1580,21 +1583,52 @@ function renderRecipesList() {
 
     grouped[cat].forEach(recipe => {
       const li = document.createElement('li');
-      li.style.padding = '8px 14px';
-      li.style.borderBottom = '1px solid var(--cell-border)';
-      li.style.cursor = 'pointer';
-      li.style.transition = 'var(--transition-fast)';
-      li.style.borderRadius = 'var(--radius-sm)';
-      li.textContent = recipe.name;
+      li.style.cssText = `
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 8px 14px;
+        border-bottom: 1px solid var(--cell-border);
+        border-radius: var(--radius-sm);
+        transition: var(--transition-fast);
+        color: var(--text-primary);
+      `;
+      
+      const nameSpan = document.createElement('span');
+      nameSpan.textContent = recipe.name;
+      nameSpan.style.cursor = 'pointer';
+      nameSpan.style.flex = '1';
+      nameSpan.addEventListener('click', () => {
+        Renderer.showRecipeCard(recipe);
+      });
+      li.appendChild(nameSpan);
+
+      // Кнопка редактирования
+      const editBtn = document.createElement('button');
+      editBtn.textContent = '✎';
+      editBtn.style.cssText = `
+        background: none;
+        border: none;
+        font-size: 16px;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: var(--transition-fast);
+        padding: 0 6px;
+      `;
+      editBtn.title = 'Редактировать рецепт';
+      editBtn.addEventListener('click', function(e) {
+        e.stopPropagation();
+        openRecipeForm(recipe.id);
+      });
+      li.appendChild(editBtn);
+
       li.addEventListener('mouseenter', () => {
         li.style.background = 'var(--day-hover)';
       });
       li.addEventListener('mouseleave', () => {
         li.style.background = 'transparent';
       });
-      li.addEventListener('click', () => {
-        Renderer.showRecipeCard(recipe);
-      });
+
       ul.appendChild(li);
     });
 
@@ -2297,7 +2331,7 @@ function initShoppingListHandlers() {
   });
 
   console.log('✅ Планировщик меню готов!');
-  console.log('📖 Рецепты сгруппированы по категориям.');
+  console.log('📖 Рецепты сгруппированы по категориям с кнопкой редактирования.');
   console.log('🔄 В недельном виде есть подсказка о перетаскивании блюд.');
   console.log('🌓 Тема определяется автоматически по настройкам системы.');
 })();
