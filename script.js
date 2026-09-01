@@ -1514,7 +1514,7 @@ function closeRecipesModal() {
   document.getElementById('recipesOverlay').classList.remove('active');
 }
 
-// НОВАЯ ВЕРСИЯ: рецепты списком
+// *** ИСПРАВЛЕННАЯ ФУНКЦИЯ – РЕЦЕПТЫ СПИСКОМ ***
 function renderRecipesList() {
   const list = document.getElementById('recipesList');
   const recipes = RecipeStore.getAll();
