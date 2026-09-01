@@ -96,7 +96,7 @@
     </div>
     <div class="backup-hint">
       📌 Не забывайте делать резервную копию, выберите для этого формат <strong>JSON</strong>.
-      Если сохраняете «для себя» — лучше выбрать формат <strong>CSV</strong>.
+      Если сохраняете «для себя» — лучше выбрать формат <strong>CSV</strong> или <strong>TXT</strong>.
     </div>
     <input type="file" id="importFileInput" class="import-hidden" accept=".json" aria-label="Загрузить файл резервной копии">
   </section>
@@ -168,7 +168,7 @@
   </div>
 </div>
 
-<!-- Модалка экспорта -->
+<!-- Модалка экспорта (добавлен TXT) -->
 <div class="modal-overlay export-modal" id="exportModalOverlay" role="dialog" aria-modal="true" aria-labelledby="exportModalTitle">
   <div class="modal">
     <div class="modal-header">
@@ -183,6 +183,10 @@
     <button class="export-option" data-format="csv">
       <span class="export-label">CSV (для Excel)</span>
       <span class="export-desc">Таблица с колонками: Название, Статус, Дата, Категория, Заметка, Любимое</span>
+    </button>
+    <button class="export-option" data-format="txt">
+      <span class="export-label">TXT (текстовый файл)</span>
+      <span class="export-desc">Простой текстовый список всех блюд с датами и статусами</span>
     </button>
   </div>
 </div>
@@ -211,7 +215,7 @@
         <li>📖 Хранить рецепты с ингредиентами и инструкцией</li>
         <li>🛒 Генерировать список покупок из выбранных рецептов</li>
         <li>❤️ Отмечать любимые блюда и получать рекомендации</li>
-        <li>💾 Экспортировать данные в JSON или CSV</li>
+        <li>💾 Экспортировать данные в JSON, CSV или TXT</li>
       </ul>
       <p style="margin-top: 8px;">Всё работает в вашем браузере, данные хранятся локально. <strong>Начните прямо сейчас!</strong></p>
     </div>
