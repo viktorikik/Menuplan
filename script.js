@@ -890,6 +890,12 @@ const Renderer = (function() {
     const week = Utils.getWeekDays(baseDate);
     const list = document.createElement('div');
     list.className = 'week-list';
+
+    const hint = document.createElement('div');
+    hint.className = 'week-drag-hint';
+    hint.textContent = '🔄 Перетащите блюдо на другой день';
+    list.appendChild(hint);
+
     const dayNames = ['Пн', 'Вт', 'Ср', 'Чт', 'Пт', 'Сб', 'Вс'];
     week.forEach((day, idx) => {
       const dateStr = Utils.formatDateLocal(day);
@@ -1514,7 +1520,6 @@ function closeRecipesModal() {
   document.getElementById('recipesOverlay').classList.remove('active');
 }
 
-// *** ИСПРАВЛЕННАЯ ФУНКЦИЯ – РЕЦЕПТЫ СПИСКОМ ***
 function renderRecipesList() {
   const list = document.getElementById('recipesList');
   const recipes = RecipeStore.getAll();
@@ -1932,9 +1937,14 @@ function initShoppingListHandlers() {
   setTimeout(showWelcome, 300);
   document.getElementById('welcomeStartBtn').addEventListener('click', hideWelcome);
 
-  // Тема
-  const savedTheme = localStorage.getItem('mealPlannerTheme');
-  if (savedTheme === 'dark') document.body.classList.add('dark-theme');
+  // Тема: автоопределение по системе, если нет сохранённой
+  let theme = localStorage.getItem('mealPlannerTheme');
+  if (!theme) {
+    theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
+  }
+  if (theme === 'dark') document.body.classList.add('dark-theme');
+
+  // Кнопка переключения темы
   document.getElementById('themeToggle').addEventListener('click', function() {
     document.body.classList.toggle('dark-theme');
     localStorage.setItem('mealPlannerTheme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
@@ -2230,4 +2240,6 @@ function initShoppingListHandlers() {
 
   console.log('✅ Планировщик меню готов!');
   console.log('📖 Рецепты отображаются списком, клик по названию открывает карточку.');
+  console.log('🔄 В недельном виде есть подсказка о перетаскивании блюд.');
+  console.log('🌓 Тема определяется автоматически по настройкам системы.');
 })();
