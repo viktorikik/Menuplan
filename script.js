@@ -1425,7 +1425,7 @@ const Renderer = (function() {
 })();
 
 // ============================================================
-// 6. ФУНКЦИИ ЭКСПОРТА / ИМПОРТА
+// 6. ФУНКЦИИ ЭКСПОРТА / ИМПОРТА (добавлен TXT)
 // ============================================================
 function exportData(format) {
   const data = DishStore.getAll();
@@ -1462,6 +1462,38 @@ function exportData(format) {
     const a = document.createElement('a');
     a.href = url;
     a.download = `menu_export_${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  } else if (format === 'txt') {
+    // Текстовый экспорт
+    let text = '📋 МОЁ МЕНЮ\n';
+    text += `Дата экспорта: ${new Date().toLocaleDateString()}\n`;
+    text += '='.repeat(45) + '\n\n';
+    
+    const sorted = data.slice().sort((a, b) => a.date.localeCompare(b.date));
+    let currentDate = '';
+    sorted.forEach(dish => {
+      if (dish.date !== currentDate) {
+        currentDate = dish.date;
+        const d = new Date(currentDate);
+        text += `📅 ${Utils.formatDate(d)}\n`;
+        text += '─'.repeat(35) + '\n';
+      }
+      const statusIcon = dish.status === STATUSES.DONE ? '✅' : '📅';
+      const likedIcon = dish.liked ? ' ❤️' : '';
+      const noteText = dish.note ? ` (${dish.note})` : '';
+      const catLabel = CATEGORY_LABELS[dish.category] || dish.category;
+      text += `${statusIcon} ${dish.name}${likedIcon} [${catLabel}]${noteText}\n`;
+    });
+    
+    text += '\n' + '='.repeat(45) + '\n';
+    text += `Всего блюд: ${data.length}`;
+    
+    const blob = new Blob([text], { type: 'text/plain;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `menu_export_${new Date().toISOString().slice(0,10)}.txt`;
     a.click();
     URL.revokeObjectURL(url);
   }
@@ -2315,4 +2347,5 @@ function initShoppingListHandlers() {
   console.log('📖 Рецепты сгруппированы по категориям с кнопкой редактирования.');
   console.log('🔄 В недельном виде есть подсказка о перетаскивании блюд.');
   console.log('🌓 Тема определяется автоматически по настройкам системы.');
+  console.log('📤 Доступен экспорт в JSON, CSV и TXT.');
 })();
