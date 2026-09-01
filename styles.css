@@ -1814,3 +1814,38 @@ body.dark-theme #savedListsContainer h4 {
     max-width: calc(50% - 10px);
   }
 }
+
+/* ===== НОВЫЙ ПОРЯДОК КНОПОК ===== */
+.btn-row.center-row {
+  justify-content: center;
+}
+.btn-row.center-row .btn {
+  max-width: 200px;
+}
+
+/* ===== БЛОК ЭКСПОРТА/ИМПОРТА ВНИЗУ ===== */
+.backup-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px solid var(--cell-border);
+  text-align: center;
+}
+.backup-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+.backup-row .btn {
+  min-width: 140px;
+  max-width: 200px;
+}
+.backup-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.backup-hint strong {
+  color: var(--text-primary);
+}
