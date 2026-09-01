@@ -1456,7 +1456,6 @@ textarea:focus-visible {
   margin-top: 4px;
 }
 
-/* ===== ИСПРАВЛЕНИЕ ЦВЕТА В СПИСКЕ РЕЦЕПТОВ (тёмная тема) ===== */
 #recipesList li {
   color: var(--text-primary);
 }
