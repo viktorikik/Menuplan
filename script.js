@@ -1365,13 +1365,13 @@ const Renderer = (function() {
   function setStatusFilter(f) { statusFilter = f; renderMenu(); }
   function setCategoryFilter(f) { categoryFilter = f; renderMenu(); }
 
-  // --- Показ карточки рецепта ---
+  // --- Показ карточки рецепта (исправлено для тёмной темы) ---
   function showRecipeCard(recipe) {
     const overlay = document.createElement('div');
     overlay.className = 'modal-overlay active';
     overlay.style.display = 'flex';
     const modal = document.createElement('div');
-    modal.className = 'modal';
+    modal.className = 'modal recipe-view-modal';
     modal.style.maxWidth = '500px';
     modal.innerHTML = `
       <div class="modal-header">
@@ -1543,7 +1543,6 @@ function renderRecipesList() {
     return;
   }
 
-  // Группируем по категориям
   const grouped = {};
   recipes.forEach(recipe => {
     const cat = recipe.category || Utils.guessCategory(recipe.name);
@@ -1551,7 +1550,6 @@ function renderRecipesList() {
     grouped[cat].push(recipe);
   });
 
-  // Сортируем категории в порядке: супы, салаты, основные, другое
   const categoryOrder = [CATEGORIES.SOUP, CATEGORIES.SALAD, CATEGORIES.MAIN, CATEGORIES.OTHER];
   const sortedCategories = Object.keys(grouped).sort((a, b) => {
     return categoryOrder.indexOf(a) - categoryOrder.indexOf(b);
@@ -1603,7 +1601,6 @@ function renderRecipesList() {
       });
       li.appendChild(nameSpan);
 
-      // Кнопка редактирования
       const editBtn = document.createElement('button');
       editBtn.textContent = '✎';
       editBtn.style.cssText = `
@@ -1693,7 +1690,6 @@ function parseRecipeTextFromForm() {
   const result = Utils.parseRecipeText(ingrText);
   if (result.title) {
     document.getElementById('recipeName').value = result.title;
-    // Автоопределение категории
     const cat = Utils.guessCategory(result.title);
     document.getElementById('recipeCategory').value = cat;
   }
@@ -2013,7 +2009,6 @@ function initShoppingListHandlers() {
   RecipeStore.init();
   DishStore.init();
 
-  // Приветствие
   function showWelcome() {
     const overlay = document.getElementById('welcomeOverlay');
     overlay.classList.add('active');
@@ -2029,20 +2024,17 @@ function initShoppingListHandlers() {
   setTimeout(showWelcome, 300);
   document.getElementById('welcomeStartBtn').addEventListener('click', hideWelcome);
 
-  // Тема: автоопределение по системе, если нет сохранённой
   let theme = localStorage.getItem('mealPlannerTheme');
   if (!theme) {
     theme = window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
   }
   if (theme === 'dark') document.body.classList.add('dark-theme');
 
-  // Кнопка переключения темы
   document.getElementById('themeToggle').addEventListener('click', function() {
     document.body.classList.toggle('dark-theme');
     localStorage.setItem('mealPlannerTheme', document.body.classList.contains('dark-theme') ? 'dark' : 'light');
   });
 
-  // Поиск и фильтры
   document.getElementById('searchInput').addEventListener('input', function() {
     Renderer.setSearchQuery(this.value);
   });
@@ -2053,7 +2045,6 @@ function initShoppingListHandlers() {
     Renderer.setCategoryFilter(this.value);
   });
 
-  // Drag & Drop
   let draggedDishId = null, draggedFromDate = null;
   document.addEventListener('dragstart', function(e) {
     const target = e.target.closest('.meal-chip');
@@ -2101,7 +2092,6 @@ function initShoppingListHandlers() {
     draggedDishId = null; draggedFromDate = null;
   });
 
-  // Навигация календаря
   const now = new Date();
   Renderer.setCurrentDate(now);
   Renderer.setCurrentView('month');
@@ -2143,7 +2133,6 @@ function initShoppingListHandlers() {
     });
   });
 
-  // Закрытие модалок по клику на оверлей и Escape
   const modals = [
     { overlay: document.getElementById('modalOverlay'), close: Renderer.closeModal },
     { overlay: document.getElementById('recOverlay'), close: Renderer.closeRecModal },
@@ -2184,7 +2173,6 @@ function initShoppingListHandlers() {
     }
   });
 
-  // Кнопки закрытия
   document.getElementById('modalClose').addEventListener('click', Renderer.closeModal);
   document.getElementById('recClose').addEventListener('click', Renderer.closeRecModal);
   document.getElementById('addModalClose').addEventListener('click', Renderer.closeAddModal);
@@ -2194,7 +2182,6 @@ function initShoppingListHandlers() {
   document.getElementById('recipeFormClose').addEventListener('click', closeRecipeForm);
   document.getElementById('shoppingListClose').addEventListener('click', closeShoppingList);
 
-  // "Что приготовить?"
   document.getElementById('suggestBtn').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.add('active');
   });
@@ -2229,7 +2216,6 @@ function initShoppingListHandlers() {
   document.getElementById('recipesBtn').addEventListener('click', openRecipesModal);
   document.getElementById('shoppingListBtn').addEventListener('click', openShoppingList);
 
-  // Добавление блюда
   document.getElementById('addDishBtn').addEventListener('click', Renderer.openAddModal);
   document.getElementById('addModalSave').addEventListener('click', function() {
     const nameInput = document.getElementById('newDishName');
@@ -2255,7 +2241,6 @@ function initShoppingListHandlers() {
     noteInput.value = '';
   });
 
-  // Экспорт
   document.getElementById('exportBtn').addEventListener('click', function() {
     document.getElementById('exportModalOverlay').classList.add('active');
   });
@@ -2267,7 +2252,6 @@ function initShoppingListHandlers() {
     });
   });
 
-  // Импорт
   document.getElementById('importBtn').addEventListener('click', function() {
     document.getElementById('importFileInput').click();
   });
@@ -2278,7 +2262,6 @@ function initShoppingListHandlers() {
     }
   });
 
-  // Рецепты
   document.getElementById('addRecipeBtn').addEventListener('click', function() {
     openRecipeForm(null);
   });
@@ -2286,10 +2269,8 @@ function initShoppingListHandlers() {
   document.getElementById('recipeFormSave').addEventListener('click', saveRecipeForm);
   document.getElementById('recipeParseBtn').addEventListener('click', parseRecipeTextFromForm);
 
-  // Список покупок
   initShoppingListHandlers();
 
-  // Свайпы
   let touchStartX = 0, touchEndX = 0;
   const wrap = document.getElementById('calendarWrap');
   wrap.addEventListener('touchstart', (e) => {
