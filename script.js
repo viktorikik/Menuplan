@@ -791,7 +791,7 @@ const Renderer = (function() {
           });
           suggestList.appendChild(suggestItem);
         });
-        filterSuggestions(); // применить начальные фильтры
+        filterSuggestions();
       }
     }
     renderSuggestions();
@@ -1079,6 +1079,24 @@ const Renderer = (function() {
       const btn = document.createElement('button');
       btn.className = 'category-choice-btn';
       btn.textContent = cat.label;
+      btn.style.display = 'block';
+      btn.style.width = '100%';
+      btn.style.padding = '12px';
+      btn.style.marginBottom = '8px';
+      btn.style.borderRadius = 'var(--radius-lg)';
+      btn.style.border = '1px solid var(--cell-border)';
+      btn.style.background = 'var(--card-bg)';
+      btn.style.fontSize = '16px';
+      btn.style.cursor = 'pointer';
+      btn.style.transition = 'var(--transition-fast)';
+      btn.addEventListener('mouseenter', () => {
+        btn.style.background = 'var(--card-hover-bg)';
+        btn.style.transform = 'translateX(4px)';
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.background = 'var(--card-bg)';
+        btn.style.transform = 'none';
+      });
       btn.addEventListener('click', () => {
         showRecommendationsForCategory(cat.key);
       });
@@ -1496,6 +1514,7 @@ function closeRecipesModal() {
   document.getElementById('recipesOverlay').classList.remove('active');
 }
 
+// НОВАЯ ВЕРСИЯ: рецепты списком
 function renderRecipesList() {
   const list = document.getElementById('recipesList');
   const recipes = RecipeStore.getAll();
@@ -1504,60 +1523,30 @@ function renderRecipesList() {
     list.innerHTML = '<div class="modal-empty">😌 У вас пока нет рецептов. Нажмите «Добавить рецепт».</div>';
     return;
   }
+  const ul = document.createElement('ul');
+  ul.style.listStyle = 'none';
+  ul.style.padding = '0';
+  ul.style.margin = '0';
   recipes.forEach(recipe => {
-    const card = document.createElement('div');
-    card.className = 'recipe-card';
-    card.dataset.id = recipe.id;
-    card.innerHTML = `
-      <div class="recipe-header">
-        <span class="recipe-name">${Utils.escapeHtml(recipe.name)}</span>
-        <div class="recipe-actions">
-          <button class="edit-recipe" data-id="${recipe.id}" title="Редактировать">✎</button>
-          <button class="delete-recipe" data-id="${recipe.id}" title="Удалить">🗑️</button>
-          <button class="add-recipe-to-calendar" data-id="${recipe.id}" title="Добавить в календарь">📅</button>
-        </div>
-      </div>
-      <div class="recipe-details">
-        <div class="ingredients"><strong>Ингредиенты:</strong><ul>${recipe.ingredients.map(i => `<li>${Utils.escapeHtml(i)}</li>`).join('')}</ul></div>
-        ${recipe.instructions ? `<div class="instructions"><strong>Инструкция:</strong><pre>${Utils.escapeHtml(recipe.instructions)}</pre></div>` : ''}
-      </div>
-    `;
-    list.appendChild(card);
-
-    // Клик по карточке (кроме кнопок) – открыть просмотр
-    card.addEventListener('click', function(e) {
-      if (e.target.closest('.recipe-actions')) return;
-      const recipe = RecipeStore.getById(Number(this.dataset.id));
-      if (recipe) Renderer.showRecipeCard(recipe);
+    const li = document.createElement('li');
+    li.style.padding = '10px 14px';
+    li.style.borderBottom = '1px solid var(--cell-border)';
+    li.style.cursor = 'pointer';
+    li.style.transition = 'var(--transition-fast)';
+    li.style.borderRadius = 'var(--radius-sm)';
+    li.textContent = recipe.name;
+    li.addEventListener('mouseenter', () => {
+      li.style.background = 'var(--day-hover)';
     });
-
-    card.querySelector('.edit-recipe').addEventListener('click', function(e) {
-      e.stopPropagation();
-      openRecipeForm(Number(this.dataset.id));
+    li.addEventListener('mouseleave', () => {
+      li.style.background = 'transparent';
     });
-    card.querySelector('.delete-recipe').addEventListener('click', function(e) {
-      e.stopPropagation();
-      if (confirm('Удалить рецепт?')) {
-        RecipeStore.remove(Number(this.dataset.id));
-        renderRecipesList();
-      }
+    li.addEventListener('click', () => {
+      Renderer.showRecipeCard(recipe);
     });
-    card.querySelector('.add-recipe-to-calendar').addEventListener('click', function(e) {
-      e.stopPropagation();
-      const recipe = RecipeStore.getById(Number(this.dataset.id));
-      if (recipe) {
-        const tomorrow = new Date();
-        tomorrow.setDate(tomorrow.getDate() + 1);
-        const dateStr = Utils.formatDateLocal(tomorrow);
-        const category = Utils.guessCategory(recipe.name);
-        DishStore.addDish(recipe.name, STATUSES.PLANNED, dateStr, category, false, '', recipe.id);
-        alert(`✅ Блюдо "${recipe.name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
-        const view = Renderer.getCurrentView();
-        const curDate = Renderer.getCurrentDate();
-        Renderer.renderCalendar(view, curDate);
-      }
-    });
+    ul.appendChild(li);
   });
+  list.appendChild(ul);
 }
 
 function openRecipeForm(recipeId = null) {
@@ -1619,7 +1608,6 @@ function parseRecipeTextFromForm() {
 }
 
 // --- Список покупок ---
-
 function getSavedShoppingListKeys() {
   const keys = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -1928,14 +1916,13 @@ function initShoppingListHandlers() {
   RecipeStore.init();
   DishStore.init();
 
-  // Приветственная модалка
+  // Приветствие
   function showWelcome() {
     const overlay = document.getElementById('welcomeOverlay');
     overlay.classList.add('active');
     document.body.style.overflow = 'hidden';
     overlay.focus();
   }
-
   function hideWelcome() {
     const overlay = document.getElementById('welcomeOverlay');
     overlay.classList.remove('active');
@@ -2012,7 +1999,7 @@ function initShoppingListHandlers() {
     draggedDishId = null; draggedFromDate = null;
   });
 
-  // Навигация по календарю
+  // Навигация календаря
   const now = new Date();
   Renderer.setCurrentDate(now);
   Renderer.setCurrentView('month');
@@ -2054,7 +2041,7 @@ function initShoppingListHandlers() {
     });
   });
 
-  // Закрытие модалок по клику вне или Escape
+  // Закрытие модалок по клику на оверлей и Escape
   const modals = [
     { overlay: document.getElementById('modalOverlay'), close: Renderer.closeModal },
     { overlay: document.getElementById('recOverlay'), close: Renderer.closeRecModal },
@@ -2095,7 +2082,7 @@ function initShoppingListHandlers() {
     }
   });
 
-  // Кнопки закрытия модалок
+  // Кнопки закрытия
   document.getElementById('modalClose').addEventListener('click', Renderer.closeModal);
   document.getElementById('recClose').addEventListener('click', Renderer.closeRecModal);
   document.getElementById('addModalClose').addEventListener('click', Renderer.closeAddModal);
@@ -2105,7 +2092,7 @@ function initShoppingListHandlers() {
   document.getElementById('recipeFormClose').addEventListener('click', closeRecipeForm);
   document.getElementById('shoppingListClose').addEventListener('click', closeShoppingList);
 
-  // Кнопка "Что приготовить?"
+  // "Что приготовить?"
   document.getElementById('suggestBtn').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.add('active');
   });
@@ -2136,12 +2123,11 @@ function initShoppingListHandlers() {
     openRecipesModal();
   });
 
-  // Кнопка "Любимые"
   document.getElementById('favoritesBtn').addEventListener('click', Renderer.openFavorites);
   document.getElementById('recipesBtn').addEventListener('click', openRecipesModal);
   document.getElementById('shoppingListBtn').addEventListener('click', openShoppingList);
 
-  // Кнопка "Добавить блюдо"
+  // Добавление блюда
   document.getElementById('addDishBtn').addEventListener('click', Renderer.openAddModal);
   document.getElementById('addModalSave').addEventListener('click', function() {
     const nameInput = document.getElementById('newDishName');
@@ -2243,4 +2229,5 @@ function initShoppingListHandlers() {
   });
 
   console.log('✅ Планировщик меню готов!');
+  console.log('📖 Рецепты отображаются списком, клик по названию открывает карточку.');
 })();
