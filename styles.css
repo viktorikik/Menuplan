@@ -66,7 +66,7 @@ body.dark-theme {
   --bg-app-border: rgba(255, 255, 255, 0.06);
   --text-primary: #ececf0;
   --text-secondary: #b0b0c8;
-  --text-muted: #7a7a92;
+  --text-muted: #a0a0b8; /* сделали светлее для лучшей читаемости */
   --cell-bg: rgba(40, 40, 56, 0.6);
   --cell-border: rgba(255, 255, 255, 0.08);
   --tag-bg: rgba(45, 45, 65, 0.7);
@@ -1472,8 +1472,17 @@ textarea:focus-visible {
   margin-top: 4px;
 }
 
-/* ===== СПИСОК РЕЦЕПТОВ (исправление цвета в тёмной теме) ===== */
+/* ===== ИСПРАВЛЕНИЕ ЦВЕТА В СПИСКЕ РЕЦЕПТОВ (тёмная тема) ===== */
 #recipesList li {
+  color: var(--text-primary);
+}
+#recipesList li button {
+  color: var(--text-muted);
+}
+body.dark-theme #recipesList li button {
+  color: var(--text-muted);
+}
+body.dark-theme #recipesList li button:hover {
   color: var(--text-primary);
 }
 
