@@ -764,7 +764,6 @@ const Renderer = (function() {
           const suggestItem = document.createElement('div');
           suggestItem.className = 'modal-suggest-item';
           suggestItem.dataset.name = item.name;
-          // Определяем категорию: берём из существующего блюда или угадываем
           const existingDish = DishStore.getAll().find(d => d.name === item.name);
           const category = existingDish ? existingDish.category : Utils.guessCategory(item.name);
           suggestItem.dataset.category = category;
@@ -1055,24 +1054,116 @@ const Renderer = (function() {
     modalOverlay.classList.remove('active');
   }
 
-  // --- Рекомендации и любимые ---
-  function openRecommendations() {
-    recTitle.textContent = '🍽️ Рекомендации';
-    const { liked, others } = DishStore.getRecommendations();
+  // --- Рекомендации с выбором категории ---
+  function showCategorySelection() {
+    recTitle.textContent = '🍽️ Выберите категорию';
     recContent.innerHTML = '';
-    if (liked.length === 0 && others.length === 0) {
+
+    const container = document.createElement('div');
+    container.className = 'rec-category-selection';
+
+    const desc = document.createElement('p');
+    desc.textContent = 'Выберите категорию блюд, которые хотите приготовить:';
+    desc.style.marginBottom = '16px';
+    desc.style.color = 'var(--text-secondary)';
+    container.appendChild(desc);
+
+    const categories = [
+      { key: CATEGORIES.SOUP, label: '🍲 Супы' },
+      { key: CATEGORIES.SALAD, label: '🥗 Салаты' },
+      { key: CATEGORIES.MAIN, label: '🍖 Основные блюда' },
+      { key: CATEGORIES.OTHER, label: '🍽️ Другое' }
+    ];
+
+    categories.forEach(cat => {
+      const btn = document.createElement('button');
+      btn.className = 'category-choice-btn';
+      btn.textContent = cat.label;
+      btn.style.display = 'block';
+      btn.style.width = '100%';
+      btn.style.padding = '12px';
+      btn.style.marginBottom = '8px';
+      btn.style.borderRadius = 'var(--radius-lg)';
+      btn.style.border = '1px solid var(--cell-border)';
+      btn.style.background = 'var(--card-bg)';
+      btn.style.fontSize = '16px';
+      btn.style.cursor = 'pointer';
+      btn.style.transition = 'var(--transition-fast)';
+      btn.addEventListener('mouseenter', () => {
+        btn.style.background = 'var(--card-hover-bg)';
+        btn.style.transform = 'translateX(4px)';
+      });
+      btn.addEventListener('mouseleave', () => {
+        btn.style.background = 'var(--card-bg)';
+        btn.style.transform = 'none';
+      });
+      btn.addEventListener('click', () => {
+        showRecommendationsForCategory(cat.key);
+      });
+      container.appendChild(btn);
+    });
+
+    const backBtn = document.createElement('button');
+    backBtn.className = 'rec-back-btn';
+    backBtn.textContent = '← Назад';
+    backBtn.style.marginTop = '12px';
+    backBtn.style.background = 'transparent';
+    backBtn.style.border = 'none';
+    backBtn.style.color = 'var(--text-muted)';
+    backBtn.style.cursor = 'pointer';
+    backBtn.style.fontSize = '14px';
+    backBtn.addEventListener('click', () => {
+      recOverlay.classList.remove('active');
+    });
+    container.appendChild(backBtn);
+
+    recContent.appendChild(container);
+    recOverlay.classList.add('active');
+    recOverlay.focus();
+  }
+
+  function showRecommendationsForCategory(category) {
+    recTitle.textContent = `🍽️ Рекомендации: ${CATEGORY_LABELS[category] || category}`;
+
+    // Получаем все уникальные блюда с последней датой
+    const allUnique = DishStore.getAllUniqueWithLastDone();
+    // Фильтруем по категории
+    const filtered = [];
+    allUnique.forEach(item => {
+      const dish = DishStore.getAll().find(d => d.name === item.name);
+      if (dish && dish.category === category && item.lastDoneDate) {
+        // Есть дата готовки
+        const liked = DishStore.getAll().some(d => d.name === item.name && d.liked);
+        filtered.push({ name: item.name, lastDate: item.lastDoneDate, liked });
+      }
+    });
+
+    // Сортируем по дате (старые сверху)
+    filtered.sort((a, b) => a.lastDate.localeCompare(b.lastDate));
+
+    // Разделяем на любимые и другие
+    const likedItems = filtered.filter(item => item.liked);
+    const otherItems = filtered.filter(item => !item.liked);
+
+    // Берём первые: 1 любимое, 3 других
+    const likedResult = likedItems.slice(0, 1);
+    const othersResult = otherItems.slice(0, 3);
+
+    recContent.innerHTML = '';
+
+    if (likedResult.length === 0 && othersResult.length === 0) {
       const empty = document.createElement('div');
       empty.className = 'modal-empty';
-      empty.textContent = '😌 Нет блюд в истории. Добавьте несколько блюд, и я буду предлагать!';
+      empty.textContent = `😌 В категории "${CATEGORY_LABELS[category]}" нет блюд, которые вы уже готовили. Добавьте несколько!`;
       recContent.appendChild(empty);
     } else {
-      if (liked.length > 0) {
+      if (likedResult.length > 0) {
         const section = document.createElement('div');
         section.className = 'rec-section';
         const title = document.createElement('h4');
         title.textContent = '❤️ Давно не готовили любимое блюдо';
         section.appendChild(title);
-        liked.forEach(item => {
+        likedResult.forEach(item => {
           const row = document.createElement('div');
           row.className = 'rec-item';
           row.dataset.name = item.name;
@@ -1101,13 +1192,13 @@ const Renderer = (function() {
         });
         recContent.appendChild(section);
       }
-      if (others.length > 0) {
+      if (othersResult.length > 0) {
         const section = document.createElement('div');
         section.className = 'rec-section';
         const title = document.createElement('h4');
         title.textContent = '🍽️ Другие давние блюда';
         section.appendChild(title);
-        others.forEach(item => {
+        othersResult.forEach(item => {
           const row = document.createElement('div');
           row.className = 'rec-item';
           row.dataset.name = item.name;
@@ -1141,10 +1232,27 @@ const Renderer = (function() {
       hint.textContent = '👆 Кликните по блюду, чтобы добавить его в план на завтра';
       recContent.appendChild(hint);
     }
+
+    // Кнопка "Назад к выбору категории"
+    const backBtn = document.createElement('button');
+    backBtn.className = 'rec-back-btn';
+    backBtn.textContent = '← Назад к категориям';
+    backBtn.style.marginTop = '16px';
+    backBtn.style.background = 'transparent';
+    backBtn.style.border = 'none';
+    backBtn.style.color = 'var(--text-muted)';
+    backBtn.style.cursor = 'pointer';
+    backBtn.style.fontSize = '14px';
+    backBtn.addEventListener('click', () => {
+      showCategorySelection();
+    });
+    recContent.appendChild(backBtn);
+
     recOverlay.classList.add('active');
     recOverlay.focus();
   }
 
+  // --- Любимые ---
   function openFavorites() {
     recTitle.textContent = '❤️ Любимые блюда';
     const favs = DishStore.getFavorites();
@@ -1290,391 +1398,21 @@ const Renderer = (function() {
   }
 
   return {
-    renderCalendar, renderMenu, openModal, closeModal, openRecommendations,
-    openFavorites, closeRecModal, openAddModal, closeAddModal,
+    renderCalendar, renderMenu, openModal, closeModal, openFavorites,
+    closeRecModal, openAddModal, closeAddModal,
     setSearchQuery, setStatusFilter, setCategoryFilter,
     getCurrentDate: () => currentDate,
     getCurrentView: () => currentView,
     setCurrentDate: (d) => { currentDate = d; },
     setCurrentView: (v) => { currentView = v; },
-    showRecipeCard
+    showRecipeCard,
+    showCategorySelection,
+    showRecommendationsForCategory
   };
 })();
 
 // ============================================================
-// 6. ПАРСЕРЫ ДЛЯ ИМПОРТА ПО ССЫЛКЕ
-// ============================================================
-const Parsers = {
-  parseGeneral(doc) {
-    let title = '';
-    let ingredients = [];
-    const titleSelectors = [
-      'h1[itemprop="name"]', '.recipe-title', '.recipe-header h1',
-      'h1.recipe__title', '.recipe-name', '.title', 'article h1',
-      '.recipe h1', '.post-title', 'h1.entry-title', 'h1'
-    ];
-    for (const selector of titleSelectors) {
-      const el = doc.querySelector(selector);
-      if (el && el.textContent.trim()) {
-        title = el.textContent.trim();
-        break;
-      }
-    }
-    if (!title) {
-      const ogTitle = doc.querySelector('meta[property="og:title"]');
-      if (ogTitle) title = ogTitle.getAttribute('content') || '';
-    }
-    if (title) {
-      title = title.split('|')[0].trim();
-      title = title.split('–')[0].trim();
-      title = title.split('—')[0].trim();
-    }
-    const ingredientSelectors = [
-      '.ingredients-list li', '.recipe-ingredients li', '.ingredients li',
-      '.ingredient-item', '.recipe__ingredients li', '.ingredient',
-      '.ingredients-list .item', 'ul.ingredients li', '.ingredients-list__item'
-    ];
-    for (const selector of ingredientSelectors) {
-      const items = doc.querySelectorAll(selector);
-      if (items.length > 0) {
-        items.forEach(el => {
-          const text = el.textContent.trim();
-          if (text && text.length > 1 && !text.includes('Продукты')) {
-            ingredients.push(text);
-          }
-        });
-        if (ingredients.length > 0) break;
-      }
-    }
-    if (ingredients.length === 0) {
-      const lists = doc.querySelectorAll('ul, ol');
-      for (const list of lists) {
-        const items = list.querySelectorAll('li');
-        const temp = [];
-        items.forEach(el => {
-          const text = el.textContent.trim();
-          if (text && text.length > 1 && text.length < 100) {
-            if (/\d/.test(text) || /г|мл|кг|л|шт|ст\.|ч\.|зуб/.test(text)) {
-              temp.push(text);
-            }
-          }
-        });
-        if (temp.length > 2) {
-          ingredients = temp;
-          break;
-        }
-      }
-    }
-    ingredients = ingredients.filter((v, i, a) => a.indexOf(v) === i && v.length > 2);
-    return { title, ingredients, sourceType: '🌐 Сайт' };
-  },
-
-  parseYouTube(doc) {
-    let title = '';
-    const pageTitle = doc.querySelector('title');
-    if (pageTitle) {
-      let rawTitle = pageTitle.textContent.trim();
-      rawTitle = rawTitle.replace(/\s*[-–]\s*YouTube\s*$/i, '');
-      rawTitle = rawTitle.replace(/^YouTube\s*[-–]\s*/, '');
-      title = rawTitle;
-    }
-    let description = '';
-    const metaDesc = doc.querySelector('meta[name="description"]');
-    if (metaDesc) description = metaDesc.getAttribute('content') || '';
-    const scripts = doc.querySelectorAll('script[type="application/ld+json"]');
-    for (const script of scripts) {
-      try {
-        const data = JSON.parse(script.textContent);
-        if (data.description) {
-          description = data.description;
-          break;
-        }
-        if (Array.isArray(data) && data[0]?.description) {
-          description = data[0].description;
-          break;
-        }
-      } catch (e) {}
-    }
-    if (!description) {
-      const ogDesc = doc.querySelector('meta[property="og:description"]');
-      if (ogDesc) description = ogDesc.getAttribute('content') || '';
-    }
-    let ingredients = [];
-    if (description) {
-      const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      for (const line of lines) {
-        if (Utils.isIngredientLine(line) && line.length < 100) {
-          ingredients.push(line);
-        }
-      }
-      if (ingredients.length === 0) {
-        const numLines = lines.filter(l => /\d/.test(l) && l.length < 100 && l.length > 3);
-        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-      }
-    }
-    if (ingredients.length === 0) {
-      ingredients = ['Ингредиенты не найдены в описании видео. Добавьте их в заметку вручную.'];
-    }
-    return { title, ingredients, sourceType: '🎬 YouTube' };
-  },
-
-  parseTelegram(doc) {
-    let title = '';
-    const pageTitle = doc.querySelector('title');
-    if (pageTitle) {
-      let rawTitle = pageTitle.textContent.trim();
-      rawTitle = rawTitle.replace(/\s*[|]\s*Telegram\s*$/i, '');
-      title = rawTitle;
-    }
-    let content = '';
-    const contentSelectors = ['.tgme_widget_message_text', '.tgme_msg_text', '.tgme_message_text', '.tgme_widget_message_content .text'];
-    for (const selector of contentSelectors) {
-      const el = doc.querySelector(selector);
-      if (el && el.textContent.trim().length > 20) {
-        content = el.textContent.trim();
-        break;
-      }
-    }
-    let ingredients = [];
-    if (content) {
-      const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      for (const line of lines) {
-        if (Utils.isIngredientLine(line) && line.length < 80) {
-          ingredients.push(line);
-        }
-      }
-      if (ingredients.length === 0) {
-        const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
-        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-      }
-    }
-    if (ingredients.length === 0) {
-      ingredients = ['Ингредиенты не найдены в тексте поста. Добавьте их в заметку вручную.'];
-    }
-    return { title, ingredients, sourceType: '📱 Telegram' };
-  },
-
-  parseInstagram(doc) {
-    let title = '';
-    const pageTitle = doc.querySelector('title');
-    if (pageTitle) {
-      let rawTitle = pageTitle.textContent.trim();
-      rawTitle = rawTitle.replace(/\s*[|]\s*Instagram\s*$/i, '');
-      title = rawTitle;
-    }
-    let description = '';
-    const metaDesc = doc.querySelector('meta[name="description"]');
-    if (metaDesc) description = metaDesc.getAttribute('content') || '';
-    let ingredients = [];
-    if (description) {
-      const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      for (const line of lines) {
-        if (Utils.isIngredientLine(line) && line.length < 80) {
-          ingredients.push(line);
-        }
-      }
-      if (ingredients.length === 0) {
-        const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
-        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-      }
-    }
-    if (ingredients.length === 0) {
-      ingredients = ['Ингредиенты не найдены в описании. Добавьте их в заметку вручную.'];
-    }
-    return { title, ingredients, sourceType: '📸 Instagram' };
-  },
-
-  parsePinterest(doc) {
-    let title = '';
-    const pageTitle = doc.querySelector('title');
-    if (pageTitle) {
-      let rawTitle = pageTitle.textContent.trim();
-      rawTitle = rawTitle.replace(/\s*[|]\s*Pinterest\s*$/i, '');
-      title = rawTitle;
-    }
-    let description = '';
-    const metaDesc = doc.querySelector('meta[name="description"]');
-    if (metaDesc) description = metaDesc.getAttribute('content') || '';
-    let ingredients = [];
-    if (description) {
-      const lines = description.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      for (const line of lines) {
-        if (Utils.isIngredientLine(line) && line.length < 80) {
-          ingredients.push(line);
-        }
-      }
-      if (ingredients.length === 0) {
-        const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
-        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-      }
-    }
-    if (ingredients.length === 0) {
-      ingredients = ['Ингредиенты не найдены в описании. Добавьте их в заметку вручную.'];
-    }
-    return { title, ingredients, sourceType: '📌 Pinterest' };
-  },
-
-  parseZen(doc) {
-    let title = '';
-    const pageTitle = doc.querySelector('title');
-    if (pageTitle) {
-      let rawTitle = pageTitle.textContent.trim();
-      rawTitle = rawTitle.replace(/\s*[|]\s*Дзен\s*$/i, '');
-      rawTitle = rawTitle.replace(/\s*[|]\s*Яндекс\s*Дзен\s*$/i, '');
-      title = rawTitle;
-    }
-    let content = '';
-    const contentSelectors = ['.article-body', '.article-content', '.text-block', '.content-block', 'article .text'];
-    for (const selector of contentSelectors) {
-      const el = doc.querySelector(selector);
-      if (el && el.textContent.trim().length > 50) {
-        content = el.textContent.trim();
-        break;
-      }
-    }
-    let ingredients = [];
-    if (content) {
-      const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      for (const line of lines) {
-        if (Utils.isIngredientLine(line) && line.length < 80) {
-          ingredients.push(line);
-        }
-      }
-      if (ingredients.length === 0) {
-        const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
-        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-      }
-    }
-    if (ingredients.length === 0) {
-      ingredients = ['Ингредиенты не найдены в статье. Добавьте их в заметку вручную.'];
-    }
-    return { title, ingredients, sourceType: '📝 Яндекс.Дзен' };
-  },
-
-  parseIamCook(doc) {
-    let title = '';
-    const titleEl = doc.querySelector('h1.recipe-title, h1.title, .recipe-header h1, h1');
-    if (titleEl) title = titleEl.textContent.trim();
-    if (!title) {
-      const ogTitle = doc.querySelector('meta[property="og:title"]');
-      if (ogTitle) title = ogTitle.getAttribute('content') || '';
-    }
-    let ingredients = [];
-    const ingredientSelectors = [
-      '.ingredients-list li', '.ingredients li', '.recipe-ingredients li',
-      '.ingredient-item', '.ingredient', 'ul.ingredients li',
-      '.ingredients-list__item', '.recipe__ingredients li', '[class*="ingredient"] li'
-    ];
-    for (const selector of ingredientSelectors) {
-      const items = doc.querySelectorAll(selector);
-      if (items.length > 0) {
-        items.forEach(el => {
-          const text = el.textContent.trim();
-          if (text && text.length > 1) {
-            const clean = text.replace(/[×х]/g, '').trim();
-            if (clean.length > 1) ingredients.push(clean);
-          }
-        });
-        if (ingredients.length > 2) break;
-      }
-    }
-    if (ingredients.length === 0) {
-      const sections = doc.querySelectorAll('.recipe-content, .recipe-text, .content, .recipe, .post-content, article');
-      for (const section of sections) {
-        const text = section.textContent;
-        const match = text.match(/ингредиенты\s*[:;]\s*([^]+?)(?:приготовление|способ|пошагово|шаг|процесс|рецепт|спос)/i);
-        if (match && match[1]) {
-          const ingredientText = match[1];
-          const lines = ingredientText.split(/[\n,;]/).map(l => l.trim()).filter(l => l.length > 2);
-          const filtered = lines.filter(l => /\d/.test(l) || /(грамм|гр|мл|литр|кг|ст\.|ч\.|шт|зуб|пуч)/i.test(l));
-          ingredients = filtered.slice(0, 20);
-          break;
-        }
-      }
-    }
-    ingredients = ingredients
-      .map(i => i.replace(/^[•\-*\d.]+\s*/, '').trim())
-      .filter((v, i, a) => a.indexOf(v) === i && v.length > 2)
-      .slice(0, 20);
-    if (ingredients.length === 0) {
-      ingredients = ['Ингредиенты не найдены. Попробуйте добавить их в заметку вручную.'];
-    }
-    if (title && title.length > 60) title = title.substring(0, 57) + '...';
-    return { title, ingredients, sourceType: '🍳 iamcook.ru' };
-  },
-
-  parseVK(doc, isVideo) {
-    let title = '';
-    const pageTitle = doc.querySelector('title');
-    if (pageTitle) {
-      let rawTitle = pageTitle.textContent.trim();
-      rawTitle = rawTitle.replace(/\s*[|]\s*ВКонтакте\s*$/i, '');
-      rawTitle = rawTitle.replace(/\s*[|]\s*VK\s*$/i, '');
-      title = rawTitle;
-    }
-    let content = '';
-    if (isVideo) {
-      const descSelectors = [
-        '.video_description', '.clip_description', '.video-desc', '.clip-desc',
-        '[class*="video_description"]', '[class*="clip_description"]',
-        '.video-description', '.clip-description'
-      ];
-      for (const selector of descSelectors) {
-        const el = doc.querySelector(selector);
-        if (el && el.textContent.trim().length > 5) {
-          content = el.textContent.trim();
-          break;
-        }
-      }
-    } else {
-      const contentSelectors = [
-        '.wall_post_text', '.post_content', '.wall_text', '.post_text',
-        '.article_content', '.topic_post_text', '.page_text',
-        '.group_wall_post_text', '[class*="wall_post_text"]',
-        '[class*="post_content"]', '[class*="wall_text"]',
-        '[class*="topic_post"]', '[class*="article"]'
-      ];
-      for (const selector of contentSelectors) {
-        const el = doc.querySelector(selector);
-        if (el && el.textContent.trim().length > 20) {
-          content = el.textContent.trim();
-          break;
-        }
-      }
-    }
-    if (!content) {
-      const metaDesc = doc.querySelector('meta[name="description"]');
-      if (metaDesc) content = metaDesc.getAttribute('content') || '';
-    }
-    if (!content) {
-      const ogDesc = doc.querySelector('meta[property="og:description"]');
-      if (ogDesc) content = ogDesc.getAttribute('content') || '';
-    }
-    let ingredients = [];
-    if (content && content.length > 10) {
-      const lines = content.split('\n').map(l => l.trim()).filter(l => l.length > 0);
-      for (const line of lines) {
-        if (Utils.isIngredientLine(line) && line.length < 80) {
-          ingredients.push(line);
-        }
-      }
-      if (ingredients.length === 0) {
-        const numLines = lines.filter(l => /\d/.test(l) && l.length < 80 && l.length > 3);
-        if (numLines.length > 0) ingredients = numLines.slice(0, 15);
-      }
-    }
-    if (ingredients.length === 0) {
-      ingredients = ['Ингредиенты не найдены. Добавьте их в заметку вручную.'];
-    }
-    ingredients = ingredients.filter((v, i, a) => a.indexOf(v) === i).slice(0, 20);
-    if (title && title.length > 60) title = title.substring(0, 57) + '...';
-    const sourceType = isVideo ? '🎬 ВК Клип' : '📝 ВК Пост';
-    return { title, ingredients, sourceType };
-  }
-};
-
-// ============================================================
-// 7. ФУНКЦИИ ЭКСПОРТА / ИМПОРТА
+// 6. ФУНКЦИИ ЭКСПОРТА / ИМПОРТА
 // ============================================================
 function exportData(format) {
   const data = DishStore.getAll();
@@ -1744,164 +1482,7 @@ function importData(file) {
 }
 
 // ============================================================
-// 8. ИМПОРТ ПО ССЫЛКЕ
-// ============================================================
-function openUrlImport() {
-  document.getElementById('urlImportOverlay').classList.add('active');
-  document.getElementById('recipeUrlInput').value = '';
-  document.getElementById('urlImportStatus').innerHTML = '';
-  document.getElementById('parsedRecipeContainer').innerHTML = '';
-  document.getElementById('urlImportOverlay').focus();
-}
-
-function closeUrlImport() {
-  document.getElementById('urlImportOverlay').classList.remove('active');
-}
-
-async function fetchRecipeFromUrl(url) {
-  const statusDiv = document.getElementById('urlImportStatus');
-  const container = document.getElementById('parsedRecipeContainer');
-  const fetchBtn = document.getElementById('fetchRecipeBtn');
-
-  statusDiv.innerHTML = '';
-  container.innerHTML = '';
-  fetchBtn.disabled = true;
-  fetchBtn.textContent = '⏳ Загрузка...';
-
-  try {
-    const isYouTube = url.includes('youtube.com') || url.includes('youtu.be');
-    const isVK = url.includes('vk.com') || url.includes('vk.ru');
-    const isTelegram = url.includes('t.me') || url.includes('telegram.org');
-    const isInstagram = url.includes('instagram.com') || url.includes('instagr.am');
-    const isPinterest = url.includes('pinterest.com') || url.includes('pinterest.ru') || url.includes('pin.it');
-    const isZen = url.includes('zen.yandex.ru') || url.includes('dzen.ru');
-    const isIamCook = url.includes('iamcook.ru') || url.includes('m.iamcook.ru');
-    const isVKVideo = isVK && (url.includes('/video') || url.includes('/clip') || url.includes('video-'));
-
-    const proxyUrl = `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`;
-    const response = await fetch(proxyUrl);
-    if (!response.ok) {
-      throw new Error('Не удалось загрузить страницу. Проверьте ссылку.');
-    }
-
-    const html = await response.text();
-    const parser = new DOMParser();
-    const doc = parser.parseFromString(html, 'text/html');
-
-    let result;
-    if (isYouTube) {
-      result = Parsers.parseYouTube(doc);
-    } else if (isVK) {
-      result = Parsers.parseVK(doc, isVKVideo);
-    } else if (isTelegram) {
-      result = Parsers.parseTelegram(doc);
-    } else if (isInstagram) {
-      result = Parsers.parseInstagram(doc);
-    } else if (isPinterest) {
-      result = Parsers.parsePinterest(doc);
-    } else if (isZen) {
-      result = Parsers.parseZen(doc);
-    } else if (isIamCook) {
-      result = Parsers.parseIamCook(doc);
-    } else {
-      result = Parsers.parseGeneral(doc);
-    }
-
-    const { title, ingredients, sourceType } = result;
-    const category = Utils.guessCategory(title || '');
-    const icon = sourceType.split(' ')[0] || '🍽️';
-
-    container.innerHTML = `
-      <div class="parsed-recipe">
-        <div class="recipe-name">${icon} ${Utils.escapeHtml(title || 'Название не определено')}</div>
-        <div class="platform-badge">${sourceType}</div>
-        ${ingredients.length > 0 && !ingredients[0].includes('не найдены') ? `
-          <div class="recipe-ingredients">
-            <strong>📋 Ингредиенты:</strong>
-            <ul>
-              ${ingredients.map(i => `<li>${Utils.escapeHtml(i)}</li>`).join('')}
-            </ul>
-          </div>
-        ` : `
-          <div class="recipe-ingredients" style="color: var(--text-muted);">
-            <em>${Utils.escapeHtml(ingredients[0] || 'Ингредиенты не найдены')}</em>
-          </div>
-        `}
-        <div style="margin-top: 8px; font-size: 13px; color: var(--text-muted); background: var(--badge-bg); padding: 8px 12px; border-radius: var(--radius-sm);">
-          <strong>ℹ️</strong> Ингредиенты извлечены автоматически. Проверьте и при необходимости дополните заметку.
-        </div>
-        <div class="recipe-actions">
-          <button class="btn-add" data-name="${Utils.escapeHtml(title || 'Рецепт')}" data-note="${Utils.escapeHtml(ingredients.filter(i => !i.includes('не найдены')).slice(0, 15).join('; '))}" data-category="${category}">
-            ✅ Добавить в меню
-          </button>
-          <button class="btn-cancel" id="cancelParsedRecipe">Отмена</button>
-        </div>
-      </div>
-    `;
-
-    container.querySelector('.btn-add').addEventListener('click', function() {
-      const name = this.dataset.name;
-      const note = this.dataset.note;
-      const category = this.dataset.category;
-
-      const tomorrow = new Date();
-      tomorrow.setDate(tomorrow.getDate() + 1);
-      const dateStr = Utils.formatDateLocal(tomorrow);
-
-      let finalName = name;
-      if (finalName.length > 60) finalName = finalName.substring(0, 57) + '...';
-
-      let finalNote = note || `Импортированный рецепт (${sourceType})`;
-      if (!note || note.length < 5) {
-        finalNote = `Импортированный рецепт (${sourceType}). Проверьте ингредиенты.`;
-      }
-
-      DishStore.addDish(finalName, STATUSES.PLANNED, dateStr, category, false, finalNote);
-      closeUrlImport();
-      const view = Renderer.getCurrentView();
-      const curDate = Renderer.getCurrentDate();
-      Renderer.renderCalendar(view, curDate);
-      alert(`✅ Рецепт "${finalName}" добавлен в план на завтра (${Utils.formatDate(tomorrow)})`);
-    });
-
-    container.querySelector('#cancelParsedRecipe').addEventListener('click', function() {
-      container.innerHTML = '';
-      statusDiv.innerHTML = '';
-    });
-
-    statusDiv.innerHTML = `
-      <div class="status-message success">
-        ✅ Рецепт найден! Найдено ${ingredients.filter(i => !i.includes('не найдены')).length} ингредиентов. Источник: ${sourceType}
-      </div>
-    `;
-
-  } catch (error) {
-    statusDiv.innerHTML = `<div class="status-message error">❌ Ошибка: ${error.message}</div>`;
-    console.error('Ошибка при импорте рецепта:', error);
-  } finally {
-    fetchBtn.disabled = false;
-    fetchBtn.textContent = '🔍 Найти рецепт';
-  }
-}
-
-// ============================================================
-// 9. ПРИВЕТСТВЕННАЯ МОДАЛКА
-// ============================================================
-function showWelcome() {
-  const overlay = document.getElementById('welcomeOverlay');
-  overlay.classList.add('active');
-  document.body.style.overflow = 'hidden';
-  overlay.focus();
-}
-
-function hideWelcome() {
-  const overlay = document.getElementById('welcomeOverlay');
-  overlay.classList.remove('active');
-  document.body.style.overflow = '';
-}
-
-// ============================================================
-// 10. ФУНКЦИИ ДЛЯ РЕЦЕПТОВ И СПИСКА ПОКУПОК (обновлены)
+// 7. ФУНКЦИИ ДЛЯ РЕЦЕПТОВ И СПИСКА ПОКУПОК
 // ============================================================
 
 // --- Отделы магазина ---
@@ -2062,9 +1643,8 @@ function parseRecipeTextFromForm() {
   }
 }
 
-// --- Список покупок (обновлённая логика с редактируемым текстом) ---
+// --- Список покупок ---
 
-// Получить все сохранённые ключи списков
 function getSavedShoppingListKeys() {
   const keys = [];
   for (let i = 0; i < localStorage.length; i++) {
@@ -2073,10 +1653,9 @@ function getSavedShoppingListKeys() {
       keys.push(key);
     }
   }
-  return keys.sort(); // по дате
+  return keys.sort();
 }
 
-// Открыть модалку списка покупок
 function openShoppingList() {
   document.getElementById('shoppingListOverlay').classList.add('active');
   document.getElementById('shoppingListDisplay').style.display = 'none';
@@ -2093,7 +1672,6 @@ function closeShoppingList() {
   document.getElementById('shoppingListOverlay').classList.remove('active');
 }
 
-// Рендерим список сохранённых дат/периодов
 function renderSavedLists() {
   const container = document.getElementById('savedListsList');
   const keys = getSavedShoppingListKeys();
@@ -2142,7 +1720,6 @@ function renderSavedLists() {
     });
     item.appendChild(deleteBtn);
 
-    // Клик загружает список
     item.addEventListener('click', function() {
       loadShoppingList(key);
     });
@@ -2151,19 +1728,16 @@ function renderSavedLists() {
   });
 }
 
-// Загрузить и отобразить конкретный список по ключу
 function loadShoppingList(key) {
   const saved = localStorage.getItem(key);
   if (!saved) {
     alert('Список не найден');
     return;
   }
-  // Старый формат мог быть JSON, новый - plain text
   let text = saved;
   try {
     const parsed = JSON.parse(saved);
     if (parsed.groups) {
-      // Старый формат – преобразуем в текст
       let txt = '';
       const sorted = Object.keys(parsed.groups).sort();
       for (const dept of sorted) {
@@ -2175,9 +1749,7 @@ function loadShoppingList(key) {
       }
       text = txt;
     }
-  } catch(e) {
-    // Это plain text, оставляем как есть
-  }
+  } catch(e) {}
 
   document.getElementById('savedListsContainer').style.display = 'none';
   const displayDiv = document.getElementById('shoppingListDisplay');
@@ -2186,7 +1758,6 @@ function loadShoppingList(key) {
   const resultTextarea = document.getElementById('shoppingListResult');
   resultTextarea.value = text;
 
-  // Определяем метку периода для заголовка
   let periodLabel = '';
   if (key.startsWith('shoppingList_range_')) {
     const parts = key.replace('shoppingList_range_', '').split('_to_');
@@ -2203,15 +1774,9 @@ function loadShoppingList(key) {
     const dateStr = key.replace('shoppingList_', '');
     periodLabel = Utils.formatDate(new Date(dateStr));
   }
-  // Добавим заголовок над textarea (можно через placeholder или отдельный элемент)
-  // Уже есть placeholder, но добавим сверху
-  const header = document.createElement('div');
-  header.style.cssText = 'margin-bottom:8px;font-size:14px;color:var(--text-secondary);';
-  header.textContent = `Список на ${periodLabel}`;
-  // Вставим перед textarea
+
   const container = displayDiv;
   const textarea = document.getElementById('shoppingListResult');
-  // Удалим старый заголовок, если есть
   const oldHeader = container.querySelector('.list-header');
   if (oldHeader) oldHeader.remove();
   const newHeader = document.createElement('div');
@@ -2221,11 +1786,10 @@ function loadShoppingList(key) {
   container.insertBefore(newHeader, textarea);
 
   displayDiv.dataset.currentKey = key;
-  document.getElementById('saveCurrentListBtn').style.display = 'none'; // уже сохранено
+  document.getElementById('saveCurrentListBtn').style.display = 'none';
   document.getElementById('deleteCurrentListBtn').style.display = 'inline-block';
 }
 
-// Собрать новый список за период (предварительный, без сохранения)
 function generateShoppingList() {
   const fromDate = document.getElementById('shoppingDateFrom').value;
   const toDate = document.getElementById('shoppingDateTo').value;
@@ -2265,7 +1829,6 @@ function generateShoppingList() {
     return;
   }
 
-  // Группируем по отделам и формируем текст
   const grouped = {};
   items.forEach(ing => {
     const dept = classifyIngredient(ing);
@@ -2283,14 +1846,12 @@ function generateShoppingList() {
     text += '\n';
   }
 
-  // Показываем предварительный список в textarea
   document.getElementById('savedListsContainer').style.display = 'none';
   const displayDiv = document.getElementById('shoppingListDisplay');
   displayDiv.style.display = 'block';
 
   const resultTextarea = document.getElementById('shoppingListResult');
   const periodLabel = fromDate === toDate ? Utils.formatDate(new Date(fromDate)) : `${Utils.formatDate(new Date(fromDate))} — ${Utils.formatDate(new Date(toDate))}`;
-  // Добавим заголовок
   const container = displayDiv;
   const oldHeader = container.querySelector('.list-header');
   if (oldHeader) oldHeader.remove();
@@ -2304,13 +1865,12 @@ function generateShoppingList() {
 
   displayDiv.dataset.fromDate = fromDate;
   displayDiv.dataset.toDate = toDate;
-  displayDiv.dataset.generatedGroups = JSON.stringify(grouped); // сохраняем структуру на случай, если понадобится
+  displayDiv.dataset.generatedGroups = JSON.stringify(grouped);
 
   document.getElementById('saveCurrentListBtn').style.display = 'inline-block';
   document.getElementById('deleteCurrentListBtn').style.display = 'none';
 }
 
-// Сохранить текущий список (из textarea)
 function saveCurrentList() {
   const displayDiv = document.getElementById('shoppingListDisplay');
   const fromDate = displayDiv.dataset.fromDate;
@@ -2342,12 +1902,10 @@ function saveCurrentList() {
   delete displayDiv.dataset.generatedGroups;
   delete displayDiv.dataset.fromDate;
   delete displayDiv.dataset.toDate;
-  // Удаляем заголовок
   const header = displayDiv.querySelector('.list-header');
   if (header) header.remove();
 }
 
-// Удалить текущий список (кнопка удаления в режиме просмотра)
 function deleteCurrentList() {
   const displayDiv = document.getElementById('shoppingListDisplay');
   const key = displayDiv.dataset.currentKey;
@@ -2359,14 +1917,12 @@ function deleteCurrentList() {
   renderSavedLists();
 }
 
-// Вернуться к списку сохранённых
 function backToSavedLists() {
   document.getElementById('shoppingListDisplay').style.display = 'none';
   document.getElementById('savedListsContainer').style.display = 'block';
   renderSavedLists();
 }
 
-// Экспорт текущего списка в .txt
 function exportShoppingListTxt() {
   const text = document.getElementById('shoppingListResult').value;
   if (!text.trim()) {
@@ -2382,7 +1938,6 @@ function exportShoppingListTxt() {
   URL.revokeObjectURL(a.href);
 }
 
-// Инициализация обработчиков для списка покупок
 function initShoppingListHandlers() {
   document.getElementById('generateShoppingListBtn').addEventListener('click', generateShoppingList);
   document.getElementById('saveCurrentListBtn').addEventListener('click', saveCurrentList);
@@ -2392,7 +1947,7 @@ function initShoppingListHandlers() {
 }
 
 // ============================================================
-// 11. ИНИЦИАЛИЗАЦИЯ
+// 8. ИНИЦИАЛИЗАЦИЯ
 // ============================================================
 (function init() {
   RecipeStore.init();
@@ -2513,7 +2068,6 @@ function initShoppingListHandlers() {
   const modals = [
     { overlay: document.getElementById('modalOverlay'), close: Renderer.closeModal },
     { overlay: document.getElementById('recOverlay'), close: Renderer.closeRecModal },
-    { overlay: document.getElementById('urlImportOverlay'), close: closeUrlImport },
     { overlay: document.getElementById('addModalOverlay'), close: Renderer.closeAddModal },
     { overlay: document.getElementById('exportModalOverlay'), close: () => document.getElementById('exportModalOverlay').classList.remove('active') },
     { overlay: document.getElementById('choiceOverlay'), close: () => document.getElementById('choiceOverlay').classList.remove('active') },
@@ -2540,7 +2094,6 @@ function initShoppingListHandlers() {
         const id = activeModal.id;
         if (id === 'modalOverlay') Renderer.closeModal();
         else if (id === 'recOverlay') Renderer.closeRecModal();
-        else if (id === 'urlImportOverlay') closeUrlImport();
         else if (id === 'addModalOverlay') Renderer.closeAddModal();
         else if (id === 'exportModalOverlay') document.getElementById('exportModalOverlay').classList.remove('active');
         else if (id === 'choiceOverlay') document.getElementById('choiceOverlay').classList.remove('active');
@@ -2555,7 +2108,6 @@ function initShoppingListHandlers() {
   // Кнопки закрытия
   document.getElementById('modalClose').addEventListener('click', Renderer.closeModal);
   document.getElementById('recClose').addEventListener('click', Renderer.closeRecModal);
-  document.getElementById('urlImportClose').addEventListener('click', closeUrlImport);
   document.getElementById('addModalClose').addEventListener('click', Renderer.closeAddModal);
   document.getElementById('addModalCancel').addEventListener('click', Renderer.closeAddModal);
   document.getElementById('exportModalClose').addEventListener('click', () => document.getElementById('exportModalOverlay').classList.remove('active'));
@@ -2572,7 +2124,7 @@ function initShoppingListHandlers() {
   });
   document.getElementById('choiceFromMenu').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
-    Renderer.openRecommendations();
+    Renderer.showCategorySelection(); // теперь выбор категории
   });
   document.getElementById('choiceFromTaste').addEventListener('click', function() {
     document.getElementById('choiceOverlay').classList.remove('active');
@@ -2588,6 +2140,11 @@ function initShoppingListHandlers() {
       Renderer.renderCalendar(view, curDate);
       alert(`✅ Блюдо "${random.name}" добавлено в план на завтра (${Utils.formatDate(tomorrow)})`);
     }
+  });
+  // Добавляем обработчик для "Из рецептов"
+  document.getElementById('choiceFromRecipes').addEventListener('click', function() {
+    document.getElementById('choiceOverlay').classList.remove('active');
+    openRecipesModal();
   });
 
   document.getElementById('favoritesBtn').addEventListener('click', Renderer.openFavorites);
@@ -2618,27 +2175,6 @@ function initShoppingListHandlers() {
     Renderer.renderCalendar(view, curDate);
     nameInput.value = '';
     noteInput.value = '';
-  });
-
-  // URL импорт
-  document.getElementById('importUrlBtn').addEventListener('click', openUrlImport);
-  document.getElementById('fetchRecipeBtn').addEventListener('click', function() {
-    const url = document.getElementById('recipeUrlInput').value.trim();
-    if (!url) {
-      document.getElementById('urlImportStatus').innerHTML = `<div class="status-message error">❌ Введите ссылку на рецепт</div>`;
-      return;
-    }
-    if (!url.startsWith('http://') && !url.startsWith('https://')) {
-      document.getElementById('urlImportStatus').innerHTML = `<div class="status-message error">❌ Ссылка должна начинаться с http:// или https://</div>`;
-      return;
-    }
-    fetchRecipeFromUrl(url);
-  });
-  document.getElementById('recipeUrlInput').addEventListener('keydown', function(e) {
-    if (e.key === 'Enter') {
-      e.preventDefault();
-      document.getElementById('fetchRecipeBtn').click();
-    }
   });
 
   // Экспорт
@@ -2672,7 +2208,7 @@ function initShoppingListHandlers() {
   document.getElementById('recipeFormSave').addEventListener('click', saveRecipeForm);
   document.getElementById('recipeParseBtn').addEventListener('click', parseRecipeTextFromForm);
 
-  // Список покупок – инициализация обработчиков
+  // Список покупок
   initShoppingListHandlers();
 
   // Свайпы
@@ -2716,7 +2252,20 @@ function initShoppingListHandlers() {
     }
   });
 
+  // Приветственная модалка
+  function showWelcome() {
+    const overlay = document.getElementById('welcomeOverlay');
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+    overlay.focus();
+  }
+
+  function hideWelcome() {
+    const overlay = document.getElementById('welcomeOverlay');
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+  }
+
   console.log('✅ Планировщик меню готов!');
-  console.log('📱 Поддерживаются: YouTube, VK, Telegram, Instagram, Pinterest, Яндекс.Дзен, iamcook.ru, Сайты');
   console.log('📖 Добавлена поддержка рецептов и списка покупок с сохранением и группировкой по отделам.');
 })();
