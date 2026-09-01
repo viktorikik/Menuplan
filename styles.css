@@ -64,9 +64,9 @@ body.dark-theme {
   --bg-primary: #0f0f17;
   --bg-app: rgba(25, 25, 38, 0.95);
   --bg-app-border: rgba(255, 255, 255, 0.06);
-  --text-primary: #ececf0;
-  --text-secondary: #b0b0c8;
-  --text-muted: #a0a0b8; /* сделали светлее для лучшей читаемости */
+  --text-primary: #f0f0f5;
+  --text-secondary: #c8c8e0;
+  --text-muted: #a8a8c0;
   --cell-bg: rgba(40, 40, 56, 0.6);
   --cell-border: rgba(255, 255, 255, 0.08);
   --tag-bg: rgba(45, 45, 65, 0.7);
@@ -84,7 +84,7 @@ body.dark-theme {
   --modal-overlay: rgba(0, 0, 0, 0.7);
   --modal-bg: #1e1e2e;
   --day-hover: rgba(255, 255, 255, 0.05);
-  --modal-text: #ececf0;
+  --modal-text: #f0f0f5;
   --chip-bg: rgba(45, 45, 65, 0.7);
   --week-row-bg: rgba(40, 40, 56, 0.5);
   --menu-item-bg: rgba(40, 40, 56, 0.5);
@@ -1582,6 +1582,48 @@ body.dark-theme #savedListsContainer h4 {
 }
 
 /* ============================================================
+   БЛОК ЭКСПОРТА/ИМПОРТА – улучшена адаптивность
+   ============================================================ */
+.backup-section {
+  margin-top: 24px;
+  padding-top: 16px;
+  border-top: 2px solid var(--cell-border);
+  text-align: center;
+}
+.backup-row {
+  display: flex;
+  justify-content: center;
+  gap: var(--spacing-md);
+  flex-wrap: wrap;
+}
+.backup-row .btn {
+  min-width: 140px;
+  max-width: 200px;
+}
+.backup-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+  line-height: 1.5;
+}
+.backup-hint strong {
+  color: var(--text-primary);
+}
+
+@media (max-width: 480px) {
+  .backup-row .btn {
+    min-width: 120px;
+    max-width: 160px;
+    font-size: 13px;
+    padding: var(--spacing-xs) var(--spacing-sm);
+  }
+  .backup-section {
+    margin-top: 16px;
+    padding-top: 12px;
+  }
+}
+
+/* ============================================================
    АДАПТИВНОСТЬ
    ============================================================ */
 @media (max-width: 480px) {
@@ -1714,11 +1756,6 @@ body.dark-theme #savedListsContainer h4 {
   .month-nav-wrapper {
     flex: 1 1 auto;
   }
-  .backup-section .backup-row .btn {
-    min-width: 120px;
-    max-width: 160px;
-    font-size: 13px;
-  }
 }
 
 @media (min-width: 480px) {
@@ -1827,32 +1864,6 @@ body.dark-theme #savedListsContainer h4 {
 
   .btn-row.center-row .btn {
     max-width: 200px;
-  }
-
-  .backup-section {
-    margin-top: 24px;
-    padding-top: 16px;
-    border-top: 2px solid var(--cell-border);
-    text-align: center;
-  }
-  .backup-row {
-    display: flex;
-    justify-content: center;
-    gap: var(--spacing-md);
-    flex-wrap: wrap;
-  }
-  .backup-row .btn {
-    min-width: 140px;
-    max-width: 200px;
-  }
-  .backup-hint {
-    margin-top: 8px;
-    font-size: 13px;
-    color: var(--text-muted);
-    line-height: 1.5;
-  }
-  .backup-hint strong {
-    color: var(--text-primary);
   }
 }
 
